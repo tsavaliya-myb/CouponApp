@@ -1,0 +1,79 @@
+name: coupon_customer
+description: "Customer App for the CouponApp platform — ₹1000 subscription, coupon book, QR redemption."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # Architecture & State
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  go_router: ^13.0.0
+
+  # Network
+  dio: ^5.4.0
+  pretty_dio_logger: ^1.3.1
+  connectivity_plus: ^6.0.3
+
+  # Local Storage
+  flutter_secure_storage: ^9.0.0
+  hive_flutter: ^1.1.0
+  shared_preferences: ^2.2.3
+
+  # QR
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^5.1.0
+
+  # Security
+  crypto: ^3.0.3
+  encrypt: ^5.0.3
+
+  # Payments
+  razorpay_flutter: ^1.3.6
+
+  # Firebase removed as per user request
+
+  # UI & UX
+  google_fonts: ^6.2.1
+  cached_network_image: ^3.3.1
+  flutter_animate: ^4.5.0
+  shimmer: ^3.0.0
+  fluttertoast: ^8.2.4
+  image_picker: ^1.1.2
+
+  # Utils
+  intl: ^0.19.0
+  logger: ^2.2.0
+  uuid: ^4.4.0
+  equatable: ^2.0.5
+  dartz: ^0.10.1
+  get_it: ^7.7.0
+  injectable: ^2.4.1
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.9
+  freezed: ^2.5.2
+  json_serializable: ^6.7.1
+  riverpod_generator: ^2.4.0
+  injectable_generator: ^2.4.1
+  mockito: ^5.4.4
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
