@@ -9,6 +9,7 @@ import '../security/qr_token_service.dart';
 import '../security/token_service.dart';
 import '../storage/hive_service.dart';
 import '../storage/secure_storage.dart';
+import '../../services/notification_service.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -39,6 +40,8 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<QrTokenService>(() => QrTokenService());
 
   getIt.registerLazySingleton<HiveService>(() => HiveService());
+
+  getIt.registerLazySingleton<NotificationService>(() => NotificationService());
 
   // ---------------------------------------------------------------------------
   // Network

@@ -13,8 +13,8 @@ import 'services/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Setup environment config (dev flavor)
-  AppConfig.setup(AppConfig.dev());
+  // 1. Setup environment config (prod flavor only)
+  AppConfig.setup(AppConfig.prod());
 
   // 2. Firebase removed
 

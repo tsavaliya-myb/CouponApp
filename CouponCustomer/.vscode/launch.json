@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Flutter (Debug)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define=RAZORPAY_KEY=rzp_live_xxx",
+                "--dart-define=QR_SECRET_KEY=your_32_char_key"
+            ]
+        },
+        {
+            "name": "Flutter (Release)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "flutterMode": "release",
+            "args": [
+                "--dart-define=RAZORPAY_KEY=rzp_live_xxx",
+                "--dart-define=QR_SECRET_KEY=your_32_char_key"
+            ]
+        }
+    ]
+}

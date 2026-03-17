@@ -1,0 +1,16 @@
+// lib/features/home/domain/repositories/home_repository.dart
+import 'package:dartz/dartz.dart';
+import '../../../../core/error/failures.dart';
+import '../entities/home_coupon_entity.dart';
+import '../entities/nearby_seller_entity.dart';
+
+abstract class HomeRepository {
+  Future<Either<Failure, List<HomeCouponEntity>>> getFeaturedCoupons({
+    required String category,
+    required int page,
+  });
+
+  Future<Either<Failure, List<NearbySellerEntity>>> getNearbySellers({
+    required int page,
+  });
+}

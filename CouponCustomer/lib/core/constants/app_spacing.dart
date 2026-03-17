@@ -14,6 +14,9 @@ class AppSpacing {
   static const double xxxl = 32.0;
   static const double huge = 48.0;
 
+  // Screen horizontal padding
+  static const double screenPadding = 20.0;
+
   // Radius
   static const double radiusSm  = 8.0;
   static const double radiusMd  = 12.0;

@@ -34,16 +34,6 @@ class AppConfig {
   // Flavors
   // ---------------------------------------------------------------------------
 
-  factory AppConfig.dev() => const AppConfig(
-        appName: 'CouponApp Dev',
-        baseUrl: 'https://dev-api.couponapp.in/v1',
-        razorpayKey: String.fromEnvironment('RAZORPAY_KEY', defaultValue: 'rzp_test_placeholder'),
-        qrSecretKey: String.fromEnvironment('QR_SECRET_KEY', defaultValue: 'dev_secret_32_chars_placeholder!'),
-        appVersion: '1.0.0',
-        enableAnalytics: false,
-        enablePerformance: false,
-      );
-
   factory AppConfig.prod() => const AppConfig(
         appName: 'CouponApp',
         baseUrl: 'https://api.couponapp.in/v1',

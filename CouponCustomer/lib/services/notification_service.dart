@@ -1,9 +1,7 @@
 // lib/services/notification_service.dart
-import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 
 /// Handles push notifications (Stub Version)
-@singleton
 class NotificationService {
   final Logger _log = Logger();
 
