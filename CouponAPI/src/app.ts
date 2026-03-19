@@ -1,0 +1,54 @@
+import express, { Express } from 'express';
+import morgan from 'morgan';
+import { applySecurityMiddleware } from './shared/middlewares/security';
+import { errorHandler, notFoundHandler } from './shared/middlewares/errorHandler';
+import { logger } from './config/logger';
+import { env } from './config/env';
+import { apiRouter } from './routes';
+
+export function createApp(): Express {
+  const app = express();
+
+  // Trust proxy (for nginx/load balancers in production)
+  if (env.isProduction) app.set('trust proxy', 1);
+
+  // Security middleware stack
+  applySecurityMiddleware(app);
+
+  // Body parsing
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+  // HTTP request logging (skip /health to reduce noise)
+  app.use(
+    morgan('combined', {
+      stream: { write: (msg) => logger.http(msg.trim()) },
+      skip: (req) => req.path === '/health',
+    })
+  );
+
+  // Health check endpoint (no auth, no rate limit)
+  app.get('/health', (_req, res) => {
+    res.json({
+      status:      'ok',
+      timestamp:   new Date().toISOString(),
+      uptime:      process.uptime(),
+      environment: env.NODE_ENV,
+    });
+  });
+
+  // API routes (versioned)
+  app.use('/api/v1', apiRouter);
+
+  // Swagger Documentation
+  if (!env.isProduction) {
+    const { setupSwagger } = require('./config/swagger');
+    setupSwagger(app);
+  }
+
+  // 404 + global error handler — must be last
+  app.use(notFoundHandler);
+  app.use(errorHandler);
+
+  return app;
+}

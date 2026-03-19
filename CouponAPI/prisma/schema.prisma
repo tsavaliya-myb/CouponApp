@@ -1,0 +1,379 @@
+// Coupon App — Prisma Schema
+// Database: PostgreSQL 16
+// All status/type fields use Prisma enums for type safety
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────
+
+enum CityStatus {
+  ACTIVE
+  COMING_SOON
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum SellerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum SellerCategory {
+  FOOD
+  SALON
+  THEATER
+  SPA
+  CAFE
+  OTHER
+}
+
+enum CouponType {
+  STANDARD
+  BOGO // Buy One Get One
+}
+
+enum CouponStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum UserCouponStatus {
+  ACTIVE
+  USED
+  EXPIRED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+}
+
+enum WalletTransactionType {
+  EARNED
+  USED
+}
+
+enum SettlementStatus {
+  PENDING
+  PAID
+}
+
+enum NotificationTargetType {
+  USER
+  CITY
+  GLOBAL
+}
+
+// ─────────────────────────────────────────
+// GEOGRAPHY
+// ─────────────────────────────────────────
+
+model City {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  status    CityStatus @default(COMING_SOON)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  areas   Area[]
+  users   User[]
+  sellers Seller[]
+
+  @@map("cities")
+}
+
+model Area {
+  id        String   @id @default(uuid())
+  name      String
+  cityId    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  city    City     @relation(fields: [cityId], references: [id])
+  users   User[]
+  sellers Seller[]
+
+  @@unique([name, cityId]) // Same area name can exist across different cities
+  @@map("areas")
+}
+
+// ─────────────────────────────────────────
+// USERS (Customers)
+// ─────────────────────────────────────────
+
+model User {
+  id        String     @id @default(uuid())
+  phone     String     @unique
+  name      String?
+  email     String?
+  cityId    String?
+  areaId    String?
+  status    UserStatus @default(ACTIVE)
+  // OneSignal player ID for push notifications
+  onesignalPlayerId String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  city         City?                @relation(fields: [cityId], references: [id])
+  area         Area?                @relation(fields: [areaId], references: [id])
+  subscription Subscription?
+  wallet       WalletTransaction[]
+  redemptions  Redemption[]
+
+  @@map("users")
+}
+
+model Subscription {
+  id        String             @id @default(uuid())
+  userId    String             @unique
+  startDate DateTime
+  endDate   DateTime
+  status    SubscriptionStatus @default(ACTIVE)
+  // Razorpay references
+  razorpayOrderId   String?
+  razorpayPaymentId String? @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id])
+  couponBook CouponBook?
+
+  @@map("subscriptions")
+}
+
+// ─────────────────────────────────────────
+// WALLET & COINS
+// ─────────────────────────────────────────
+
+model WalletTransaction {
+  id           String                @id @default(uuid())
+  userId       String
+  type         WalletTransactionType
+  amount       Int                   // in coins (1 coin = ₹1)
+  redemptionId String?               // populated when type = USED
+  note         String?               // e.g. "Welcome bonus", "Renewal reward"
+  createdAt    DateTime              @default(now())
+
+  user       User        @relation(fields: [userId], references: [id])
+  redemption Redemption? @relation(fields: [redemptionId], references: [id])
+
+  @@map("wallet_transactions")
+}
+
+// ─────────────────────────────────────────
+// SELLERS (Business Partners)
+// ─────────────────────────────────────────
+
+model Seller {
+  id             String         @id @default(uuid())
+  businessName   String
+  category       SellerCategory @default(OTHER)
+  cityId         String
+  areaId         String
+  address        String?
+  phone          String         @unique
+  email          String?
+  upiId          String?
+  // Location for distance-based sorting
+  latitude       Float?
+  longitude      Float?
+  // Operating hours (free-form, e.g. "Mon–Sat, 10am–9pm")
+  operatingHours String?
+  // Commission default for all coupons of this seller; can be overridden per coupon
+  commissionPct  Float          @default(5)
+  status         SellerStatus   @default(PENDING)
+  // OneSignal player ID for push notifications
+  onesignalPlayerId String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  city        City         @relation(fields: [cityId], references: [id])
+  area        Area         @relation(fields: [areaId], references: [id])
+  coupons     Coupon[]
+  redemptions Redemption[]
+  settlements Settlement[]
+
+  @@map("sellers")
+}
+
+// ─────────────────────────────────────────
+// COUPONS & COUPON BOOKS
+// ─────────────────────────────────────────
+
+model Coupon {
+  id                 String       @id @default(uuid())
+  sellerId           String
+  // Discount the user sees (e.g. 20%)
+  discountPct        Float
+  // Hidden admin commission on top (e.g. 5% — seller gives 25% total)
+  adminCommissionPct Float        @default(5)
+  // Optional minimum bill amount for this coupon to be valid
+  minSpend           Float?
+  // Max times this coupon can be used per coupon book validity period
+  maxUsesPerBook     Int          @default(1)
+  type               CouponType   @default(STANDARD)
+  status             CouponStatus @default(ACTIVE)
+  // Whether this coupon is part of the base city set
+  isBaseCoupon       Boolean      @default(false)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  seller      Seller       @relation(fields: [sellerId], references: [id])
+  userCoupons UserCoupon[]
+
+  @@map("coupons")
+}
+
+model CouponBook {
+  id             String   @id @default(uuid())
+  subscriptionId String   @unique
+  userId         String
+  validFrom      DateTime
+  validUntil     DateTime
+  createdAt      DateTime @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+  userCoupons  UserCoupon[]
+
+  @@map("coupon_books")
+}
+
+model UserCoupon {
+  id            String           @id @default(uuid())
+  couponBookId  String
+  couponId      String
+  usesRemaining Int
+  status        UserCouponStatus @default(ACTIVE)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  couponBook  CouponBook   @relation(fields: [couponBookId], references: [id])
+  coupon      Coupon       @relation(fields: [couponId], references: [id])
+  redemptions Redemption[]
+
+  @@unique([couponBookId, couponId])
+  @@map("user_coupons")
+}
+
+// ─────────────────────────────────────────
+// REDEMPTIONS
+// ─────────────────────────────────────────
+
+model Redemption {
+  id             String   @id @default(uuid())
+  userCouponId   String
+  sellerId       String
+  userId         String
+  billAmount     Float
+  discountAmount Float
+  coinsUsed      Int      @default(0)
+  // billAmount - discountAmount - (coinsUsed * 1)
+  finalAmount    Float
+  redeemedAt     DateTime @default(now())
+
+  userCoupon         UserCoupon          @relation(fields: [userCouponId], references: [id])
+  seller             Seller              @relation(fields: [sellerId], references: [id])
+  user               User                @relation(fields: [userId], references: [id])
+  walletTransactions WalletTransaction[]
+  settlementLine     SettlementLine?
+
+  @@map("redemptions")
+}
+
+// ─────────────────────────────────────────
+// SETTLEMENTS (Weekly commission tracking)
+// ─────────────────────────────────────────
+
+model Settlement {
+  id    String   @id @default(uuid())
+  sellerId  String
+  weekStart DateTime
+  weekEnd   DateTime
+  // Commission owed BY seller TO admin
+  commissionTotal        Float            @default(0)
+  commissionStatus       SettlementStatus @default(PENDING)
+  commissionPaidAt       DateTime?
+  // Coin compensation owed BY admin TO seller
+  coinCompensationTotal  Float            @default(0)
+  coinCompStatus         SettlementStatus @default(PENDING)
+  coinCompPaidAt         DateTime?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  seller          Seller           @relation(fields: [sellerId], references: [id])
+  settlementLines SettlementLine[]
+
+  @@unique([sellerId, weekStart])
+  @@map("settlements")
+}
+
+model SettlementLine {
+  id           String   @id @default(uuid())
+  settlementId String
+  redemptionId String   @unique
+  billAmount   Float
+  commissionAmt Float
+  coinCompAmt  Float    @default(0)
+  createdAt    DateTime @default(now())
+
+  settlement Settlement @relation(fields: [settlementId], references: [id])
+  redemption Redemption @relation(fields: [redemptionId], references: [id])
+
+  @@map("settlement_lines")
+}
+
+// ─────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────
+
+model NotificationLog {
+  id         String                 @id @default(uuid())
+  type       String                 // e.g. "expiry_reminder_7d", "redemption_confirmation"
+  targetType NotificationTargetType
+  targetId   String?                // userId or cityId; null for GLOBAL
+  title      String
+  body       String
+  // OneSignal notification id for delivery tracking
+  onesignalId String?
+  sentAt     DateTime               @default(now())
+
+  @@map("notification_logs")
+}
+
+// ─────────────────────────────────────────
+// ADMIN & APP SETTINGS
+// ─────────────────────────────────────────
+
+model Admin {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model AppSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String   // stored as string; parsed by the service layer
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
+}
