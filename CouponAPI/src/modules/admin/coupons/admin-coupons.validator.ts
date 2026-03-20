@@ -37,6 +37,45 @@ export const syncBaseCouponsSchema = z.object({
   couponIds: z.array(z.string().uuid()),
 });
 
+// ─── Response Schemas ─────────────────────────────────────────────────────────
+
+export const baseCouponResponseSchema = z.object({
+  id: z.string().uuid(),
+  sellerId: z.string().uuid(),
+  discountPct: z.number(),
+  adminCommissionPct: z.number(),
+  minSpend: z.number().nullable(),
+  maxUsesPerBook: z.number(),
+  type: z.nativeEnum(CouponType),
+  isBaseCoupon: z.boolean(),
+  status: z.enum(['ACTIVE', 'INACTIVE']),
+  createdAt: z.date().or(z.string()),
+  updatedAt: z.date().or(z.string()),
+});
+
+export const couponWithSellerResponseSchema = baseCouponResponseSchema.extend({
+  seller: z.object({
+    businessName: z.string(),
+    city: z.object({
+      name: z.string(),
+    }).optional(),
+  }).optional(),
+});
+
+export const paginatedCouponsResponseSchema = z.object({
+  data: z.array(couponWithSellerResponseSchema),
+  meta: z.object({
+    total: z.number(),
+    page: z.number(),
+    limit: z.number(),
+    totalPages: z.number(),
+  }),
+});
+
+export type BaseCouponResponse = z.infer<typeof baseCouponResponseSchema>;
+export type CouponWithSellerResponse = z.infer<typeof couponWithSellerResponseSchema>;
+export type PaginatedCouponsResponse = z.infer<typeof paginatedCouponsResponseSchema>;
+
 // ─── Inferred Types ───────────────────────────────────────────────────────────
 export type AdminCouponsQueryDto = z.infer<typeof adminCouponsQuerySchema>;
 export type CreateCouponDto = z.infer<typeof createCouponSchema>;

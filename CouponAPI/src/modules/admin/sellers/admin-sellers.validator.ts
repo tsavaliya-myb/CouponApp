@@ -25,6 +25,47 @@ export const adminUpdateSellerSchema = z.object({
   commissionPct: z.number().min(0).max(100).optional(), // Admin specific override
 });
 
+// ─── Response Schemas ─────────────────────────────────────────────────────────
+
+export const baseSellerResponseSchema = z.object({
+  id: z.string().uuid(),
+  businessName: z.string(),
+  phone: z.string(),
+  email: z.string().nullable(),
+  category: z.nativeEnum(SellerCategory),
+  cityId: z.string().uuid(),
+  areaId: z.string().uuid(),
+  address: z.string().nullable(),
+  latitude: z.number().nullable(),
+  longitude: z.number().nullable(),
+  upiId: z.string().nullable(),
+  operatingHours: z.string().nullable(),
+  commissionPct: z.number(),
+  status: z.nativeEnum(SellerStatus),
+  onesignalPlayerId: z.string().nullable(),
+  createdAt: z.date().or(z.string()),
+  updatedAt: z.date().or(z.string()),
+});
+
+export const sellerWithLocationResponseSchema = baseSellerResponseSchema.extend({
+  city: z.object({ name: z.string() }).optional(),
+  area: z.object({ name: z.string() }).optional(),
+});
+
+export const paginatedSellersResponseSchema = z.object({
+  data: z.array(sellerWithLocationResponseSchema),
+  meta: z.object({
+    total: z.number(),
+    page: z.number(),
+    limit: z.number(),
+    totalPages: z.number(),
+  }),
+});
+
+export type BaseSellerResponse = z.infer<typeof baseSellerResponseSchema>;
+export type SellerWithLocationResponse = z.infer<typeof sellerWithLocationResponseSchema>;
+export type PaginatedSellersResponse = z.infer<typeof paginatedSellersResponseSchema>;
+
 // ─── Inferred Types ───────────────────────────────────────────────────────────
 export type AdminSellersQueryDto = z.infer<typeof adminSellersQuerySchema>;
 export type AdminUpdateSellerDto = z.infer<typeof adminUpdateSellerSchema>;

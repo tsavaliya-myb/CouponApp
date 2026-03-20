@@ -1,6 +1,13 @@
 import { openApiRegistry } from '../../../config/swagger';
 import { z } from 'zod';
-import { adminUsersQuerySchema, awardCoinsSchema } from './admin-users.validator';
+import { 
+  adminUsersQuerySchema, 
+  awardCoinsSchema,
+  baseUserResponseSchema,
+  paginatedUsersResponseSchema,
+  userDetailsResponseSchema,
+  awardCoinsResponseSchema,
+} from './admin-users.validator';
 import { PAGINATION } from '../../../shared/constants';
 
 const errorResponse = z.object({
@@ -35,13 +42,8 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.array(z.any()), // simplified for brevity
-            meta: z.object({
-              total: z.number(),
-              page: z.number(),
-              limit: z.number(),
-              totalPages: z.number(),
-            }),
+            data: paginatedUsersResponseSchema.shape.data,
+            meta: paginatedUsersResponseSchema.shape.meta,
           }),
         },
       },
@@ -67,7 +69,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.any(), // full relation tree
+            data: userDetailsResponseSchema,
           }),
         },
       },
@@ -93,10 +95,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({
-              id: z.string().uuid(),
-              status: z.enum(['ACTIVE', 'BLOCKED']),
-            }),
+            data: baseUserResponseSchema,
           }),
         },
       },
@@ -125,10 +124,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({
-              message: z.string(),
-              transaction: z.any(),
-            }),
+            data: awardCoinsResponseSchema,
           }),
         },
       },

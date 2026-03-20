@@ -1,6 +1,14 @@
 import { openApiRegistry } from '../../../config/swagger';
 import { z } from 'zod';
-import { adminCouponsQuerySchema, createCouponSchema, updateCouponSchema, syncBaseCouponsSchema } from './admin-coupons.validator';
+import { 
+  adminCouponsQuerySchema, 
+  createCouponSchema, 
+  updateCouponSchema, 
+  syncBaseCouponsSchema,
+  baseCouponResponseSchema,
+  couponWithSellerResponseSchema,
+  paginatedCouponsResponseSchema,
+} from './admin-coupons.validator';
 import { PAGINATION } from '../../../shared/constants';
 import { CouponType } from '@prisma/client';
 
@@ -35,13 +43,8 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.array(z.any()),
-            meta: z.object({
-              total: z.number(),
-              page: z.number(),
-              limit: z.number(),
-              totalPages: z.number(),
-            }),
+            data: paginatedCouponsResponseSchema.shape.data,
+            meta: paginatedCouponsResponseSchema.shape.meta,
           }),
         },
       },
@@ -69,7 +72,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.any(),
+            data: couponWithSellerResponseSchema,
           }),
         },
       },
@@ -95,7 +98,7 @@ openApiRegistry.registerPath({
   responses: {
     200: {
       description: 'Success',
-      content: { 'application/json': { schema: z.object({ success: z.boolean(), data: z.any() }) } },
+      content: { 'application/json': { schema: z.object({ success: z.boolean(), data: baseCouponResponseSchema }) } },
     },
     404: { description: 'Not found', content: { 'application/json': { schema: errorResponse } } },
   },
@@ -114,7 +117,7 @@ openApiRegistry.registerPath({
   responses: {
     200: {
       description: 'Success',
-      content: { 'application/json': { schema: z.object({ success: z.boolean(), data: z.any() }) } },
+      content: { 'application/json': { schema: z.object({ success: z.boolean(), data: baseCouponResponseSchema }) } },
     },
     404: { description: 'Not found', content: { 'application/json': { schema: errorResponse } } },
   },
@@ -127,7 +130,7 @@ openApiRegistry.registerPath({
   path: '/admin/cities/{cityId}/base-coupons',
   summary: 'Get City Base Coupons',
   description: 'Lists all base coupons automatically assigned to users in this city. Requires Admin Role.',
-  tags: ['Admin - Coupons', 'Admin - Cities'],
+  tags: ['Admin - Coupons'],
   security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ cityId: z.string().uuid() }),
@@ -135,7 +138,7 @@ openApiRegistry.registerPath({
   responses: {
     200: {
       description: 'Success',
-      content: { 'application/json': { schema: z.object({ success: z.boolean(), data: z.array(z.any()) }) } },
+      content: { 'application/json': { schema: z.object({ success: z.boolean(), data: z.array(couponWithSellerResponseSchema) }) } },
     },
     404: { description: 'Not found', content: { 'application/json': { schema: errorResponse } } },
   },
@@ -146,7 +149,7 @@ openApiRegistry.registerPath({
   path: '/admin/cities/{cityId}/base-coupons',
   summary: 'Sync City Base Coupons',
   description: 'Replaces the entire base coupon set for a city. Requires Admin Role.',
-  tags: ['Admin - Coupons', 'Admin - Cities'],
+  tags: ['Admin - Coupons'],
   security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ cityId: z.string().uuid() }),
@@ -157,7 +160,7 @@ openApiRegistry.registerPath({
   responses: {
     200: {
       description: 'Success',
-      content: { 'application/json': { schema: z.object({ success: z.boolean(), data: z.array(z.any()) }) } },
+      content: { 'application/json': { schema: z.object({ success: z.boolean(), data: z.array(couponWithSellerResponseSchema) }) } },
     },
     400: { description: 'Validation or Alien Coupon Error', content: { 'application/json': { schema: errorResponse } } },
     404: { description: 'Not found', content: { 'application/json': { schema: errorResponse } } },

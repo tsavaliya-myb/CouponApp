@@ -48,7 +48,7 @@ export class SellersController {
     try {
       const query = req.query as unknown as FindSellersDto;
       const sellers = await sellersService.findSellersNearUser(query);
-      sendSuccess(res, sellers);
+      sendSuccess(res, sellers.data, 200, sellers.meta);
     } catch (err) {
       next(err);
     }

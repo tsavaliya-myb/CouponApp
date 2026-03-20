@@ -4,11 +4,19 @@ import { env } from './config/env';
 import { logger } from './config/logger';
 import { prisma } from './config/db';
 import { redis } from './config/redis';
+import './jobs/export.worker';
+
+import { scheduleExpiryReminders } from './jobs/expiryReminder.job';
+import { scheduleDailyMotivation } from './jobs/dailyMotivation.job';
 
 async function bootstrap() {
   // Verify DB connectivity before binding to port
   await prisma.$connect();
   logger.info('Database connected');
+
+  // Boot scheduled background cron integrations
+  await scheduleExpiryReminders();
+  await scheduleDailyMotivation();
 
   const app = createApp();
 

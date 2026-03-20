@@ -5,6 +5,10 @@ import {
   registerSellerSchema,
   updateSellerSchema,
   findSellersSchema,
+  loginSellerResponseSchema,
+  profileResponseSchema,
+  sellerDashboardResponseSchema,
+  distanceSellerResponseSchema,
 } from './sellers.validator';
 
 const errorResponse = z.object({
@@ -13,31 +17,7 @@ const errorResponse = z.object({
   message: z.string(),
 });
 
-// ─── Shared Response Schemas ──────────────────────────────────────────────────
-const baseSellerResponse = z.object({
-  id: z.string().uuid(),
-  phone: z.string(),
-  businessName: z.string(),
-  category: z.nativeEnum(SellerCategory),
-  cityId: z.string().uuid(),
-  areaId: z.string().uuid(),
-  status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED']),
-});
-
-const profileResponse = baseSellerResponse.extend({
-  city: z.object({ id: z.string(), name: z.string() }).nullable(),
-  area: z.object({ id: z.string(), name: z.string() }).nullable(),
-});
-
-const distanceSellerResponse = z.object({
-  id: z.string().uuid(),
-  businessName: z.string(),
-  category: z.nativeEnum(SellerCategory),
-  area: z.string().nullable(),
-  lat: z.number().nullable(),
-  lng: z.number().nullable(),
-  distanceKm: z.number().nullable(),
-});
+// Schemas are imported from validator
 
 // ─── SELLER ENDPOINTS ─────────────────────────────────────────────────────────
 
@@ -59,12 +39,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({
-              accessToken: z.string(),
-              refreshToken: z.string(),
-              seller: baseSellerResponse,
-              message: z.string(),
-            }),
+            data: loginSellerResponseSchema,
           }),
         },
       },
@@ -84,7 +59,7 @@ openApiRegistry.registerPath({
       description: 'Success',
       content: {
         'application/json': {
-          schema: z.object({ success: z.boolean().default(true), data: profileResponse }),
+          schema: z.object({ success: z.boolean().default(true), data: profileResponseSchema }),
         },
       },
     },
@@ -108,7 +83,7 @@ openApiRegistry.registerPath({
       description: 'Success',
       content: {
         'application/json': {
-          schema: z.object({ success: z.boolean().default(true), data: profileResponse }),
+          schema: z.object({ success: z.boolean().default(true), data: profileResponseSchema }),
         },
       },
     },
@@ -128,11 +103,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({
-              totalRedemptions: z.number(),
-              status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED']),
-              commissionPct: z.number(),
-            }),
+            data: sellerDashboardResponseSchema,
           }),
         },
       },
@@ -162,7 +133,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.array(distanceSellerResponse),
+            data: z.array(distanceSellerResponseSchema),
           }),
         },
       },

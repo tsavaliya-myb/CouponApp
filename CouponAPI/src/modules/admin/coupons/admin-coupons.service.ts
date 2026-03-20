@@ -1,12 +1,22 @@
 import { prisma } from '../../../config/db';
 import { NotFoundError, BadRequestError } from '../../../shared/utils/AppError';
-import type { AdminCouponsQueryDto, CreateCouponDto, UpdateCouponDto, SyncBaseCouponsDto } from './admin-coupons.validator';
+import { RedisCacheService } from '../../../shared/services/redisCache.service';
+import { REDIS_KEYS } from '../../../shared/constants';
+import type { 
+  AdminCouponsQueryDto, 
+  CreateCouponDto, 
+  UpdateCouponDto, 
+  SyncBaseCouponsDto,
+  PaginatedCouponsResponse,
+  CouponWithSellerResponse,
+  BaseCouponResponse,
+} from './admin-coupons.validator';
 import { Prisma } from '@prisma/client';
 
 export class AdminCouponsService {
   
   // ─── List Master Coupons ──────────────────────────────────────────────────────
-  async listCoupons(query: AdminCouponsQueryDto) {
+  async listCoupons(query: AdminCouponsQueryDto): Promise<PaginatedCouponsResponse> {
     const { page, limit, sellerId, cityId, type } = query;
     const skip = (page - 1) * limit;
 
@@ -41,11 +51,11 @@ export class AdminCouponsService {
   }
 
   // ─── Create Coupon ────────────────────────────────────────────────────────────
-  async createCoupon(dto: CreateCouponDto) {
+  async createCoupon(dto: CreateCouponDto): Promise<CouponWithSellerResponse> {
     const seller = await prisma.seller.findUnique({ where: { id: dto.sellerId } });
     if (!seller) throw NotFoundError('Seller');
 
-    return prisma.coupon.create({
+    const coupon = await prisma.coupon.create({
       data: {
         sellerId: dto.sellerId,
         discountPct: dto.discountPct,
@@ -57,37 +67,59 @@ export class AdminCouponsService {
       },
       include: { seller: { select: { businessName: true } } }
     });
+
+    if (dto.isBaseCoupon) {
+      await RedisCacheService.delCache(REDIS_KEYS.CITY_BASE_COUPONS(seller.cityId));
+    }
+
+    return coupon;
   }
 
   // ─── Update Coupon ────────────────────────────────────────────────────────────
-  async updateCoupon(id: string, dto: UpdateCouponDto) {
-    const coupon = await prisma.coupon.findUnique({ where: { id } });
+  async updateCoupon(id: string, dto: UpdateCouponDto): Promise<BaseCouponResponse> {
+    const coupon = await prisma.coupon.findUnique({ where: { id }, include: { seller: true } });
     if (!coupon) throw NotFoundError('Coupon');
 
-    return prisma.coupon.update({
+    const updated = await prisma.coupon.update({
       where: { id },
       data: dto,
     });
+
+    if (coupon.isBaseCoupon || dto.isBaseCoupon !== undefined) {
+      await RedisCacheService.delCache(REDIS_KEYS.CITY_BASE_COUPONS(coupon.seller.cityId));
+    }
+
+    return updated;
   }
 
   // ─── Deactivate Coupon ────────────────────────────────────────────────────────
-  async deactivateCoupon(id: string) {
-    const coupon = await prisma.coupon.findUnique({ where: { id } });
+  async deactivateCoupon(id: string): Promise<BaseCouponResponse> {
+    const coupon = await prisma.coupon.findUnique({ where: { id }, include: { seller: true } });
     if (!coupon) throw NotFoundError('Coupon');
 
     // Soft delete/Deactivate
-    return prisma.coupon.update({
+    const updated = await prisma.coupon.update({
       where: { id },
       data: { status: 'INACTIVE' },
     });
+
+    if (coupon.isBaseCoupon) {
+      await RedisCacheService.delCache(REDIS_KEYS.CITY_BASE_COUPONS(coupon.seller.cityId));
+    }
+
+    return updated;
   }
 
   // ─── Get City Base Coupons ────────────────────────────────────────────────────
-  async getCityBaseCoupons(cityId: string) {
+  async getCityBaseCoupons(cityId: string): Promise<CouponWithSellerResponse[]> {
+    const cacheKey = REDIS_KEYS.CITY_BASE_COUPONS(cityId);
+    const cached = await RedisCacheService.getCache<any>(cacheKey);
+    if (cached) return cached;
+
     const city = await prisma.city.findUnique({ where: { id: cityId } });
     if (!city) throw NotFoundError('City');
 
-    return prisma.coupon.findMany({
+    const coupons = await prisma.coupon.findMany({
       where: {
         isBaseCoupon: true,
         status: 'ACTIVE',
@@ -97,10 +129,13 @@ export class AdminCouponsService {
         seller: { select: { businessName: true } }
       }
     });
+
+    await RedisCacheService.setCache(cacheKey, coupons, 24 * 60 * 60); // Cache for 24h
+    return coupons;
   }
 
   // ─── Sync City Base Coupons ───────────────────────────────────────────────────
-  async syncCityBaseCoupons(cityId: string, dto: SyncBaseCouponsDto) {
+  async syncCityBaseCoupons(cityId: string, dto: SyncBaseCouponsDto): Promise<CouponWithSellerResponse[]> {
     const city = await prisma.city.findUnique({ where: { id: cityId } });
     if (!city) throw NotFoundError('City');
 
@@ -122,8 +157,6 @@ export class AdminCouponsService {
     }
 
     // Run within a transaction:
-    // 1. Unset all current base coupons for this city
-    // 2. Set the requested ones as true.
     await prisma.$transaction(async (tx) => {
       // Find all coupons currently marked as base coupons in this city
       const currentBaseIds = await tx.coupon.findMany({
@@ -147,6 +180,7 @@ export class AdminCouponsService {
       }
     });
 
+    await RedisCacheService.delCache(REDIS_KEYS.CITY_BASE_COUPONS(cityId));
     return await this.getCityBaseCoupons(cityId);
   }
 }

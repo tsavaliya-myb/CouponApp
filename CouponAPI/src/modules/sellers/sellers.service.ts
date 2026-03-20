@@ -4,26 +4,34 @@ import { ConflictError, NotFoundError, BadRequestError } from '../../shared/util
 import { REDIS_PREFIX, TTL } from '../../shared/constants';
 import { redis } from '../../config/redis';
 import crypto from 'crypto';
-import type { RegisterSellerDto, UpdateSellerDto, FindSellersDto } from './sellers.validator';
+import type {
+  RegisterSellerDto,
+  UpdateSellerDto,
+  FindSellersDto,
+  LoginSellerResponse,
+  ProfileResponse,
+  SellerDashboardResponse,
+  PaginatedDistanceSellersResponse,
+} from './sellers.validator';
 
 // ─── Haversine Distance Utility ───────────────────────────────────────────────
 function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371; // Radius of the earth in km
   const dLat = (lat2 - lat1) * (Math.PI / 180);  // deg2rad below
-  const dLon = (lon2 - lon1) * (Math.PI / 180); 
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2); 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = R * c; // Distance in km
   return d;
 }
 
 export class SellersService {
-  
+
   // ─── Register (Bypasses OTP for MVP) ────────────────────────────────────────
-  async register(dto: RegisterSellerDto) {
+  async register(dto: RegisterSellerDto): Promise<LoginSellerResponse> {
     let seller = await prisma.seller.findUnique({
       where: { phone: dto.phone },
     });
@@ -87,14 +95,14 @@ export class SellersService {
         areaId: seller.areaId,
         status: seller.status,
       },
-      message: seller.status === 'PENDING' 
-        ? 'Account created. Waiting for admin approval to appear in search.' 
+      message: seller.status === 'PENDING'
+        ? 'Account created. Waiting for admin approval to appear in search.'
         : 'Login successful.',
     };
   }
 
   // ─── Profile Management ───────────────────────────────────────────────────────
-  async getProfile(sellerId: string) {
+  async getProfile(sellerId: string): Promise<ProfileResponse> {
     const seller = await prisma.seller.findUnique({
       where: { id: sellerId },
       include: {
@@ -107,7 +115,7 @@ export class SellersService {
     return seller;
   }
 
-  async updateProfile(sellerId: string, dto: UpdateSellerDto) {
+  async updateProfile(sellerId: string, dto: UpdateSellerDto): Promise<ProfileResponse> {
     const seller = await prisma.seller.findUnique({ where: { id: sellerId } });
     if (!seller) throw NotFoundError('Seller profile not found');
 
@@ -122,7 +130,7 @@ export class SellersService {
   }
 
   // ─── Dashboard ────────────────────────────────────────────────────────────────
-  async getDashboard(sellerId: string) {
+  async getDashboard(sellerId: string): Promise<SellerDashboardResponse> {
     // Basic dashboard: we will map this out fully in Phase 13, 
     // but for now we provide a skeleton response to fulfill Phase 4 requirements.
     const seller = await prisma.seller.findUnique({ where: { id: sellerId } });
@@ -140,13 +148,14 @@ export class SellersService {
   }
 
   // ─── Customer View: Find Sellers (Haversine Sorted) ─────────────────────────
-  async findSellersNearUser(dto: FindSellersDto) {
-    const { lat, lng, limit, cityId } = dto;
+  async findSellersNearUser(dto: FindSellersDto): Promise<PaginatedDistanceSellersResponse> {
+    const { lat, lng, limit, cityId, search, page } = dto;
 
     // Only fetch ACTIVE sellers
     const whereClause: any = { status: 'ACTIVE' };
-    if (cityId) {
-      whereClause.cityId = cityId;
+    if (cityId) whereClause.cityId = cityId;
+    if (search) {
+      whereClause.businessName = { contains: search, mode: 'insensitive' };
     }
 
     // Since Prisma cannot perform Haversine distance sorts natively without Raw Queries, 
@@ -182,6 +191,18 @@ export class SellersService {
       return a.distanceKm - b.distanceKm;
     });
 
-    return sellersWithDistance.slice(0, limit);
+    const total = sellersWithDistance.length;
+    const skip = (page - 1) * limit;
+    const paginatedData = sellersWithDistance.slice(skip, skip + limit);
+
+    return {
+      data: paginatedData,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      }
+    };
   }
 }

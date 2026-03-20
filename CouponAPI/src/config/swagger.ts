@@ -31,6 +31,30 @@ export function generateOpenApiDocument() {
       description: 'API documentation for the CouponApp backend',
     },
     servers: [{ url: '/api/v1' }],
+    tags: [
+      { name: 'Auth', description: 'Authentication and Authorization' },
+      // Admin
+      { name: 'Admin - Analytics' },
+      { name: 'Admin - Cities & Areas' },
+      { name: 'Admin - Coupons' },
+      { name: 'Admin - Dashboard' },
+      { name: 'Admin - Notifications' },
+      { name: 'Admin - Sellers' },
+      { name: 'Admin - Settings' },
+      { name: 'Admin - Settlements' },
+      { name: 'Admin - Users' },
+      { name: 'Admin - Wallet' },
+      // Seller
+      { name: 'Sellers' },
+      { name: 'Sellers - Dashboard' },
+      { name: 'Seller - Redemptions' },
+      { name: 'Seller - Settlements' },
+      // Customer
+      { name: 'Customer' },
+      { name: 'Customer - Coupons' },
+      { name: 'Customer - Redemptions' },
+      { name: 'Customer - Wallet' },
+    ],
   });
 }
 

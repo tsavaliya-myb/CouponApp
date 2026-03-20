@@ -5,13 +5,19 @@ import { ConflictError, NotFoundError, BadRequestError } from '../../shared/util
 import { REDIS_PREFIX, TTL } from '../../shared/constants';
 import { redis } from '../../config/redis';
 import crypto from 'crypto';
-import type { RegisterUserDto, UpdateUserDto } from './users.validator';
+import type { 
+  RegisterUserDto, 
+  UpdateUserDto,
+  LoginUserResponse,
+  ProfileResponse,
+  QrTokenResponse,
+} from './users.validator';
 
 export class UsersService {
   
   // ─── Register (Bypasses OTP for MVP) ────────────────────────────────────────
 
-  async register(dto: RegisterUserDto) {
+  async register(dto: RegisterUserDto): Promise<LoginUserResponse> {
     // Note: In full implementation, this should verify OTP first.
     // We are trusting the phone number directly for MVP Phase 3.
 
@@ -80,7 +86,7 @@ export class UsersService {
 
   // ─── Profile Management ───────────────────────────────────────────────────────
 
-  async getProfile(userId: string) {
+  async getProfile(userId: string): Promise<ProfileResponse> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -93,7 +99,7 @@ export class UsersService {
     return user;
   }
 
-  async updateProfile(userId: string, dto: UpdateUserDto) {
+  async updateProfile(userId: string, dto: UpdateUserDto): Promise<ProfileResponse> {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw NotFoundError('User profile not found');
 
@@ -114,7 +120,7 @@ export class UsersService {
 
   // ─── QR Code Generation ───────────────────────────────────────────────────────
 
-  async generateQrToken(userId: string) {
+  async generateQrToken(userId: string): Promise<QrTokenResponse> {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw NotFoundError('User not found');
 

@@ -1,17 +1,25 @@
 import { prisma } from '../../../config/db';
 import { ConflictError, NotFoundError } from '../../../shared/utils/AppError';
+import { RedisCacheService } from '../../../shared/services/redisCache.service';
+import { REDIS_KEYS } from '../../../shared/constants';
 import type {
   CreateCityDto,
   UpdateCityDto,
   CreateAreaDto,
   UpdateAreaDto,
+  BaseCityResponse,
+  CityWithCountsResponse,
+  BaseAreaResponse,
 } from './cities.validator';
 
 export class CitiesService {
   // ─── Cities ──────────────────────────────────────────────────────────────────
 
-  async getCities() {
-    return prisma.city.findMany({
+  async getCities(): Promise<CityWithCountsResponse[]> {
+    const cached = await RedisCacheService.getCache<any>(REDIS_KEYS.CITIES_ALL);
+    if (cached) return cached;
+
+    const cities = await prisma.city.findMany({
       orderBy: { name: 'asc' },
       include: {
         _count: {
@@ -19,19 +27,24 @@ export class CitiesService {
         },
       },
     });
+
+    await RedisCacheService.setCache(REDIS_KEYS.CITIES_ALL, cities, 24 * 60 * 60); // 24h
+    return cities;
   }
 
-  async createCity(dto: CreateCityDto) {
+  async createCity(dto: CreateCityDto): Promise<BaseCityResponse> {
     // Check for duplicate city name (case-insensitive)
     const existing = await prisma.city.findFirst({
       where: { name: { equals: dto.name, mode: 'insensitive' } },
     });
     if (existing) throw ConflictError('City with this name already exists');
 
-    return prisma.city.create({ data: dto });
+    const result = await prisma.city.create({ data: dto });
+    await RedisCacheService.delCache(REDIS_KEYS.CITIES_ALL);
+    return result;
   }
 
-  async updateCity(id: string, dto: UpdateCityDto) {
+  async updateCity(id: string, dto: UpdateCityDto): Promise<BaseCityResponse> {
     const city = await prisma.city.findUnique({ where: { id } });
     if (!city) throw NotFoundError('City');
 
@@ -42,25 +55,34 @@ export class CitiesService {
       if (existing) throw ConflictError('City with this name already exists');
     }
 
-    return prisma.city.update({
+    const result = await prisma.city.update({
       where: { id },
       data: dto,
     });
+    await RedisCacheService.delCache(REDIS_KEYS.CITIES_ALL);
+    return result;
   }
 
   // ─── Areas ───────────────────────────────────────────────────────────────────
 
-  async getAreasByCity(cityId: string) {
+  async getAreasByCity(cityId: string): Promise<BaseAreaResponse[]> {
+    const cacheKey = REDIS_KEYS.CITY_AREAS(cityId);
+    const cached = await RedisCacheService.getCache<any>(cacheKey);
+    if (cached) return cached;
+
     const city = await prisma.city.findUnique({ where: { id: cityId } });
     if (!city) throw NotFoundError('City');
 
-    return prisma.area.findMany({
+    const areas = await prisma.area.findMany({
       where: { cityId },
       orderBy: { name: 'asc' },
     });
+
+    await RedisCacheService.setCache(cacheKey, areas, 24 * 60 * 60); // 24h
+    return areas;
   }
 
-  async createArea(cityId: string, dto: CreateAreaDto) {
+  async createArea(cityId: string, dto: CreateAreaDto): Promise<BaseAreaResponse> {
     const city = await prisma.city.findUnique({ where: { id: cityId } });
     if (!city) throw NotFoundError('City');
 
@@ -72,15 +94,18 @@ export class CitiesService {
     });
     if (existing) throw ConflictError('Area with this name already exists in this city');
 
-    return prisma.area.create({
+    const result = await prisma.area.create({
       data: {
         ...dto,
         cityId,
       },
     });
+
+    await RedisCacheService.delCache([REDIS_KEYS.CITIES_ALL, REDIS_KEYS.CITY_AREAS(cityId)]);
+    return result;
   }
 
-  async updateArea(id: string, dto: UpdateAreaDto) {
+  async updateArea(id: string, dto: UpdateAreaDto): Promise<BaseAreaResponse> {
     const area = await prisma.area.findUnique({ where: { id } });
     if (!area) throw NotFoundError('Area');
 
@@ -94,9 +119,12 @@ export class CitiesService {
       if (existing) throw ConflictError('Area with this name already exists in this city');
     }
 
-    return prisma.area.update({
+    const result = await prisma.area.update({
       where: { id },
       data: dto,
     });
+
+    await RedisCacheService.delCache([REDIS_KEYS.CITIES_ALL, REDIS_KEYS.CITY_AREAS(area.cityId)]);
+    return result;
   }
 }

@@ -298,7 +298,7 @@ Manages `AppSetting` table (key-value). Keys:
   - Pending seller approvals count
   - Coins awarded this month + pending coin compensation
 
-#### [NEW] seller.dashboard.routes.ts
+#### [NEW] seller.dashboard.routes.ts (Seller App)
 - `GET /api/v1/sellers/me/dashboard`
   - Today's + this week's redemption count
   - Commission owed to admin this week

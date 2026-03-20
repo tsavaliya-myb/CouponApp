@@ -1,22 +1,14 @@
 import { openApiRegistry } from '../../config/swagger';
 import { z } from 'zod';
-import { registerUserSchema, updateUserSchema } from './users.validator';
+import { 
+  registerUserSchema, 
+  updateUserSchema,
+  loginUserResponseSchema,
+  profileResponseSchema,
+  qrTokenResponseSchema,
+} from './users.validator';
 
-// ─── Shared Response Schemas ──────────────────────────────────────────────────
-const baseUserResponse = z.object({
-  id: z.string().uuid(),
-  phone: z.string(),
-  name: z.string(),
-  email: z.string().nullable(),
-  cityId: z.string().uuid().nullable(),
-  areaId: z.string().uuid().nullable(),
-  status: z.enum(['ACTIVE', 'BLOCKED']),
-});
-
-const profileResponse = baseUserResponse.extend({
-  city: z.object({ id: z.string(), name: z.string() }).nullable(),
-  area: z.object({ id: z.string(), name: z.string() }).nullable(),
-});
+// schemas imported from validator
 
 const errorResponse = z.object({
   success: z.boolean().default(false),
@@ -31,7 +23,7 @@ openApiRegistry.registerPath({
   path: '/users/register',
   summary: 'Register / Login User (MVP)',
   description: 'Registers or logs in a user. Bypasses OTP for MVP.',
-  tags: ['Users (Customer)'],
+  tags: ['Customer'],
   request: {
     body: {
       content: { 'application/json': { schema: registerUserSchema } },
@@ -44,11 +36,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({
-              accessToken: z.string(),
-              refreshToken: z.string(),
-              user: baseUserResponse,
-            }),
+            data: loginUserResponseSchema,
           }),
         },
       },
@@ -61,14 +49,14 @@ openApiRegistry.registerPath({
   method: 'get',
   path: '/users/me',
   summary: 'Get My Profile',
-  tags: ['Users (Customer)'],
+  tags: ['Customer'],
   security: [{ bearerAuth: [] }],
   responses: {
     200: {
       description: 'Success',
       content: {
         'application/json': {
-          schema: z.object({ success: z.boolean().default(true), data: profileResponse }),
+          schema: z.object({ success: z.boolean().default(true), data: profileResponseSchema }),
         },
       },
     },
@@ -80,7 +68,7 @@ openApiRegistry.registerPath({
   method: 'patch',
   path: '/users/me',
   summary: 'Update My Profile',
-  tags: ['Users (Customer)'],
+  tags: ['Customer'],
   security: [{ bearerAuth: [] }],
   request: {
     body: {
@@ -92,7 +80,7 @@ openApiRegistry.registerPath({
       description: 'Success',
       content: {
         'application/json': {
-          schema: z.object({ success: z.boolean().default(true), data: profileResponse }),
+          schema: z.object({ success: z.boolean().default(true), data: profileResponseSchema }),
         },
       },
     },
@@ -105,7 +93,7 @@ openApiRegistry.registerPath({
   path: '/users/me/qr',
   summary: 'Generate Redemtion QR',
   description: 'Generates a 5-minute short-lived QR token and a Base64 PNG image string.',
-  tags: ['Users (Customer)'],
+  tags: ['Customer'],
   security: [{ bearerAuth: [] }],
   responses: {
     200: {
@@ -114,11 +102,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({
-              qrToken: z.string(),
-              qrImageBase64: z.string(),
-              expiresInSeconds: z.number(),
-            }),
+            data: qrTokenResponseSchema,
           }),
         },
       },

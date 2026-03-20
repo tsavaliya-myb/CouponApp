@@ -5,13 +5,20 @@ import { redis } from '../../config/redis';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../shared/utils/jwt';
 import { UnauthorizedError, BadRequestError } from '../../shared/utils/AppError';
 import { REDIS_PREFIX, TTL } from '../../shared/constants';
-import type { AdminLoginDto, RefreshDto, LogoutDto } from './auth.validator';
+import type { 
+  AdminLoginDto, 
+  RefreshDto, 
+  LogoutDto,
+  AdminLoginResponse,
+  RefreshResponse,
+  LogoutResponse,
+} from './auth.validator';
 
 
 export class AuthService {
 
   // ─── Admin Login ────────────────────────────────────────────────────────────
-  async adminLogin(dto: AdminLoginDto) {
+  async adminLogin(dto: AdminLoginDto): Promise<AdminLoginResponse> {
     const admin = await prisma.admin.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
@@ -55,7 +62,7 @@ export class AuthService {
   }
 
   // ─── Refresh Access Token ────────────────────────────────────────────────────
-  async refresh(dto: RefreshDto) {
+  async refresh(dto: RefreshDto): Promise<RefreshResponse> {
     const [jti, rawRefreshToken] = this._splitRefreshToken(dto.refreshToken);
 
     // Validate the raw JWT signature first
@@ -85,7 +92,7 @@ export class AuthService {
   }
 
   // ─── Logout ──────────────────────────────────────────────────────────────────
-  async logout(dto: LogoutDto) {
+  async logout(dto: LogoutDto): Promise<LogoutResponse> {
     const [jti] = this._splitRefreshToken(dto.refreshToken);
     const refreshKey = `${REDIS_PREFIX.REFRESH_TOKEN}${jti}`;
     await redis.del(refreshKey);

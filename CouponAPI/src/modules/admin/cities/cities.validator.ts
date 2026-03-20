@@ -25,6 +25,37 @@ export const updateAreaSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+// ─── Response Schemas ─────────────────────────────────────────────────────────
+
+export const baseCityResponseSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  status: z.nativeEnum(CityStatus),
+  createdAt: z.date().or(z.string()),
+  updatedAt: z.date().or(z.string()),
+});
+
+export const cityWithCountsResponseSchema = baseCityResponseSchema.extend({
+  _count: z.object({
+    areas: z.number(),
+    users: z.number(),
+    sellers: z.number(),
+  }),
+});
+
+export const baseAreaResponseSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  cityId: z.string().uuid(),
+  isActive: z.boolean(),
+  createdAt: z.date().or(z.string()),
+  updatedAt: z.date().or(z.string()),
+});
+
+export type BaseCityResponse = z.infer<typeof baseCityResponseSchema>;
+export type CityWithCountsResponse = z.infer<typeof cityWithCountsResponseSchema>;
+export type BaseAreaResponse = z.infer<typeof baseAreaResponseSchema>;
+
 // ─── Inferred Types ───────────────────────────────────────────────────────────
 export type CreateCityDto = z.infer<typeof createCitySchema>;
 export type UpdateCityDto = z.infer<typeof updateCitySchema>;

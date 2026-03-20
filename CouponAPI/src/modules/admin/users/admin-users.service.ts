@@ -1,12 +1,18 @@
 import { prisma } from '../../../config/db';
 import { NotFoundError } from '../../../shared/utils/AppError';
-import type { AdminUsersQueryDto, AwardCoinsDto } from './admin-users.validator';
+import type { 
+  AdminUsersQueryDto, 
+  AwardCoinsDto,
+  PaginatedUsersResponse,
+  UserDetailsResponse,
+  BaseUserResponse,
+} from './admin-users.validator';
 import { Prisma } from '@prisma/client';
 
 export class AdminUsersService {
   
   // ─── List Users ───────────────────────────────────────────────────────────────
-  async listUsers(query: AdminUsersQueryDto) {
+  async listUsers(query: AdminUsersQueryDto): Promise<PaginatedUsersResponse> {
     const { page, limit, cityId, areaId, status, search } = query;
     const skip = (page - 1) * limit;
 
@@ -49,7 +55,7 @@ export class AdminUsersService {
   }
 
   // ─── Get User Details ─────────────────────────────────────────────────────────
-  async getUserDetails(id: string) {
+  async getUserDetails(id: string): Promise<UserDetailsResponse> {
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
@@ -78,7 +84,7 @@ export class AdminUsersService {
   }
 
   // ─── Block / Unblock User ─────────────────────────────────────────────────────
-  async toggleBlockStatus(id: string) {
+  async toggleBlockStatus(id: string): Promise<BaseUserResponse> {
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) throw NotFoundError('User');
 

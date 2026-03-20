@@ -1,6 +1,11 @@
 import { openApiRegistry } from '../../config/swagger';
 import { z } from 'zod';
-import { myCouponsQuerySchema, sellerCouponsQuerySchema } from './coupons.validator';
+import { 
+  myCouponsQuerySchema, 
+  sellerCouponsQuerySchema,
+  paginatedUserCouponsResponseSchema,
+  paginatedSellerCouponsResponseSchema,
+} from './coupons.validator';
 import { PAGINATION } from '../../shared/constants';
 import { SellerCategory } from '@prisma/client';
 
@@ -17,7 +22,7 @@ openApiRegistry.registerPath({
   path: '/coupons',
   summary: 'Get My Active Coupons',
   description: 'Lists instantiated UserCoupons belonging to the authenticated customer that are still active and valid.',
-  tags: ['Coupons (Customer)'],
+  tags: ['Customer - Coupons'],
   security: [{ bearerAuth: [] }],
   request: {
     query: z.object({
@@ -34,13 +39,8 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.array(z.any()), // Array of UserCoupons with nested Seller info
-            meta: z.object({
-              total: z.number(),
-              page: z.number(),
-              limit: z.number(),
-              totalPages: z.number(),
-            }),
+            data: paginatedUserCouponsResponseSchema.shape.data,
+            meta: paginatedUserCouponsResponseSchema.shape.meta,
           }),
         },
       },
@@ -54,7 +54,7 @@ openApiRegistry.registerPath({
   path: '/coupons/seller/{sellerId}',
   summary: 'Get Master Coupons by Seller',
   description: 'Public/Customer endpoint to view all active coupon deals offered by a specific seller.',
-  tags: ['Coupons (Customer)'],
+  tags: ['Customer - Coupons'],
   request: {
     params: z.object({ sellerId: z.string().uuid() }),
     query: z.object({
@@ -69,13 +69,8 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.array(z.any()), // Array of Master Coupons
-            meta: z.object({
-              total: z.number(),
-              page: z.number(),
-              limit: z.number(),
-              totalPages: z.number(),
-            }),
+            data: paginatedSellerCouponsResponseSchema.shape.data,
+            meta: paginatedSellerCouponsResponseSchema.shape.meta,
           }),
         },
       },

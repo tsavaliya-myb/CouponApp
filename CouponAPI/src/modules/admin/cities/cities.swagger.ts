@@ -5,41 +5,21 @@ import {
   updateCitySchema,
   createAreaSchema,
   updateAreaSchema,
+  baseCityResponseSchema,
+  cityWithCountsResponseSchema,
+  baseAreaResponseSchema,
 } from './cities.validator';
 import { CityStatus } from '@prisma/client';
 
 // ─── Shared Response Types ────────────────────────────────────────────────────
-
-const baseCityResponse = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  status: z.nativeEnum(CityStatus),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
-
-const cityWithCountsResponse = baseCityResponse.extend({
-  _count: z.object({
-    areas: z.number(),
-    users: z.number(),
-    sellers: z.number(),
-  }),
-});
-
-const baseAreaResponse = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  cityId: z.string().uuid(),
-  isActive: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
 
 const errorResponse = z.object({
   success: z.boolean().default(false),
   code: z.string(),
   message: z.string(),
 });
+
+ 
 
 // ─── CITIES ───────────────────────────────────────────────────────────────────
 
@@ -57,7 +37,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.array(cityWithCountsResponse),
+            data: z.array(cityWithCountsResponseSchema),
           }),
         },
       },
@@ -83,7 +63,7 @@ openApiRegistry.registerPath({
       description: 'Created',
       content: {
         'application/json': {
-          schema: z.object({ success: z.boolean().default(true), data: baseCityResponse }),
+          schema: z.object({ success: z.boolean().default(true), data: baseCityResponseSchema }),
         },
       },
     },
@@ -109,7 +89,7 @@ openApiRegistry.registerPath({
       description: 'Success',
       content: {
         'application/json': {
-          schema: z.object({ success: z.boolean().default(true), data: baseCityResponse }),
+          schema: z.object({ success: z.boolean().default(true), data: baseCityResponseSchema }),
         },
       },
     },
@@ -135,7 +115,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.array(baseAreaResponse),
+            data: z.array(baseAreaResponseSchema),
           }),
         },
       },
@@ -161,7 +141,7 @@ openApiRegistry.registerPath({
       description: 'Created',
       content: {
         'application/json': {
-          schema: z.object({ success: z.boolean().default(true), data: baseAreaResponse }),
+          schema: z.object({ success: z.boolean().default(true), data: baseAreaResponseSchema }),
         },
       },
     },
@@ -186,7 +166,7 @@ openApiRegistry.registerPath({
       description: 'Success',
       content: {
         'application/json': {
-          schema: z.object({ success: z.boolean().default(true), data: baseAreaResponse }),
+          schema: z.object({ success: z.boolean().default(true), data: baseAreaResponseSchema }),
         },
       },
     },

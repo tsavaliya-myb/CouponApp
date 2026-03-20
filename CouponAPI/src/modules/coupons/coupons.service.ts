@@ -1,13 +1,18 @@
 import { prisma } from '../../config/db';
 import { NotFoundError } from '../../shared/utils/AppError';
-import type { MyCouponsQueryDto, SellerCouponsQueryDto } from './coupons.validator';
+import type { 
+  MyCouponsQueryDto, 
+  SellerCouponsQueryDto,
+  PaginatedUserCouponsResponse,
+  PaginatedSellerCouponsResponse,
+} from './coupons.validator';
 import { Prisma } from '@prisma/client';
 
 export class CouponsService {
   
   // ─── Customer: Get My Instantiated Coupons ────────────────────────────────────
-  async getMyCoupons(userId: string, query: MyCouponsQueryDto) {
-    const { page, limit, category, sellerId } = query;
+  async getMyCoupons(userId: string, query: MyCouponsQueryDto): Promise<PaginatedUserCouponsResponse> {
+    const { page, limit, category, sellerId, search } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.UserCouponWhereInput = {
@@ -27,8 +32,13 @@ export class CouponsService {
     if (sellerId) {
       where.coupon!.sellerId = sellerId;
     }
-    if (category) {
-      where.coupon!.seller = { category };
+    
+    const sellerWhere: Prisma.SellerWhereInput = {};
+    if (category) sellerWhere.category = category;
+    if (search) sellerWhere.businessName = { contains: search, mode: 'insensitive' };
+    
+    if (Object.keys(sellerWhere).length > 0) {
+      where.coupon!.seller = sellerWhere;
     }
 
     const [userCoupons, total] = await Promise.all([
@@ -70,7 +80,7 @@ export class CouponsService {
   }
 
   // ─── Public/Customer: Get Master Coupons by Seller ────────────────────────────
-  async getSellerCoupons(sellerId: string, query: SellerCouponsQueryDto) {
+  async getSellerCoupons(sellerId: string, query: SellerCouponsQueryDto): Promise<PaginatedSellerCouponsResponse> {
     const { page, limit } = query;
     const skip = (page - 1) * limit;
 

@@ -1,14 +1,24 @@
 import { prisma } from '../../config/db';
 import { verifyQrToken } from '../../shared/utils/jwt';
 import { NotFoundError, BadRequestError } from '../../shared/utils/AppError';
-import type { ScanQrDto, ConfirmRedemptionDto, RedemptionHistoryQueryDto } from './redemptions.validator';
+import type { 
+  ScanQrDto, 
+  ConfirmRedemptionDto, 
+  RedemptionHistoryQueryDto,
+  ScanQrResponse,
+  ConfirmRedemptionResponse,
+  CustomerRedemptionHistoryResponse,
+  SellerRedemptionHistoryResponse,
+} from './redemptions.validator';
 import { Prisma } from '@prisma/client';
 import { startOfWeek, endOfWeek } from 'date-fns';
+import { redis } from '../../config/redis';
+import { REDIS_PREFIX, REDIS_KEYS } from '../../shared/constants';
 
 export class RedemptionsService {
   
   // ─── Seller: Scan QR Token ────────────────────────────────────────────────────
-  async scanQrToken(sellerId: string, dto: ScanQrDto) {
+  async scanQrToken(sellerId: string, dto: ScanQrDto): Promise<ScanQrResponse> {
     let payload;
     try {
       payload = verifyQrToken(dto.qrToken);
@@ -71,7 +81,7 @@ export class RedemptionsService {
   }
 
   // ─── Seller: Confirm Redemption ($transaction) ────────────────────────────────
-  async confirmRedemption(sellerId: string, dto: ConfirmRedemptionDto) {
+  async confirmRedemption(sellerId: string, dto: ConfirmRedemptionDto): Promise<ConfirmRedemptionResponse> {
     let payload;
     try {
       // Re-verify the QR token so they can't confirm a 3-day old scan.
@@ -202,6 +212,22 @@ export class RedemptionsService {
     // 5. Fire Push Notification (Phase 11 stub) - Could use an EventEmitter event
     // e.g. eventEmitter.emit('redemption.confirmed', redemption.id);
 
+    // 6. Update Seller Dashboard Redis Counters
+    try {
+      const endOfDayTimestamp = Math.floor(new Date(new Date().setHours(23, 59, 59, 999)).getTime() / 1000);
+      const pipeline = redis.pipeline();
+      const redKey = REDIS_KEYS.SELLER_REDEMPTIONS_TODAY(sellerId);
+      const comKey = REDIS_KEYS.SELLER_COMMISSION_TODAY(sellerId);
+      
+      pipeline.incr(redKey);
+      pipeline.incrbyfloat(comKey, commissionAmt);
+      pipeline.expireat(redKey, endOfDayTimestamp);
+      pipeline.expireat(comKey, endOfDayTimestamp);
+      await pipeline.exec();
+    } catch (err) {
+      console.error('[Redis Dashboard Cache] Failed to increment counters', err);
+    }
+
     return redemption;
   }
 
@@ -219,7 +245,7 @@ export class RedemptionsService {
   }
 
   // ─── Customer: My History ─────────────────────────────────────────────────────
-  async getUserHistory(userId: string, query: RedemptionHistoryQueryDto) {
+  async getUserHistory(userId: string, query: RedemptionHistoryQueryDto): Promise<CustomerRedemptionHistoryResponse> {
     const { page, limit, period } = query;
     const skip = (page - 1) * limit;
 
@@ -241,7 +267,7 @@ export class RedemptionsService {
   }
 
   // ─── Seller: My History ───────────────────────────────────────────────────────
-  async getSellerHistory(sellerId: string, query: RedemptionHistoryQueryDto) {
+  async getSellerHistory(sellerId: string, query: RedemptionHistoryQueryDto): Promise<SellerRedemptionHistoryResponse> {
     const { page, limit, period } = query;
     const skip = (page - 1) * limit;
 

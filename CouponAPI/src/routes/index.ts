@@ -45,25 +45,31 @@ import { redemptionsRouter } from '../modules/redemptions/redemptions.routes';
 apiRouter.use('/redemptions', redemptionsRouter);
 
 // Phase 8: Wallet
-// import { walletRouter } from '../modules/wallet/wallet.routes';
-// apiRouter.use('/wallet', walletRouter);
+import { walletRouter } from '../modules/wallet/wallet.routes';
+import { adminWalletRouter } from '../modules/admin/wallet/admin-wallet.routes';
+apiRouter.use('/wallet', walletRouter);
+apiRouter.use('/admin/wallet', adminWalletRouter);
 
 // Phase 9: Settlements
-// import { settlementsRouter } from '../modules/settlements/settlements.routes';
-// apiRouter.use('/settlements', settlementsRouter);
+import { settlementsRouter } from '../modules/settlements/settlements.routes';
+import { adminSettlementsRouter } from '../modules/admin/settlements/admin-settlements.routes';
+apiRouter.use('/settlements', settlementsRouter);
+apiRouter.use('/admin/settlements', adminSettlementsRouter);
 
 // Phase 10: Analytics
-// import { analyticsRouter } from '../modules/analytics/analytics.routes';
-// apiRouter.use('/admin/analytics', analyticsRouter);
+import { adminAnalyticsRouter } from '../modules/analytics/analytics.routes';
+apiRouter.use('/admin/analytics', adminAnalyticsRouter);
 
 // Phase 11: Notifications
-// import { notificationsRouter } from '../modules/notifications/notifications.routes';
-// apiRouter.use('/admin/notifications', notificationsRouter);
+import { adminNotificationsRouter } from '../modules/notifications/notifications.routes';
+apiRouter.use('/admin/notifications', adminNotificationsRouter);
 
 // Phase 12: App Settings
-// import { settingsRouter } from '../modules/admin/settings/settings.routes';
-// apiRouter.use('/admin/settings', settingsRouter);
+import { adminSettingsRouter } from '../modules/admin/settings/settings.routes';
+apiRouter.use('/admin/settings', adminSettingsRouter);
 
 // Phase 13: Dashboards
-// import { adminDashboardRouter } from '../modules/admin/dashboard/dashboard.routes';
-// apiRouter.use('/admin/dashboard', adminDashboardRouter);
+import { adminDashboardRouter } from '../modules/admin/dashboard/dashboard.routes';
+import { sellerDashboardRouter } from '../modules/sellers/dashboard/dashboard.routes';
+apiRouter.use('/admin/dashboard', adminDashboardRouter);
+apiRouter.use('/sellers/me/dashboard', sellerDashboardRouter);

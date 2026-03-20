@@ -1,6 +1,14 @@
 import { openApiRegistry } from '../../config/swagger';
 import { z } from 'zod';
-import { scanQrSchema, confirmRedemptionSchema, redemptionHistoryQuerySchema } from './redemptions.validator';
+import { 
+  scanQrSchema, 
+  confirmRedemptionSchema, 
+  redemptionHistoryQuerySchema,
+  scanQrResponseSchema,
+  confirmRedemptionResponseSchema,
+  customerRedemptionHistoryResponseSchema,
+  sellerRedemptionHistoryResponseSchema,
+} from './redemptions.validator';
 import { PAGINATION } from '../../shared/constants';
 
 const errorResponse = z.object({
@@ -16,7 +24,7 @@ openApiRegistry.registerPath({
   path: '/redemptions/scan',
   summary: 'Scan Customer QR',
   description: 'Seller scans the short-lived user QR token. Validates JWT and returns customer details along with active eligible coupons at this seller. Requires Seller Role.',
-  tags: ['Redemptions (Seller)'],
+  tags: ['Seller - Redemptions'],
   security: [{ bearerAuth: [] }],
   request: {
     body: {
@@ -30,10 +38,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({
-              user: z.any(),
-              eligibleCoupons: z.array(z.any()),
-            }),
+            data: scanQrResponseSchema,
           }),
         },
       },
@@ -48,7 +53,7 @@ openApiRegistry.registerPath({
   path: '/redemptions/confirm',
   summary: 'Confirm Redemption',
   description: 'Seller confirms the redemption. Applies discount, decrements coupon usage, burns coins, and logs Settlement. Requires Seller Role.',
-  tags: ['Redemptions (Seller)'],
+  tags: ['Seller - Redemptions'],
   security: [{ bearerAuth: [] }],
   request: {
     body: {
@@ -62,7 +67,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.any(),
+            data: confirmRedemptionResponseSchema,
           }),
         },
       },
@@ -76,7 +81,7 @@ openApiRegistry.registerPath({
   path: '/sellers/me/redemptions',
   summary: 'Seller Redemption History',
   description: 'Lists redemptions processed by the authenticated seller.',
-  tags: ['Redemptions (Seller)'],
+  tags: ['Seller - Redemptions'],
   security: [{ bearerAuth: [] }],
   request: {
     query: z.object({
@@ -86,7 +91,7 @@ openApiRegistry.registerPath({
     }),
   },
   responses: {
-    200: { description: 'Success', content: { 'application/json': { schema: z.any() } } },
+    200: { description: 'Success', content: { 'application/json': { schema: z.object({ success: z.boolean().default(true), data: sellerRedemptionHistoryResponseSchema.shape.data, meta: sellerRedemptionHistoryResponseSchema.shape.meta }) } } },
   },
 });
 
@@ -95,7 +100,7 @@ openApiRegistry.registerPath({
   path: '/redemptions/history',
   summary: 'Customer Redemption History',
   description: 'Lists redemptions performed by the authenticated customer.',
-  tags: ['Redemptions (Customer)'],
+  tags: ['Customer - Redemptions'],
   security: [{ bearerAuth: [] }],
   request: {
     query: z.object({
@@ -105,6 +110,6 @@ openApiRegistry.registerPath({
     }),
   },
   responses: {
-    200: { description: 'Success', content: { 'application/json': { schema: z.any() } } },
+    200: { description: 'Success', content: { 'application/json': { schema: z.object({ success: z.boolean().default(true), data: customerRedemptionHistoryResponseSchema.shape.data, meta: customerRedemptionHistoryResponseSchema.shape.meta }) } } },
   },
 });

@@ -1,12 +1,18 @@
 import { prisma } from '../../../config/db';
 import { NotFoundError } from '../../../shared/utils/AppError';
-import type { AdminSellersQueryDto, AdminUpdateSellerDto } from './admin-sellers.validator';
+import type { 
+  AdminSellersQueryDto, 
+  AdminUpdateSellerDto,
+  PaginatedSellersResponse,
+  BaseSellerResponse,
+  SellerWithLocationResponse,
+} from './admin-sellers.validator';
 import { Prisma } from '@prisma/client';
 
 export class AdminSellersService {
   
   // ─── List Sellers ─────────────────────────────────────────────────────────────
-  async listSellers(query: AdminSellersQueryDto) {
+  async listSellers(query: AdminSellersQueryDto): Promise<PaginatedSellersResponse> {
     const { page, limit, cityId, areaId, category, status, search } = query;
     const skip = (page - 1) * limit;
 
@@ -49,7 +55,7 @@ export class AdminSellersService {
   }
 
   // ─── Approve Seller ───────────────────────────────────────────────────────────
-  async approveSeller(id: string) {
+  async approveSeller(id: string): Promise<BaseSellerResponse> {
     const seller = await prisma.seller.findUnique({ where: { id } });
     if (!seller) throw NotFoundError('Seller');
 
@@ -60,7 +66,7 @@ export class AdminSellersService {
   }
 
   // ─── Suspend Seller ───────────────────────────────────────────────────────────
-  async suspendSeller(id: string) {
+  async suspendSeller(id: string): Promise<BaseSellerResponse> {
     const seller = await prisma.seller.findUnique({ where: { id } });
     if (!seller) throw NotFoundError('Seller');
 
@@ -71,7 +77,7 @@ export class AdminSellersService {
   }
 
   // ─── Edit Seller Details ──────────────────────────────────────────────────────
-  async editSeller(id: string, dto: AdminUpdateSellerDto) {
+  async editSeller(id: string, dto: AdminUpdateSellerDto): Promise<SellerWithLocationResponse> {
     const seller = await prisma.seller.findUnique({ where: { id } });
     if (!seller) throw NotFoundError('Seller');
 

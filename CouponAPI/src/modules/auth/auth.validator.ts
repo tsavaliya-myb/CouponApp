@@ -20,3 +20,27 @@ export const logoutSchema = z.object({
 export type AdminLoginDto  = z.infer<typeof adminLoginSchema>;
 export type RefreshDto     = z.infer<typeof refreshSchema>;
 export type LogoutDto      = z.infer<typeof logoutSchema>;
+
+// ─── Response Schemas ─────────────────────────────────────────────────────────
+
+export const adminLoginResponseSchema = z.object({
+  accessToken: z.string(),
+  refreshToken: z.string(),
+  admin: z.object({
+    id: z.string(),
+    email: z.string(),
+    name: z.string().nullable(),
+  }),
+});
+
+export const refreshResponseSchema = z.object({
+  accessToken: z.string(),
+});
+
+export const logoutResponseSchema = z.object({
+  message: z.string(),
+});
+
+export type AdminLoginResponse = z.infer<typeof adminLoginResponseSchema>;
+export type RefreshResponse = z.infer<typeof refreshResponseSchema>;
+export type LogoutResponse = z.infer<typeof logoutResponseSchema>;

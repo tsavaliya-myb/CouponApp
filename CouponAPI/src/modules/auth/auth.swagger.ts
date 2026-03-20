@@ -1,5 +1,12 @@
 import { openApiRegistry } from '../../config/swagger';
-import { adminLoginSchema, refreshSchema, logoutSchema } from './auth.validator';
+import { 
+  adminLoginSchema, 
+  refreshSchema, 
+  logoutSchema,
+  adminLoginResponseSchema,
+  refreshResponseSchema,
+  logoutResponseSchema,
+} from './auth.validator';
 import { z } from 'zod';
 
 // ─── Reusable Response Schemas ───────────────────────────────────────────────
@@ -15,7 +22,7 @@ openApiRegistry.registerPath({
   path: '/auth/admin/login',
   summary: 'Admin Login',
   description: 'Login for admin users. Returns JWT access token and refresh token.',
-  tags: ['Auth Phase 1'],
+  tags: ['Auth'],
   request: {
     body: {
       content: {
@@ -32,15 +39,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({
-              accessToken: z.string(),
-              refreshToken: z.string(),
-              admin: z.object({
-                id: z.string(),
-                email: z.string(),
-                name: z.string().nullable(),
-              }),
-            }),
+            data: adminLoginResponseSchema,
           }),
         },
       },
@@ -57,7 +56,7 @@ openApiRegistry.registerPath({
   path: '/auth/refresh',
   summary: 'Refresh Access Token',
   description: 'Exchange a valid refresh token for a new short-lived access token.',
-  tags: ['Auth Phase 1'],
+  tags: ['Auth'],
   request: {
     body: {
       content: {
@@ -74,9 +73,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({
-              accessToken: z.string(),
-            }),
+            data: refreshResponseSchema,
           }),
         },
       },
@@ -93,7 +90,7 @@ openApiRegistry.registerPath({
   path: '/auth/logout',
   summary: 'Logout',
   description: 'Invalidates the provided refresh token in Redis.',
-  tags: ['Auth Phase 1'],
+  tags: ['Auth'],
   request: {
     body: {
       content: {
@@ -110,9 +107,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({
-              message: z.string(),
-            }),
+            data: logoutResponseSchema,
           }),
         },
       },

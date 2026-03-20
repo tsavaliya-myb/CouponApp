@@ -1,6 +1,12 @@
 import { openApiRegistry } from '../../../config/swagger';
 import { z } from 'zod';
-import { adminSellersQuerySchema, adminUpdateSellerSchema } from './admin-sellers.validator';
+import { 
+  adminSellersQuerySchema, 
+  adminUpdateSellerSchema,
+  baseSellerResponseSchema,
+  sellerWithLocationResponseSchema,
+  paginatedSellersResponseSchema,
+} from './admin-sellers.validator';
 import { PAGINATION } from '../../../shared/constants';
 import { SellerCategory } from '@prisma/client';
 
@@ -35,13 +41,8 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.array(z.any()), // array of sellers
-            meta: z.object({
-              total: z.number(),
-              page: z.number(),
-              limit: z.number(),
-              totalPages: z.number(),
-            }),
+            data: paginatedSellersResponseSchema.shape.data,
+            meta: paginatedSellersResponseSchema.shape.meta,
           }),
         },
       },
@@ -67,7 +68,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({ id: z.string(), status: z.string() }),
+            data: baseSellerResponseSchema,
           }),
         },
       },
@@ -93,7 +94,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.object({ id: z.string(), status: z.string() }),
+            data: baseSellerResponseSchema,
           }),
         },
       },
@@ -122,7 +123,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: z.any(),
+            data: sellerWithLocationResponseSchema,
           }),
         },
       },

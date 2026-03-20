@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SellerCategory } from '@prisma/client';
+import { PAGINATION } from '../../shared/constants';
 
 // ─── Seller Registration ──────────────────────────────────────────────────────
 export const registerSellerSchema = z.object({
@@ -29,10 +30,69 @@ export const findSellersSchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
   cityId: z.string().uuid().optional(), // Optionally restrict to a specific city
-  limit: z.coerce.number().min(1).max(100).default(20),
+  search: z.string().optional(),
+  page: z.coerce.number().min(1).default(PAGINATION.DEFAULT_PAGE),
+  limit: z.coerce.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
 });
 
 // ─── Inferred Types ───────────────────────────────────────────────────────────
 export type RegisterSellerDto = z.infer<typeof registerSellerSchema>;
 export type UpdateSellerDto = z.infer<typeof updateSellerSchema>;
 export type FindSellersDto = z.infer<typeof findSellersSchema>;
+
+// ─── Response Schemas ─────────────────────────────────────────────────────────
+
+export const baseSellerResponseSchema = z.object({
+  id: z.string().uuid(),
+  phone: z.string(),
+  businessName: z.string(),
+  category: z.nativeEnum(SellerCategory),
+  cityId: z.string().uuid(),
+  areaId: z.string().uuid(),
+  status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED']),
+});
+
+export const profileResponseSchema = baseSellerResponseSchema.extend({
+  city: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
+  area: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
+});
+
+export const distanceSellerResponseSchema = z.object({
+  id: z.string().uuid(),
+  businessName: z.string(),
+  category: z.nativeEnum(SellerCategory),
+  area: z.string().nullable().optional(),
+  lat: z.number().nullable().optional(),
+  lng: z.number().nullable().optional(),
+  distanceKm: z.number().nullable().optional(),
+});
+
+export const loginSellerResponseSchema = z.object({
+  accessToken: z.string(),
+  refreshToken: z.string(),
+  seller: baseSellerResponseSchema,
+  message: z.string(),
+});
+
+export const sellerDashboardResponseSchema = z.object({
+  totalRedemptions: z.number(),
+  status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED']),
+  commissionPct: z.number(),
+});
+
+export const paginatedDistanceSellersResponseSchema = z.object({
+  data: z.array(distanceSellerResponseSchema),
+  meta: z.object({
+    total: z.number(),
+    page: z.number(),
+    limit: z.number(),
+    totalPages: z.number(),
+  }),
+});
+
+export type BaseSellerResponse = z.infer<typeof baseSellerResponseSchema>;
+export type ProfileResponse = z.infer<typeof profileResponseSchema>;
+export type DistanceSellerResponse = z.infer<typeof distanceSellerResponseSchema>;
+export type LoginSellerResponse = z.infer<typeof loginSellerResponseSchema>;
+export type SellerDashboardResponse = z.infer<typeof sellerDashboardResponseSchema>;
+export type PaginatedDistanceSellersResponse = z.infer<typeof paginatedDistanceSellersResponseSchema>;

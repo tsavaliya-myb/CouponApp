@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 20% 98%;
+    --foreground: 220 20% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 12%;
+
+    --primary: 250 60% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 20% 95%;
+    --secondary-foreground: 220 20% 12%;
+
+    --muted: 240 12% 94%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 250 55% 96%;
+    --accent-foreground: 250 60% 52%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 250 60% 52%;
+
+    --radius: 0.625rem;
+
+    --sidebar-background: 250 40% 14%;
+    --sidebar-foreground: 240 10% 85%;
+    --sidebar-primary: 250 60% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 250 30% 22%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 250 20% 22%;
+    --sidebar-ring: 250 60% 60%;
+
+    --chart-1: 250 60% 52%;
+    --chart-2: 170 60% 42%;
+    --chart-3: 35 92% 52%;
+    --chart-4: 340 65% 52%;
+    --chart-5: 200 70% 50%;
+  }
+
+  .dark {
+    --background: 240 10% 6%;
+    --foreground: 0 0% 95%;
+
+    --card: 240 10% 9%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 240 10% 9%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 250 60% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 10% 16%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 240 10% 16%;
+    --muted-foreground: 240 5% 60%;
+
+    --accent: 240 10% 16%;
+    --accent-foreground: 0 0% 95%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 95%;
+
+    --border: 240 10% 18%;
+    --input: 240 10% 18%;
+    --ring: 250 60% 60%;
+
+    --sidebar-background: 240 10% 6%;
+    --sidebar-foreground: 240 5% 75%;
+    --sidebar-primary: 250 60% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 10% 14%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 10% 14%;
+    --sidebar-ring: 250 60% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  .animate-in-view {
+    animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
