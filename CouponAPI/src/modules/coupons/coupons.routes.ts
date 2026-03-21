@@ -14,14 +14,14 @@ router.get(
   '/',
   authenticate,
   authorize('customer'),
-  validate(myCouponsQuerySchema),
+  validate(myCouponsQuerySchema, 'query'),
   controller.getMyCoupons
 );
 
 // ─── Public/Customer Route ────────────────────────────────────────────────────
 router.get(
   '/seller/:sellerId',
-  validate(sellerCouponsQuerySchema),
+  validate(sellerCouponsQuerySchema, 'query'),
   controller.getSellerCoupons
 );
 

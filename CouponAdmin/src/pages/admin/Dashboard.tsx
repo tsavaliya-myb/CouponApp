@@ -13,11 +13,7 @@ import {
   TrendingUp,
   ArrowUpRight,
 } from "lucide-react";
-import {
-  dashboardStats,
-  subscriptionChartData,
-  redemptionChartData,
-} from "@/data/mock-data";
+import { Loader2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -32,75 +28,96 @@ import {
   AreaChart,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
-
-const stats = [
-  {
-    label: "Active Subscribers",
-    value: dashboardStats.activeSubscribers,
-    icon: Users,
-    trend: "+12%",
-    bg: "bg-[hsl(250,55%,96%)]",
-    iconBg: "bg-[hsl(250,60%,52%)]",
-  },
-  {
-    label: "Revenue This Month",
-    value: `₹${dashboardStats.revenueThisMonth.toLocaleString("en-IN")}`,
-    icon: IndianRupee,
-    trend: "+8%",
-    bg: "bg-[hsl(145,50%,95%)]",
-    iconBg: "bg-[hsl(170,60%,42%)]",
-  },
-  {
-    label: "Redemptions Today",
-    value: dashboardStats.redemptionsToday,
-    icon: TicketCheck,
-    trend: "+24%",
-    bg: "bg-[hsl(35,80%,95%)]",
-    iconBg: "bg-[hsl(35,92%,52%)]",
-  },
-  {
-    label: "This Week",
-    value: dashboardStats.redemptionsThisWeek,
-    icon: TrendingUp,
-    trend: "+18%",
-    bg: "bg-[hsl(200,60%,95%)]",
-    iconBg: "bg-[hsl(200,70%,50%)]",
-  },
-  {
-    label: "Pending Settlements",
-    value: dashboardStats.pendingSettlements,
-    icon: Landmark,
-    trend: "",
-    bg: "bg-[hsl(340,50%,96%)]",
-    iconBg: "bg-[hsl(340,65%,52%)]",
-  },
-  {
-    label: "Coins Awarded",
-    value: dashboardStats.coinsAwardedThisMonth,
-    icon: Coins,
-    trend: "+5%",
-    bg: "bg-[hsl(270,50%,96%)]",
-    iconBg: "bg-[hsl(270,60%,52%)]",
-  },
-  {
-    label: "New Seller Requests",
-    value: dashboardStats.newSellerRequests,
-    icon: Store,
-    trend: "",
-    bg: "bg-[hsl(20,60%,95%)]",
-    iconBg: "bg-[hsl(20,80%,52%)]",
-  },
-];
+import { useDashboardStats } from "@/hooks/api/useDashboard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { data, isLoading, isError } = useDashboardStats();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[50vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isError || !data?.success) {
+    return (
+      <div className="flex h-[50vh] w-full items-center justify-center text-destructive">
+        <p>Failed to load dashboard data. Please try again later.</p>
+      </div>
+    );
+  }
+
+  const dashboardData = data.data;
+  const chartData = dashboardData.last7Days || [];
+
+  const stats = [
+    {
+      label: "Active Subscribers",
+      value: dashboardData.activeSubscribers,
+      icon: Users,
+      trend: "",
+      bg: "bg-[hsl(250,55%,96%)]",
+      iconBg: "bg-[hsl(250,60%,52%)]",
+    },
+    {
+      label: "Revenue This Month",
+      value: `₹${dashboardData.revenueThisMonth.toLocaleString("en-IN")}`,
+      icon: IndianRupee,
+      trend: "",
+      bg: "bg-[hsl(145,50%,95%)]",
+      iconBg: "bg-[hsl(170,60%,42%)]",
+    },
+    {
+      label: "Redemptions Today",
+      value: dashboardData.redemptions.today,
+      icon: TicketCheck,
+      trend: "",
+      bg: "bg-[hsl(35,80%,95%)]",
+      iconBg: "bg-[hsl(35,92%,52%)]",
+    },
+    {
+      label: "This Week",
+      value: dashboardData.redemptions.thisWeek,
+      icon: TrendingUp,
+      trend: "",
+      bg: "bg-[hsl(200,60%,95%)]",
+      iconBg: "bg-[hsl(200,70%,50%)]",
+    },
+    {
+      label: "Pending Settlements",
+      value: dashboardData.pendingSettlements,
+      icon: Landmark,
+      trend: "",
+      bg: "bg-[hsl(340,50%,96%)]",
+      iconBg: "bg-[hsl(340,65%,52%)]",
+    },
+    {
+      label: "Coins Awarded",
+      value: dashboardData.coins.awardedThisMonth,
+      icon: Coins,
+      trend: "",
+      bg: "bg-[hsl(270,50%,96%)]",
+      iconBg: "bg-[hsl(270,60%,52%)]",
+    },
+    {
+      label: "New Seller Requests",
+      value: dashboardData.pendingSellers,
+      icon: Store,
+      trend: "",
+      bg: "bg-[hsl(20,60%,95%)]",
+      iconBg: "bg-[hsl(20,80%,52%)]",
+    },
+  ];
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="animate-in-view">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-          Good morning, Admin
+          Summary
         </h1>
         <p className="text-muted-foreground mt-1">
           Here's what's happening across your coupon platform today.
@@ -137,7 +154,7 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="flex flex-wrap gap-3 animate-in-view" style={{ animationDelay: "200ms" }}>
+      {/* <div className="flex flex-wrap gap-3 animate-in-view" style={{ animationDelay: "200ms" }}>
         <Button onClick={() => navigate("/admin/coupons")} className="rounded-lg shadow-sm shadow-primary/20 active:scale-[0.97] transition-transform">
           <Plus className="h-4 w-4 mr-1.5" /> Add Coupon
         </Button>
@@ -147,7 +164,7 @@ export default function Dashboard() {
         <Button variant="outline" disabled className="rounded-lg">
           <Bell className="h-4 w-4 mr-1.5" /> Send Notification
         </Button>
-      </div>
+      </div> */}
 
       {/* Charts */}
       <div className="grid md:grid-cols-2 gap-5 animate-in-view" style={{ animationDelay: "300ms" }}>
@@ -158,7 +175,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="h-60">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={subscriptionChartData} barCategoryGap="20%">
+              <BarChart data={chartData} barCategoryGap="20%">
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 90%)" vertical={false} />
                 <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(220, 10%, 46%)" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "hsl(220, 10%, 46%)" }} axisLine={false} tickLine={false} />
@@ -183,7 +200,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="h-60">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={redemptionChartData}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="redemptionGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(170, 60%, 42%)" stopOpacity={0.2} />

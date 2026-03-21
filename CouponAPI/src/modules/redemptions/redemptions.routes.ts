@@ -14,7 +14,7 @@ router.get(
   '/history',
   authenticate,
   authorize('customer'),
-  validate(redemptionHistoryQuerySchema),
+  validate(redemptionHistoryQuerySchema, 'query'),
   controller.getUserHistory
 );
 

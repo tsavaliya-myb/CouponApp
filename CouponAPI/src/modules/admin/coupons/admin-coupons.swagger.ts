@@ -106,9 +106,9 @@ openApiRegistry.registerPath({
 
 openApiRegistry.registerPath({
   method: 'patch',
-  path: '/admin/coupons/{id}/deactivate',
-  summary: 'Deactivate Coupon',
-  description: 'Soft deletes a coupon by setting status to INACTIVE. Requires Admin Role.',
+  path: '/admin/coupons/{id}/toggle-status',
+  summary: 'Toggle Coupon Status',
+  description: 'Toggles a coupon status between ACTIVE and INACTIVE. Requires Admin Role.',
   tags: ['Admin - Coupons'],
   security: [{ bearerAuth: [] }],
   request: {

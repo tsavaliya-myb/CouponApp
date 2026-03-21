@@ -14,7 +14,7 @@ router.use(authenticate, authorize('admin'));
 
 router.get(
   '/',
-  validate(adminSellersQuerySchema),
+  validate(adminSellersQuerySchema, 'query'),
   controller.listSellers
 );
 
@@ -26,6 +26,11 @@ router.patch(
 router.patch(
   '/:id/suspend',
   controller.suspendSeller
+);
+
+router.patch(
+  '/:id/reject',
+  controller.rejectSeller
 );
 
 router.patch(

@@ -38,15 +38,8 @@ export class RedemptionsService {
     if (!user) throw NotFoundError('User not found');
     if (user.status === 'BLOCKED') throw BadRequestError('User account is blocked');
 
-    // Fetch user coins balance (Sum of EARNED minus USED)
-    const walletAgg = await prisma.walletTransaction.groupBy({
-      by: ['type'],
-      where: { userId },
-      _sum: { amount: true },
-    });
-    const earned = walletAgg.find(w => w.type === 'EARNED')?._sum.amount || 0;
-    const used = walletAgg.find(w => w.type === 'USED')?._sum.amount || 0;
-    const availableCoins = earned - used;
+    // User balance is directly available
+    const availableCoins = user.coinBalance;
 
     // Fetch eligible active coupons at this specific seller
     const eligibleCoupons = await prisma.userCoupon.findMany({
@@ -112,14 +105,8 @@ export class RedemptionsService {
       const maxAllowed = setting ? parseInt(setting.value, 10) : 0;
       if (coinsUsed > maxAllowed) throw BadRequestError(`Maximum coins allowed per transaction is ${maxAllowed}`);
 
-      const walletAgg = await prisma.walletTransaction.groupBy({
-        by: ['type'],
-        where: { userId },
-        _sum: { amount: true },
-      });
-      const earned = walletAgg.find(w => w.type === 'EARNED')?._sum.amount || 0;
-      const used = walletAgg.find(w => w.type === 'USED')?._sum.amount || 0;
-      if (earned - used < coinsUsed) throw BadRequestError('Insufficient coin balance');
+      const userBalance = await prisma.user.findUnique({ where: { id: userId }, select: { coinBalance: true } });
+      if ((userBalance?.coinBalance || 0) < coinsUsed) throw BadRequestError('Insufficient coin balance');
     }
 
     const finalAmount = billAmount - discountAmount - coinsUsed;
@@ -160,6 +147,11 @@ export class RedemptionsService {
 
       // 3. Deduct Coins (if any)
       if (coinsUsed > 0) {
+        await tx.user.update({
+          where: { id: userId },
+          data: { coinBalance: { decrement: coinsUsed } }
+        });
+
         await tx.walletTransaction.create({
           data: {
             userId,

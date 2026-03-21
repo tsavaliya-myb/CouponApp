@@ -10,6 +10,10 @@ import {
   topCouponStatsResponseSchema,
   coinStatsResponseSchema,
   churnStatsResponseSchema,
+  revenueStatsResponseSchema,
+  redemptionByCategoryResponseSchema,
+  dateRangeSchema,
+  analyticsRevenueSchema,
 } from './analytics.validator';
 
 const errorResponse = z.object({ success: z.boolean().default(false), code: z.string(), message: z.string() });
@@ -76,4 +80,26 @@ openApiRegistry.registerPath({
   tags: ['Admin - Analytics'],
   security: [{ bearerAuth: [] }],
   responses: { 200: { description: 'Success', content: { 'application/json': { schema: z.object({ success: z.boolean().default(true), data: churnStatsResponseSchema }) } } } },
+});
+
+openApiRegistry.registerPath({
+  method: 'get',
+  path: '/admin/analytics/revenue',
+  summary: 'Admin Revenue Report',
+  description: 'Calculates the subscription revenue and commission revenue grouped by day, week, or year. Requires Admin Role.',
+  tags: ['Admin - Analytics'],
+  security: [{ bearerAuth: [] }],
+  request: { query: analyticsRevenueSchema },
+  responses: { 200: { description: 'Success', content: { 'application/json': { schema: z.object({ success: z.boolean().default(true), data: revenueStatsResponseSchema }) } } } },
+});
+
+openApiRegistry.registerPath({
+  method: 'get',
+  path: '/admin/analytics/redemptions/category',
+  summary: 'Redemptions by Category',
+  description: 'Aggregates the total number of coupon redemptions grouped by seller category. Requires Admin Role.',
+  tags: ['Admin - Analytics'],
+  security: [{ bearerAuth: [] }],
+  request: { query: dateRangeSchema },
+  responses: { 200: { description: 'Success', content: { 'application/json': { schema: z.object({ success: z.boolean().default(true), data: redemptionByCategoryResponseSchema }) } } } },
 });

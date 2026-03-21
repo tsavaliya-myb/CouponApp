@@ -76,6 +76,17 @@ export class AdminSellersService {
     });
   }
 
+  // ─── Reject Seller ────────────────────────────────────────────────────────────
+  async rejectSeller(id: string): Promise<BaseSellerResponse> {
+    const seller = await prisma.seller.findUnique({ where: { id } });
+    if (!seller) throw NotFoundError('Seller');
+
+    return prisma.seller.update({
+      where: { id },
+      data: { status: 'REJECTED' },
+    });
+  }
+
   // ─── Edit Seller Details ──────────────────────────────────────────────────────
   async editSeller(id: string, dto: AdminUpdateSellerDto): Promise<SellerWithLocationResponse> {
     const seller = await prisma.seller.findUnique({ where: { id } });

@@ -105,6 +105,32 @@ openApiRegistry.registerPath({
 
 openApiRegistry.registerPath({
   method: 'patch',
+  path: '/admin/sellers/{id}/reject',
+  summary: 'Reject Seller',
+  description: 'Changes a seller status to REJECTED. Requires Admin Role.',
+  tags: ['Admin - Sellers'],
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({ id: z.string().uuid() }),
+  },
+  responses: {
+    200: {
+      description: 'Success',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean().default(true),
+            data: baseSellerResponseSchema,
+          }),
+        },
+      },
+    },
+    404: { description: 'Not found', content: { 'application/json': { schema: errorResponse } } },
+  },
+});
+
+openApiRegistry.registerPath({
+  method: 'patch',
   path: '/admin/sellers/{id}',
   summary: 'Edit Seller Details',
   description: 'Manually edit seller details, including commissionPct. Requires Admin Role.',

@@ -40,6 +40,15 @@ export class AdminSellersController {
     }
   };
 
+  rejectSeller = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const seller = await adminSellersService.rejectSeller(req.params.id as string);
+      sendSuccess(res, seller);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   editSeller = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const seller = await adminSellersService.editSeller(req.params.id as string, req.body);

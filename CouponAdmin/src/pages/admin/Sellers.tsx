@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { mockSellers, mockRedemptions, cities, areasByCity, categories, type Seller } from "@/data/mock-data";
+import { useState, useEffect } from "react";
+import { categories } from "@/data/mock-data";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,16 +9,24 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, CheckCircle, XCircle, Pause, Play, Pencil, Store, Clock, AlertTriangle } from "lucide-react";
+import { Search, CheckCircle, XCircle, Pause, Play, Pencil, Store, Clock, AlertTriangle, Loader2 } from "lucide-react";
+import { useSellers, useApproveSeller, useSuspendSeller, useUpdateSeller, useRejectSeller } from "@/hooks/api/useSellers";
+import { useCities, useAreas } from "@/hooks/api/useLocation";
+import { Seller, UpdateSellerParams } from "@/types/api/sellers";
+import { format } from "date-fns";
+import { toast } from "sonner";
 
 const statusStyles: Record<string, string> = {
-  active: "bg-[hsl(145,50%,95%)] text-[hsl(170,60%,35%)] border-0",
-  pending: "bg-[hsl(35,80%,95%)] text-[hsl(35,70%,35%)] border-0",
-  suspended: "bg-[hsl(340,50%,96%)] text-[hsl(340,65%,42%)] border-0",
+  ACTIVE: "bg-[hsl(145,50%,95%)] text-[hsl(170,60%,35%)] border-0",
+  PENDING: "bg-[hsl(35,80%,95%)] text-[hsl(35,70%,35%)] border-0",
+  SUSPENDED: "bg-[hsl(340,50%,96%)] text-[hsl(340,65%,42%)] border-0",
+  REJECTED: "bg-[hsl(0,72%,96%)] text-[hsl(0,72%,51%)] border-0",
+  Rejected: "bg-[hsl(0,72%,96%)] text-[hsl(0,72%,51%)] border-0",
 };
 
 export default function SellersPage() {
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [cityFilter, setCityFilter] = useState("all");
   const [areaFilter, setAreaFilter] = useState("all");
   const [catFilter, setCatFilter] = useState("all");
@@ -26,30 +34,52 @@ export default function SellersPage() {
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [editSeller, setEditSeller] = useState<Seller | null>(null);
-  const [editCommission, setEditCommission] = useState("");
+  const [editForm, setEditForm] = useState<UpdateSellerParams>({});
 
-  const areas = cityFilter !== "all" ? areasByCity[cityFilter] || [] : [];
+  const approveMutation = useApproveSeller();
+  const suspendMutation = useSuspendSeller();
+  const rejectMutation = useRejectSeller();
+  const updateMutation = useUpdateSeller();
 
-  const filtered = mockSellers.filter((s) => {
-    if (search && !s.businessName.toLowerCase().includes(search.toLowerCase())) return false;
-    if (cityFilter !== "all" && s.city !== cityFilter) return false;
-    if (areaFilter !== "all" && s.area !== areaFilter) return false;
-    if (catFilter !== "all" && s.category !== catFilter) return false;
-    if (statusFilter !== "all" && s.status !== statusFilter) return false;
-    return true;
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const { data: citiesData, isLoading: isCitiesLoading } = useCities();
+  const apiCities = citiesData?.data || [];
+
+  const { data: areasData, isLoading: isAreasLoading } = useAreas(cityFilter !== "all" ? cityFilter : null);
+  const apiAreas = areasData?.data || [];
+
+  const { data: editAreasData, isLoading: isEditAreasLoading } = useAreas(editForm.cityId || null);
+  const editApiAreas = editAreasData?.data || [];
+
+  const { data, isLoading, isError } = useSellers({
+    page: 1,
+    limit: 50,
+    search: debouncedSearch || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    category: catFilter !== "all" ? catFilter : undefined,
+    cityId: cityFilter !== "all" ? cityFilter : undefined,
+    areaId: areaFilter !== "all" ? areaFilter : undefined,
   });
 
-  const sellerRedemptions = selectedSeller ? mockRedemptions.filter((r) => r.sellerId === selectedSeller.id) : [];
+  const sellers = data?.data || [];
+  const meta = data?.meta;
 
-  const activeCount = mockSellers.filter((s) => s.status === "active").length;
-  const pendingCount = mockSellers.filter((s) => s.status === "pending").length;
-  const suspendedCount = mockSellers.filter((s) => s.status === "suspended").length;
+  const sellerRedemptions: any[] = [];
+
+  const totalCount = meta?.total || 0;
+  const activeCount = sellers.filter((s) => s.status === "ACTIVE").length;
+  const pendingCount = sellers.filter((s) => s.status === "PENDING").length;
+  const suspendedCount = sellers.filter((s) => s.status === "SUSPENDED" || s.status === "BLOCKED").length;
 
   return (
     <div className="space-y-6">
       <div className="animate-in-view">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Seller Management</h1>
-        <p className="text-muted-foreground mt-1">{mockSellers.length} registered sellers</p>
+        <p className="text-muted-foreground mt-1">{totalCount} registered sellers</p>
       </div>
 
       {/* Summary cards */}
@@ -96,17 +126,17 @@ export default function SellersPage() {
           <Input placeholder="Search business name…" className="pl-9 rounded-lg h-10" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={cityFilter} onValueChange={(v) => { setCityFilter(v); setAreaFilter("all"); }}>
-          <SelectTrigger className="w-36 rounded-lg h-10"><SelectValue placeholder="City" /></SelectTrigger>
+          <SelectTrigger className="w-36 rounded-lg h-10"><SelectValue placeholder={isCitiesLoading ? "Loading..." : "City"} /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Cities</SelectItem>
-            {cities.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            {apiCities.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={areaFilter} onValueChange={setAreaFilter} disabled={cityFilter === "all"}>
-          <SelectTrigger className="w-36 rounded-lg h-10"><SelectValue placeholder="Area" /></SelectTrigger>
+        <Select value={areaFilter} onValueChange={setAreaFilter} disabled={cityFilter === "all" || isAreasLoading}>
+          <SelectTrigger className="w-36 rounded-lg h-10"><SelectValue placeholder={isAreasLoading ? "Loading..." : "Area"} /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Areas</SelectItem>
-            {areas.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+            {apiAreas.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={catFilter} onValueChange={setCatFilter}>
@@ -120,9 +150,10 @@ export default function SellersPage() {
           <SelectTrigger className="w-36 rounded-lg h-10"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
+            <SelectItem value="PENDING">Pending</SelectItem>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="SUSPENDED">Suspended</SelectItem>
+            <SelectItem value="REJECTED">Rejected</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -142,46 +173,140 @@ export default function SellersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((s) => (
+            {isLoading && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-12">
+                   <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+                </TableCell>
+              </TableRow>
+            )}
+            
+            {isError && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-12 text-destructive font-medium border border-destructive/20 bg-destructive/5 rounded-xl">
+                   Failed to fetch seller directory. Please try again.
+                </TableCell>
+              </TableRow>
+            )}
+
+            {!isLoading && !isError && sellers.map((s) => (
               <TableRow key={s.id} className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => setSelectedSeller(s)}>
                 <TableCell className="font-medium">{s.businessName}</TableCell>
-                <TableCell className="hidden md:table-cell text-muted-foreground">{s.category}</TableCell>
-                <TableCell className="hidden lg:table-cell text-muted-foreground">{s.city}</TableCell>
-                <TableCell className="hidden lg:table-cell text-muted-foreground">{s.area}</TableCell>
-                <TableCell className="text-right hidden md:table-cell tabular-nums font-medium">{s.commission}%</TableCell>
+                <TableCell className="hidden md:table-cell text-muted-foreground capitalize">{s.category}</TableCell>
+                <TableCell className="hidden lg:table-cell text-muted-foreground capitalize">{s.city?.name || "-"}</TableCell>
+                <TableCell className="hidden lg:table-cell text-muted-foreground capitalize">{s.area?.name || "-"}</TableCell>
+                <TableCell className="text-right hidden md:table-cell tabular-nums font-medium">{s.commissionPct}%</TableCell>
                 <TableCell>
-                  <Badge variant="secondary" className={`${statusStyles[s.status]} font-medium`}>{s.status}</Badge>
+                  <Badge variant="secondary" className={`${statusStyles[s.status] || "bg-muted text-foreground"} font-medium`}>{s.status}</Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                    {s.status === "pending" && (
+                    {s.status === "PENDING" && (
                       <>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg text-[hsl(170,60%,42%)] hover:bg-[hsl(145,50%,95%)]" title="Approve">
-                          <CheckCircle className="h-4 w-4" />
+                        <Button
+                          size="icon"
+                          variant="ghost" 
+                          className="h-8 w-8 rounded-lg text-[hsl(170,60%,42%)] hover:bg-[hsl(145,50%,95%)]"
+                          title="Approve"
+                          disabled={approveMutation.isPending || suspendMutation.isPending}
+                          onClick={() => {
+                            approveMutation.mutate(s.id, {
+                              onSuccess: () => toast.success(`Approved seller ${s.businessName}`),
+                              onError: (err: any) => toast.error(err.response?.data?.message || "Failed to approve seller")
+                            });
+                          }}
+                        >
+                          {approveMutation.isPending && approveMutation.variables === s.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4" />
+                          )}
                         </Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg text-[hsl(0,72%,51%)] hover:bg-[hsl(340,50%,96%)]" title="Reject">
-                          <XCircle className="h-4 w-4" />
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-8 w-8 rounded-lg text-[hsl(0,72%,51%)] hover:bg-[hsl(340,50%,96%)]" 
+                          title="Reject"
+                          disabled={rejectMutation.isPending || approveMutation.isPending}
+                          onClick={() => {
+                            rejectMutation.mutate(s.id, {
+                              onSuccess: () => toast.success(`Rejected seller ${s.businessName}`),
+                              onError: (err: any) => toast.error(err.response?.data?.message || "Failed to reject seller")
+                            });
+                          }}
+                        >
+                          {rejectMutation.isPending && rejectMutation.variables === s.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          ) : (
+                            <XCircle className="h-4 w-4" />
+                          )}
                         </Button>
                       </>
                     )}
-                    {s.status === "active" && (
-                      <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg hover:bg-accent" title="Suspend">
-                        <Pause className="h-4 w-4" />
+                    {s.status === "ACTIVE" && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 rounded-lg hover:bg-accent"
+                        title="Suspend"
+                        disabled={suspendMutation.isPending || approveMutation.isPending}
+                        onClick={() => {
+                          suspendMutation.mutate(s.id, {
+                            onSuccess: () => toast.success(`Suspended seller ${s.businessName}`),
+                            onError: (err: any) => toast.error(err.response?.data?.message || "Failed to suspend seller")
+                          });
+                        }}
+                      >
+                        {suspendMutation.isPending && suspendMutation.variables === s.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        ) : (
+                          <Pause className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />
+                        )}
                       </Button>
                     )}
-                    {s.status === "suspended" && (
-                      <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg hover:bg-accent" title="Reactivate">
-                        <Play className="h-4 w-4" />
+                    {(s.status === "SUSPENDED" || s.status === "REJECTED" || s.status === "Rejected") && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 rounded-lg hover:bg-accent"
+                        title="Reactivate"
+                        disabled={approveMutation.isPending || suspendMutation.isPending}
+                        onClick={() => {
+                          // Unsuspend mechanism -> Assuming approve moves them back to ACTIVE
+                          approveMutation.mutate(s.id, {
+                            onSuccess: () => toast.success(`Reactivated seller ${s.businessName}`),
+                            onError: (err: any) => toast.error(err.response?.data?.message || "Failed to reactivate seller")
+                          });
+                        }}
+                      >
+                        {approveMutation.isPending && approveMutation.variables === s.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        ) : (
+                          <Play className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                        )}
                       </Button>
                     )}
-                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg hover:bg-accent" title="Edit commission" onClick={() => { setEditSeller(s); setEditCommission(String(s.commission)); setEditOpen(true); }}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg hover:bg-accent" title="Edit Seller" onClick={() => { 
+                      setEditSeller(s); 
+                      setEditForm({
+                        businessName: s.businessName,
+                        category: s.category,
+                        cityId: s.cityId,
+                        areaId: s.areaId,
+                        upiId: s.upiId || undefined,
+                        lat: s.latitude || undefined,
+                        lng: s.longitude || undefined,
+                        commissionPct: s.commissionPct,
+                      });
+                      setEditOpen(true); 
+                    }}>
                       <Pencil className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
-            {filtered.length === 0 && (
+            {!isLoading && !isError && sellers.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">No sellers found</TableCell>
               </TableRow>
@@ -197,7 +322,7 @@ export default function SellersPage() {
             <>
               <SheetHeader>
                 <SheetTitle className="text-xl">{selectedSeller.businessName}</SheetTitle>
-                <SheetDescription>{selectedSeller.category} · {selectedSeller.city}, {selectedSeller.area}</SheetDescription>
+                <SheetDescription>{selectedSeller.category} · {selectedSeller.city?.name || "-"}, {selectedSeller.area?.name || "-"}</SheetDescription>
               </SheetHeader>
               <div className="mt-5 space-y-3 text-sm">
                 <div className="grid grid-cols-2 gap-3">
@@ -207,19 +332,19 @@ export default function SellersPage() {
                   </div>
                   <div className="rounded-xl bg-muted/50 p-3.5">
                     <p className="text-muted-foreground text-xs font-medium">Commission</p>
-                    <p className="font-semibold tabular-nums mt-0.5">{selectedSeller.commission}%</p>
+                    <p className="font-semibold tabular-nums mt-0.5">{selectedSeller.commissionPct}%</p>
                   </div>
                   <div className="rounded-xl bg-muted/50 p-3.5">
-                    <p className="text-muted-foreground text-xs font-medium">Total Redemptions</p>
-                    <p className="font-semibold tabular-nums mt-0.5">{selectedSeller.totalRedemptions}</p>
+                    <p className="text-muted-foreground text-xs font-medium">Contact Phone</p>
+                    <p className="font-semibold tabular-nums mt-0.5">{selectedSeller.phone || "-"}</p>
                   </div>
                   <div className="rounded-xl bg-muted/50 p-3.5">
                     <p className="text-muted-foreground text-xs font-medium">Joined</p>
-                    <p className="font-semibold mt-0.5">{selectedSeller.joinDate}</p>
+                    <p className="font-semibold mt-0.5">{format(new Date(selectedSeller.createdAt), "dd MMM, yyyy")}</p>
                   </div>
                   <div className="rounded-xl bg-muted/50 p-3.5 col-span-2">
-                    <p className="text-muted-foreground text-xs font-medium">Contact</p>
-                    <p className="font-semibold mt-0.5">{selectedSeller.phone} · {selectedSeller.email}</p>
+                    <p className="text-muted-foreground text-xs font-medium">Email Address</p>
+                    <p className="font-semibold mt-0.5">{selectedSeller.email || "No email provided"}</p>
                   </div>
                 </div>
 
@@ -245,19 +370,89 @@ export default function SellersPage() {
         </SheetContent>
       </Sheet>
 
-      {/* Edit Commission Dialog */}
+      {/* Edit Seller Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="rounded-xl">
+        <DialogContent className="rounded-xl sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Commission — {editSeller?.businessName}</DialogTitle>
+            <DialogTitle>Edit Seller — {editSeller?.businessName}</DialogTitle>
           </DialogHeader>
-          <div className="py-2">
-            <Label className="text-sm font-medium">Commission %</Label>
-            <Input type="number" value={editCommission} onChange={(e) => setEditCommission(e.target.value)} className="mt-1.5 rounded-lg" />
+          <div className="py-2 space-y-4">
+            <div>
+              <Label className="text-sm font-medium">Business Name</Label>
+              <Input value={editForm.businessName || ""} onChange={(e) => setEditForm(prev => ({ ...prev, businessName: e.target.value }))} className="mt-1.5 rounded-lg" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Category</Label>
+              <Select value={editForm.category || ""} onValueChange={(val) => setEditForm(prev => ({ ...prev, category: val }))}>
+                <SelectTrigger className="mt-1.5 rounded-lg"><SelectValue placeholder="Select Category" /></SelectTrigger>
+                <SelectContent>
+                  {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm font-medium">City</Label>
+                <Select value={editForm.cityId || ""} onValueChange={(val) => setEditForm(prev => ({ ...prev, cityId: val, areaId: undefined }))}>
+                  <SelectTrigger className="mt-1.5 rounded-lg"><SelectValue placeholder={isCitiesLoading ? "Loading..." : "Select City"} /></SelectTrigger>
+                  <SelectContent>
+                    {apiCities.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Area</Label>
+                <Select value={editForm.areaId || ""} onValueChange={(val) => setEditForm(prev => ({ ...prev, areaId: val }))} disabled={!editForm.cityId || isEditAreasLoading}>
+                  <SelectTrigger className="mt-1.5 rounded-lg"><SelectValue placeholder={isEditAreasLoading ? "Loading..." : "Select Area"} /></SelectTrigger>
+                  <SelectContent>
+                    {editApiAreas.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm font-medium">UPI ID</Label>
+                <Input value={editForm.upiId || ""} onChange={(e) => setEditForm(prev => ({ ...prev, upiId: e.target.value }))} className="mt-1.5 rounded-lg" />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Commission %</Label>
+                <Input type="number" value={editForm.commissionPct ?? ""} onChange={(e) => setEditForm(prev => ({ ...prev, commissionPct: Number(e.target.value) }))} className="mt-1.5 rounded-lg" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm font-medium">Latitude</Label>
+                <Input type="number" step="any" value={editForm.lat ?? ""} onChange={(e) => setEditForm(prev => ({ ...prev, lat: Number(e.target.value) }))} className="mt-1.5 rounded-lg" />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Longitude</Label>
+                <Input type="number" step="any" value={editForm.lng ?? ""} onChange={(e) => setEditForm(prev => ({ ...prev, lng: Number(e.target.value) }))} className="mt-1.5 rounded-lg" />
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)} className="rounded-lg">Cancel</Button>
-            <Button onClick={() => setEditOpen(false)} className="rounded-lg">Save</Button>
+            <Button 
+              disabled={updateMutation.isPending}
+              onClick={() => {
+                if (editSeller && editForm) {
+                  updateMutation.mutate({
+                    id: editSeller.id,
+                    data: editForm
+                  }, {
+                    onSuccess: () => {
+                      toast.success(`Updated seller ${editForm.businessName || editSeller.businessName}`);
+                      setEditOpen(false);
+                    },
+                    onError: (err: any) => toast.error(err.response?.data?.message || "Failed to update seller data")
+                  });
+                }
+              }} 
+              className="rounded-lg"
+            >
+              {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

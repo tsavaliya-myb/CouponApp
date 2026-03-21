@@ -11,15 +11,12 @@ export class WalletService {
     const { page, limit } = query;
     const skip = (page - 1) * limit;
 
-    // 1. Calculate Balance
-    const walletAgg = await prisma.walletTransaction.groupBy({
-      by: ['type'],
-      where: { userId },
-      _sum: { amount: true },
+    // 1. Fetch User Balance
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { coinBalance: true }
     });
-    const earned = walletAgg.find(w => w.type === 'EARNED')?._sum.amount || 0;
-    const used = walletAgg.find(w => w.type === 'USED')?._sum.amount || 0;
-    const availableCoins = earned - used;
+    const availableCoins = user?.coinBalance || 0;
 
     // 2. Fetch Transaction History
     const [transactions, total] = await Promise.all([

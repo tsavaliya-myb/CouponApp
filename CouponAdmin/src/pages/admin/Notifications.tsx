@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { mockNotifications, cities, areasByCity, type Notification } from "@/data/mock-data";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,15 +8,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Bell, Send, Plus, Users, MapPin, Clock } from "lucide-react";
+import { Bell, Send, Plus, Users, MapPin, Clock, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+
+import { useNotificationHistory } from "@/hooks/api/useNotification";
+import { useCities, useAreas } from "@/hooks/api/useLocation";
 
 export default function NotificationsPage() {
   const [composeOpen, setComposeOpen] = useState(false);
-  const [audience, setAudience] = useState("all");
-  const [city, setCity] = useState("");
+  const [audience, setAudience] = useState("GLOBAL");
+  const [cityId, setCityId] = useState("");
+  const [page, setPage] = useState(1);
 
-  const totalSent = mockNotifications.filter((n) => n.status === "sent").length;
-  const totalDelivered = mockNotifications.reduce((a, n) => a + n.deliveredCount, 0);
+  const { data: historyResp, isLoading: isHistoryLoading } = useNotificationHistory({ page, limit: 10 });
+  const { data: citiesResp } = useCities();
+  const { data: areasResp } = useAreas(audience === "AREA" ? cityId : null);
+
+  const notifications = historyResp?.data?.data || [];
+  const meta = historyResp?.data?.meta;
+
+  const liveCities = citiesResp?.data || [];
+  const liveAreas = areasResp?.data || [];
+
+  const totalSent = meta?.totalCount || 0;
+  const totalDelivered = "-";
 
   return (
     <div className="space-y-6">
@@ -48,7 +61,7 @@ export default function NotificationsPage() {
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-[hsl(35,92%,52%)] text-white"><Clock className="h-4 w-4" /></div>
-            <div><p className="text-2xl font-bold tabular-nums">{mockNotifications.filter((n) => n.status === "scheduled").length}</p><p className="text-xs text-muted-foreground font-medium">Scheduled</p></div>
+            <div><p className="text-2xl font-bold tabular-nums">0</p><p className="text-xs text-muted-foreground font-medium">Scheduled</p></div>
           </CardContent>
         </Card>
       </div>
@@ -66,31 +79,44 @@ export default function NotificationsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockNotifications.map((n) => (
-              <TableRow key={n.id}>
-                <TableCell>
-                  <div><p className="font-medium text-sm">{n.title}</p><p className="text-xs text-muted-foreground line-clamp-1">{n.message}</p></div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className="text-xs capitalize">
-                    {n.audience === "all" ? "All Users" : n.audience === "city" ? n.city : n.audience === "expiring" ? "Expiring Soon" : n.audience}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right tabular-nums">{n.deliveredCount}</TableCell>
-                <TableCell>
-                  <Badge className={
-                    n.status === "sent" ? "bg-[hsl(170,50%,95%)] text-[hsl(170,60%,32%)] hover:bg-[hsl(170,50%,90%)]" :
-                    n.status === "scheduled" ? "bg-[hsl(35,80%,95%)] text-[hsl(35,92%,40%)] hover:bg-[hsl(35,80%,90%)]" :
-                    "bg-muted text-muted-foreground"
-                  }>
-                    {n.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm">{new Date(n.sentAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</TableCell>
-              </TableRow>
-            ))}
+            {isHistoryLoading ? (
+               <TableRow><TableCell colSpan={5} className="text-center py-10"><Loader2 className="animate-spin h-6 w-6 mx-auto text-muted-foreground" /></TableCell></TableRow>
+            ) : notifications.length === 0 ? (
+               <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground">No notifications found.</TableCell></TableRow>
+            ) : (
+                notifications.map((n) => (
+                  <TableRow key={n.id}>
+                    <TableCell>
+                      <div><p className="font-medium text-sm">{n.title}</p><p className="text-xs text-muted-foreground line-clamp-1">{n.body}</p></div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs capitalize">
+                        {n.targetType}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">-</TableCell>
+                    <TableCell>
+                      <Badge className="bg-[hsl(170,50%,95%)] text-[hsl(170,60%,32%)] hover:bg-[hsl(170,50%,90%)]">
+                        Sent
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{new Date(n.sentAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</TableCell>
+                  </TableRow>
+                ))
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination */ }
+        {meta && meta.totalCount > 10 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t">
+            <p className="text-sm text-muted-foreground">Showing {((page - 1) * 10) + 1} to {Math.min(page * 10, meta.totalCount)} of {meta.totalCount}</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={page <= 1}><ChevronLeft className="h-4 w-4" /></Button>
+              <Button variant="outline" size="sm" onClick={() => setPage(page + 1)} disabled={page * 10 >= meta.totalCount}><ChevronRight className="h-4 w-4" /></Button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Compose Dialog */}
@@ -112,31 +138,31 @@ export default function NotificationsPage() {
                 <Select value={audience} onValueChange={setAudience}>
                   <SelectTrigger className="rounded-lg mt-1"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Users</SelectItem>
-                    <SelectItem value="city">Specific City</SelectItem>
-                    <SelectItem value="area">Specific Area</SelectItem>
-                    <SelectItem value="expiring">Expiring Subscriptions</SelectItem>
+                    <SelectItem value="GLOBAL">All Users</SelectItem>
+                    <SelectItem value="CITY">Specific City</SelectItem>
+                    <SelectItem value="AREA">Specific Area</SelectItem>
+                    <SelectItem value="EXPIRING">Expiring Subscriptions</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              {(audience === "city" || audience === "area") && (
+              {(audience === "CITY" || audience === "AREA") && (
                 <div>
                   <Label className="text-xs text-muted-foreground">City</Label>
-                  <Select value={city} onValueChange={setCity}>
+                  <Select value={cityId} onValueChange={setCityId}>
                     <SelectTrigger className="rounded-lg mt-1"><SelectValue placeholder="Select city" /></SelectTrigger>
                     <SelectContent>
-                      {cities.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      {liveCities.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
               )}
-              {audience === "area" && city && (
+              {audience === "AREA" && cityId && (
                 <div>
                   <Label className="text-xs text-muted-foreground">Area</Label>
                   <Select>
                     <SelectTrigger className="rounded-lg mt-1"><SelectValue placeholder="Select area" /></SelectTrigger>
                     <SelectContent>
-                      {(areasByCity[city] || []).map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                      {liveAreas.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

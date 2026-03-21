@@ -14,7 +14,7 @@ router.use(authenticate, authorize('admin'));
 
 router.get(
   '/',
-  validate(pendingSettlementsQuerySchema),
+  validate(pendingSettlementsQuerySchema, 'query'),
   controller.getPendingSettlements
 );
 

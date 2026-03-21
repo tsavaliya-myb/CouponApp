@@ -19,6 +19,6 @@ openApiRegistry.registerPath({
   description: 'Mutates global platform key-values seamlessly. Overwrites existing keys or builds them dynamically if entirely new. Requires Admin Role.',
   tags: ['Admin - Settings'],
   security: [{ bearerAuth: [] }],
-  request: { body: { content: { 'application/json': { schema: updateSettingsSchema.shape.body } } } },
+  request: { body: { content: { 'application/json': { schema: updateSettingsSchema } } } },
   responses: { 200: { description: 'Success', content: { 'application/json': { schema: z.object({ success: z.boolean().default(true), data: appSettingsResponseSchema }) } } } },
 });

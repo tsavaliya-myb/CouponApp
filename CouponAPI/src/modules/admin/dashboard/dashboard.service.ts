@@ -1,5 +1,5 @@
 import { prisma } from '../../../config/db';
-import { startOfDay, startOfWeek, startOfMonth, startOfYear } from 'date-fns';
+import { startOfDay, startOfWeek, startOfMonth, startOfYear, subDays, eachDayOfInterval, format, endOfDay } from 'date-fns';
 import { appSettingsService } from '../settings/settings.service';
 import type { AdminDashboardStatsResponse } from './dashboard.validator';
 
@@ -54,6 +54,35 @@ export class AdminDashboardService {
     });
     const pendingCoinCompensation = pendingCoinCompensationResult._sum.coinCompensationTotal || 0;
 
+    // 7. Last 7 Days Chart Data
+    const last7DaysStart = startOfDay(subDays(now, 6)); // 6 days ago + today = 7 days
+    const chartIntervals = eachDayOfInterval({ start: last7DaysStart, end: now });
+    
+    const [recentSubs, recentRedemptions] = await Promise.all([
+      prisma.subscription.findMany({
+        where: { createdAt: { gte: last7DaysStart } },
+        select: { createdAt: true }
+      }),
+      prisma.redemption.findMany({
+        where: { redeemedAt: { gte: last7DaysStart } },
+        select: { redeemedAt: true }
+      })
+    ]);
+
+    const last7Days = chartIntervals.map(day => {
+      const dayStart = startOfDay(day);
+      const dayEnd = endOfDay(day);
+      
+      const subsCount = recentSubs.filter(s => s.createdAt >= dayStart && s.createdAt <= dayEnd).length;
+      const redemptionsCount = recentRedemptions.filter(r => r.redeemedAt >= dayStart && r.redeemedAt <= dayEnd).length;
+
+      return {
+        date: format(day, 'MMM dd'),
+        subscriptions: subsCount,
+        redemptions: redemptionsCount
+      };
+    });
+
     return {
       activeSubscribers,
       revenueThisMonth,
@@ -66,7 +95,8 @@ export class AdminDashboardService {
       coins: {
         awardedThisMonth: coinsAwardedThisMonth,
         pendingCompensation: pendingCoinCompensation
-      }
+      },
+      last7Days
     };
   }
 }

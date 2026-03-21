@@ -39,8 +39,29 @@ export class AdminCouponsService {
       prisma.coupon.count({ where }),
     ]);
 
+    const couponIds = coupons.map(c => c.id);
+    let counts: { couponId: string; totalRedemptions: number }[] = [];
+
+    if (couponIds.length > 0) {
+      counts = await prisma.$queryRaw<{ couponId: string; totalRedemptions: number }[]>`
+        SELECT uc."couponId", CAST(COUNT(r.id) AS INTEGER) as "totalRedemptions"
+        FROM "user_coupons" uc
+        JOIN "redemptions" r ON r."userCouponId" = uc.id
+        WHERE uc."couponId" IN (${Prisma.join(couponIds)})
+        GROUP BY uc."couponId"
+      `;
+    }
+
+    const data = coupons.map(c => {
+      const match = counts.find(x => x.couponId === c.id);
+      return {
+        ...c,
+        totalRedemptions: match ? match.totalRedemptions : 0,
+      };
+    });
+
     return {
-      data: coupons,
+      data,
       meta: {
         total,
         page,
@@ -92,15 +113,16 @@ export class AdminCouponsService {
     return updated;
   }
 
-  // ─── Deactivate Coupon ────────────────────────────────────────────────────────
-  async deactivateCoupon(id: string): Promise<BaseCouponResponse> {
+  // ─── Toggle Coupon Status ──────────────────────────────────────────────────────
+  async toggleCouponStatus(id: string): Promise<BaseCouponResponse> {
     const coupon = await prisma.coupon.findUnique({ where: { id }, include: { seller: true } });
     if (!coupon) throw NotFoundError('Coupon');
 
-    // Soft delete/Deactivate
+    const newStatus = coupon.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+
     const updated = await prisma.coupon.update({
       where: { id },
-      data: { status: 'INACTIVE' },
+      data: { status: newStatus },
     });
 
     if (coupon.isBaseCoupon) {

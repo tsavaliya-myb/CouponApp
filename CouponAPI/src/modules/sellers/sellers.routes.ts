@@ -25,7 +25,7 @@ router.post(
 router.get(
   '/',
   authenticate,
-  validate(findSellersSchema),
+  validate(findSellersSchema, 'query'),
   controller.findSellers
 );
 

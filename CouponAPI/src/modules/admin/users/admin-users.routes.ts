@@ -14,7 +14,7 @@ router.use(authenticate, authorize('admin'));
 
 router.get(
   '/',
-  validate(adminUsersQuerySchema),
+  validate(adminUsersQuerySchema, 'query'),
   controller.listUsers
 );
 

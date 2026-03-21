@@ -14,7 +14,7 @@ router.use(authenticate, authorize('seller'));
 
 router.get(
   '/',
-  validate(settlementsQuerySchema),
+  validate(settlementsQuerySchema, 'query'),
   controller.getMySettlements
 );
 

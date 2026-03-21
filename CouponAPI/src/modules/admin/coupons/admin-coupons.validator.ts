@@ -60,6 +60,7 @@ export const couponWithSellerResponseSchema = baseCouponResponseSchema.extend({
       name: z.string(),
     }).optional(),
   }).optional(),
+  totalRedemptions: z.number().optional(),
 });
 
 export const paginatedCouponsResponseSchema = z.object({

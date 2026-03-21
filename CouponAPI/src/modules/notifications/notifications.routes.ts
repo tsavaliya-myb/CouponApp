@@ -13,6 +13,6 @@ const controller = new NotificationsController();
 router.use(authenticate, authorize('admin'));
 
 router.post('/send', validate(sendNotificationSchema), controller.send);
-router.get('/history', validate(getHistorySchema), controller.getHistory);
+router.get('/history', validate(getHistorySchema, 'query'), controller.getHistory);
 
 export { router as adminNotificationsRouter };

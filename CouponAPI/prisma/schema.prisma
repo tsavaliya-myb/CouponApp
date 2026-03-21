@@ -29,6 +29,7 @@ enum SellerStatus {
   PENDING
   ACTIVE
   SUSPENDED
+  REJECTED
 }
 
 enum SellerCategory {
@@ -125,6 +126,8 @@ model User {
   status    UserStatus @default(ACTIVE)
   // OneSignal player ID for push notifications
   onesignalPlayerId String?
+  // User's cached coin balance (1 coin = ₹1)
+  coinBalance       Int        @default(0)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 

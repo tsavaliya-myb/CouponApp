@@ -98,9 +98,16 @@ export class AdminWalletService {
       note,
     }));
 
-    // 3. Insert in bulk
-    const result = await prisma.walletTransaction.createMany({
-      data: records,
+    // 3. Update balances and insert logs in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.user.updateMany({
+        where: { id: { in: users.map(u => u.id) } },
+        data: { coinBalance: { increment: amount } }
+      });
+
+      return tx.walletTransaction.createMany({
+        data: records,
+      });
     });
 
     return {

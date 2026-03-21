@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AnalyticsService } from './analytics.service';
 import { sendSuccess } from '../../shared/utils/response';
-import type { AnalyticsSubscriptionsQuery, AnalyticsRedemptionsQuery, AnalyticsGenericLimitQuery } from './analytics.validator';
+import type { AnalyticsSubscriptionsQuery, AnalyticsRedemptionsQuery, AnalyticsGenericLimitQuery, AnalyticsRevenueQuery } from './analytics.validator';
 
 const analyticsService = new AnalyticsService();
 
@@ -45,6 +45,20 @@ export class AnalyticsController {
   getChurn = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const stats = await analyticsService.getChurnStats();
+      sendSuccess(res, stats);
+    } catch (err) { next(err); }
+  };
+
+  getRevenue = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const stats = await analyticsService.getRevenueStats(req.query as unknown as AnalyticsRevenueQuery);
+      sendSuccess(res, stats);
+    } catch (err) { next(err); }
+  };
+
+  getRedemptionsByCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const stats = await analyticsService.getRedemptionsByCategory(req.query as { startDate?: string; endDate?: string });
       sendSuccess(res, stats);
     } catch (err) { next(err); }
   };

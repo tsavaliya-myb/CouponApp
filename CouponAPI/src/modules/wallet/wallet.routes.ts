@@ -14,7 +14,7 @@ router.get(
   '/',
   authenticate,
   authorize('customer'),
-  validate(walletHistoryQuerySchema),
+  validate(walletHistoryQuerySchema, 'query'),
   controller.getWallet
 );
 

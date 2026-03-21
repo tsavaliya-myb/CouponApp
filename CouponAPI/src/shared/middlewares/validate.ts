@@ -17,6 +17,11 @@ export const validate =
       err.issues = issues;
       return next(err);
     }
-    req[target] = result.data;
+    Object.defineProperty(req, target, {
+      value: result.data,
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
     next();
   };

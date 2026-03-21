@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SellerCategory } from '@prisma/client';
+import { SellerCategory, SellerStatus } from '@prisma/client';
 import { PAGINATION } from '../../shared/constants';
 
 // ─── Seller Registration ──────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ export const baseSellerResponseSchema = z.object({
   category: z.nativeEnum(SellerCategory),
   cityId: z.string().uuid(),
   areaId: z.string().uuid(),
-  status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED']),
+  status: z.nativeEnum(SellerStatus),
 });
 
 export const profileResponseSchema = baseSellerResponseSchema.extend({
@@ -76,7 +76,7 @@ export const loginSellerResponseSchema = z.object({
 
 export const sellerDashboardResponseSchema = z.object({
   totalRedemptions: z.number(),
-  status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED']),
+  status: z.nativeEnum(SellerStatus),
   commissionPct: z.number(),
 });
 

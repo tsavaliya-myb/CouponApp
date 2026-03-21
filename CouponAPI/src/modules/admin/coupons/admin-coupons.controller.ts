@@ -41,9 +41,9 @@ export class AdminCouponsController {
     }
   };
 
-  deactivateCoupon = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  toggleCouponStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const coupon = await adminCouponsService.deactivateCoupon(req.params.id as string);
+      const coupon = await adminCouponsService.toggleCouponStatus(req.params.id as string);
       sendSuccess(res, coupon);
     } catch (err) {
       next(err);

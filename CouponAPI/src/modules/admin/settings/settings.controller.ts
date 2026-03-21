@@ -14,7 +14,7 @@ export class AppSettingsController {
 
   updateBatch = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { settings } = req.body as UpdateSettingsBody;
+      const settings = req.body as UpdateSettingsBody;
       const updated = await appSettingsService.updateSettings(settings);
       sendSuccess(res, updated);
     } catch (err) { next(err); }

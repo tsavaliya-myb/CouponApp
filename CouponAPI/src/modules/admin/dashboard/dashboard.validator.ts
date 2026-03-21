@@ -13,6 +13,11 @@ export const adminDashboardStatsResponseSchema = z.object({
     awardedThisMonth: z.number(),
     pendingCompensation: z.number(),
   }),
+  last7Days: z.array(z.object({
+    date: z.string(),
+    subscriptions: z.number(),
+    redemptions: z.number(),
+  })),
 });
 
 export type AdminDashboardStatsResponse = z.infer<typeof adminDashboardStatsResponseSchema>;

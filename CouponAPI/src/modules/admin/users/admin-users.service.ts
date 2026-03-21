@@ -101,16 +101,20 @@ export class AdminUsersService {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw NotFoundError('User');
 
-    // This creates the transaction record.
-    // The current Wallet Module (Phase 8) normally handles aggregating this, 
-    // but the WalletTransaction table insertion is what actually gives coins.
-    return prisma.walletTransaction.create({
-      data: {
-        userId,
-        type: 'EARNED',
-        amount: dto.amount,
-        note: dto.note || 'Manually awarded by admin',
-      },
+    return prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { coinBalance: { increment: dto.amount } }
+      });
+
+      return tx.walletTransaction.create({
+        data: {
+          userId,
+          type: 'EARNED',
+          amount: dto.amount,
+          note: dto.note || 'Manually awarded by admin',
+        },
+      });
     });
   }
 }

@@ -14,7 +14,7 @@ router.use(authenticate, authorize('admin'));
 
 router.get(
   '/',
-  validate(adminCouponsQuerySchema),
+  validate(adminCouponsQuerySchema, 'query'),
   controller.listCoupons
 );
 
@@ -31,8 +31,8 @@ router.patch(
 );
 
 router.patch(
-  '/:id/deactivate',
-  controller.deactivateCoupon
+  '/:id/toggle-status',
+  controller.toggleCouponStatus
 );
 
 export { router as adminCouponsRouter };

@@ -30,6 +30,6 @@ openApiRegistry.registerPath({
   description: 'Yields chronicled dispatch audit log paginated efficiently capturing OneSignal delivery payload keys across time. Requires Admin Role.',
   tags: ['Admin - Notifications'],
   security: [{ bearerAuth: [] }],
-  request: { query: getHistorySchema.shape.query },
+  request: { query: getHistorySchema },
   responses: { 200: { description: 'Success', content: { 'application/json': { schema: z.object({ success: z.boolean().default(true), data: paginatedNotificationHistoryResponseSchema.shape.data, meta: paginatedNotificationHistoryResponseSchema.shape.meta }) } } } },
 });

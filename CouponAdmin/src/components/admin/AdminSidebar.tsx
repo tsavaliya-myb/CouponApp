@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import {
   Sidebar,
   SidebarContent,
@@ -55,9 +56,12 @@ export function AdminSidebar() {
 
   const renderGroup = (label: string, items: typeof coreItems) => (
     <SidebarGroup>
-      <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-2 mb-1">
-        {label}
-      </SidebarGroupLabel>
+      {!collapsed && (
+        <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-2 mb-1">
+          {label}
+        </SidebarGroupLabel>
+      )}
+      {collapsed && <div className="my-1 mx-auto w-6 border-t border-sidebar-border" />}
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
@@ -66,15 +70,19 @@ export function AdminSidebar() {
                 asChild
                 isActive={isActive(item.url)}
                 tooltip={item.title}
-                className="rounded-lg h-10 transition-all duration-200"
+                className={cn(
+                  "rounded-lg h-10 transition-all duration-200",
+                  collapsed && "justify-center px-0"
+                )}
               >
                 <NavLink
                   to={item.url}
                   end={item.url === "/admin"}
                   activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                  className={cn(collapsed && "justify-center")}
                 >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.title}</span>
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {!collapsed && <span>{item.title}</span>}
                 </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -86,10 +94,10 @@ export function AdminSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
+      <SidebarHeader className={cn("border-b border-sidebar-border py-4", collapsed ? "px-1" : "px-4")}>
         {!collapsed ? (
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground text-sm font-bold shadow-md shadow-sidebar-primary/30">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground text-sm font-bold shadow-md shadow-sidebar-primary/30">
               C
             </div>
             <div className="flex flex-col">
@@ -102,13 +110,13 @@ export function AdminSidebar() {
             </div>
           </div>
         ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground text-sm font-bold shadow-md shadow-sidebar-primary/30 mx-auto">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground text-sm font-bold shadow-md shadow-sidebar-primary/30 mx-auto">
             C
           </div>
         )}
       </SidebarHeader>
 
-      <SidebarContent className="px-2 pt-2">
+      <SidebarContent className={cn("pt-2", collapsed ? "px-0.5" : "px-2")}>
         {renderGroup("Management", coreItems)}
         {renderGroup("Operations", operationsItems)}
         {renderGroup("Configuration", configItems)}
