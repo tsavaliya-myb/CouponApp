@@ -5,6 +5,7 @@ import {
   registerSellerSchema,
   updateSellerSchema,
   findSellersSchema,
+  getSellersByAreaCategorySchema,
   loginSellerResponseSchema,
   profileResponseSchema,
   sellerDashboardResponseSchema,
@@ -134,6 +135,42 @@ openApiRegistry.registerPath({
           schema: z.object({
             success: z.boolean().default(true),
             data: z.array(distanceSellerResponseSchema),
+          }),
+        },
+      },
+    },
+  },
+});
+
+openApiRegistry.registerPath({
+  method: 'get',
+  path: '/sellers/by-area-category',
+  summary: 'Find Sellers by Area and Category',
+  description: 'Customer view. Lists active sellers filtered by area and category.',
+  tags: ['Sellers'],
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: z.object({
+      areaId: z.string().uuid().openapi({ description: 'Area ID' }),
+      categoryType: z.nativeEnum(SellerCategory).optional().openapi({ description: 'Seller Category' }),
+      page: z.coerce.number().default(1),
+      limit: z.coerce.number().default(20),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Success',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean().default(true),
+            data: z.array(distanceSellerResponseSchema),
+            meta: z.object({
+              total: z.number(),
+              page: z.number(),
+              limit: z.number(),
+              totalPages: z.number(),
+            }).optional(),
           }),
         },
       },

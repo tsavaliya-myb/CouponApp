@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Validation &amp; Coupon Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#4c56af",
+              "on-secondary-container": "#217128",
+              "outline": "#767683",
+              "surface-bright": "#fbf8fe",
+              "surface": "#fbf8fe",
+              "on-secondary-fixed-variant": "#005312",
+              "on-primary-fixed-variant": "#343d96",
+              "surface-container-highest": "#e4e1e7",
+              "background": "#fbf8fe",
+              "primary-fixed": "#e0e0ff",
+              "surface-container-high": "#eae7ed",
+              "surface-variant": "#e4e1e7",
+              "secondary-fixed-dim": "#88d982",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "inverse-surface": "#303034",
+              "on-surface": "#1b1b1f",
+              "error-container": "#ffdad6",
+              "on-error": "#ffffff",
+              "on-tertiary-fixed": "#331200",
+              "tertiary-container": "#532100",
+              "tertiary": "#321100",
+              "on-surface-variant": "#454652",
+              "on-primary-container": "#8690ee",
+              "primary-container": "#1a237e",
+              "secondary-fixed": "#a3f69c",
+              "on-error-container": "#93000a",
+              "outline-variant": "#c6c5d4",
+              "on-primary-fixed": "#000767",
+              "surface-container": "#f0edf2",
+              "primary-fixed-dim": "#bdc2ff",
+              "tertiary-fixed-dim": "#ffb68f",
+              "tertiary-fixed": "#ffdbca",
+              "on-primary": "#ffffff",
+              "on-background": "#1b1b1f",
+              "surface-dim": "#dcd9de",
+              "primary": "#000666",
+              "inverse-primary": "#bdc2ff",
+              "on-secondary-fixed": "#002204",
+              "on-secondary": "#ffffff",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#773200",
+              "secondary": "#1b6d24",
+              "on-tertiary-container": "#f57009",
+              "secondary-container": "#a0f399",
+              "surface-container-low": "#f6f2f8",
+              "inverse-on-surface": "#f3f0f5"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .coupon-gradient {
+            background: linear-gradient(135deg, #000666 0%, #1a237e 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body antialiased min-h-screen">
+<!-- TopAppBar Navigation Shell (Suppressed for transactional focus, using Task-Focused Back) -->
+<header class="sticky top-0 z-50 bg-[#fbf8fe]/80 backdrop-blur-xl">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[#eae7ed] transition-colors group">
+<span class="material-symbols-outlined text-on-surface-variant group-active:scale-95 transition-transform">arrow_back</span>
+</button>
+<h1 class="font-headline font-bold text-lg tracking-tight text-on-surface">Validate Transaction</h1>
+<div class="w-10"></div> <!-- Spacer for symmetry -->
+</div>
+<div class="bg-[#eae7ed] h-[1px] w-full opacity-30"></div>
+</header>
+<main class="max-w-xl mx-auto px-6 pt-8 pb-32">
+<!-- User Validation Section -->
+<section class="space-y-6">
+<div class="flex flex-col items-center text-center space-y-4">
+<div class="w-20 h-20 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container shadow-sm">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+<div>
+<h2 class="font-headline font-extrabold text-2xl tracking-tight text-primary">User Validated</h2>
+<p class="font-body text-on-surface-variant font-medium mt-1">Identity verified for: <span class="text-on-surface">J***n D.</span></p>
+</div>
+<div class="inline-flex items-center px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container text-sm font-semibold tracking-wide">
+<span class="material-symbols-outlined text-lg mr-2" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    Active Subscription
+                </div>
+</div>
+<!-- Asymmetric Bento-style Details Card -->
+<div class="grid grid-cols-1 gap-4 mt-12">
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_32px_-4px_rgba(27,27,31,0.06)] outline outline-variant/15">
+<div class="flex justify-between items-start mb-6">
+<h3 class="font-headline font-bold text-lg text-on-surface">Available Coupons for this User</h3>
+<span class="material-symbols-outlined text-on-surface-variant">confirmation_number</span>
+</div>
+<div class="space-y-4">
+<!-- Coupon Card 1 (Selected State Example) -->
+<div class="relative group cursor-pointer">
+<input checked="" class="peer hidden" id="coupon-1" name="coupon" type="radio"/>
+<label class="block p-5 rounded-xl border-2 border-transparent bg-surface-container-low transition-all hover:bg-surface-container peer-checked:border-primary peer-checked:bg-white peer-checked:shadow-md" for="coupon-1">
+<div class="flex justify-between items-center">
+<div class="flex gap-4">
+<div class="w-12 h-12 flex items-center justify-center rounded-lg bg-primary-fixed text-primary">
+<span class="material-symbols-outlined">percent</span>
+</div>
+<div>
+<div class="font-headline font-extrabold text-xl text-on-surface tracking-tight">20% OFF</div>
+<div class="font-body text-xs font-bold text-on-surface-variant uppercase tracking-widest mt-0.5">Min Spend: ₹500</div>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant flex items-center justify-center peer-checked:border-primary">
+<div class="w-3 h-3 rounded-full bg-primary scale-0 transition-transform peer-checked:scale-100"></div>
+</div>
+</div>
+<p class="mt-4 text-sm text-on-surface-variant leading-relaxed">Applicable on all premium ledger services and audit logs.</p>
+</label>
+</div>
+<!-- Coupon Card 2 -->
+<div class="relative group cursor-pointer">
+<input class="peer hidden" id="coupon-2" name="coupon" type="radio"/>
+<label class="block p-5 rounded-xl border-2 border-transparent bg-surface-container-low transition-all hover:bg-surface-container peer-checked:border-primary peer-checked:bg-white peer-checked:shadow-md" for="coupon-2">
+<div class="flex justify-between items-center">
+<div class="flex gap-4">
+<div class="w-12 h-12 flex items-center justify-center rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div>
+<div class="font-headline font-extrabold text-xl text-on-surface tracking-tight">₹150 Flat</div>
+<div class="font-body text-xs font-bold text-on-surface-variant uppercase tracking-widest mt-0.5">Min Spend: ₹1200</div>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant flex items-center justify-center">
+<div class="w-3 h-3 rounded-full bg-primary scale-0 transition-transform"></div>
+</div>
+</div>
+<p class="mt-4 text-sm text-on-surface-variant leading-relaxed">Special corporate loyalty discount for quarterly settlements.</p>
+</label>
+</div>
+<!-- Coupon Card 3 -->
+<div class="relative group cursor-pointer">
+<input class="peer hidden" id="coupon-3" name="coupon" type="radio"/>
+<label class="block p-5 rounded-xl border-2 border-transparent bg-surface-container-low transition-all hover:bg-surface-container peer-checked:border-primary peer-checked:bg-white peer-checked:shadow-md" for="coupon-3">
+<div class="flex justify-between items-center">
+<div class="flex gap-4">
+<div class="w-12 h-12 flex items-center justify-center rounded-lg bg-secondary-fixed text-on-secondary-fixed-variant">
+<span class="material-symbols-outlined">redeem</span>
+</div>
+<div>
+<div class="font-headline font-extrabold text-xl text-on-surface tracking-tight">FREE Audit</div>
+<div class="font-body text-xs font-bold text-on-surface-variant uppercase tracking-widest mt-0.5">No Min Spend</div>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant flex items-center justify-center">
+<div class="w-3 h-3 rounded-full bg-primary scale-0 transition-transform"></div>
+</div>
+</div>
+<p class="mt-4 text-sm text-on-surface-variant leading-relaxed">Redeem one comprehensive ledger reconciliation for free.</p>
+</label>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Fixed Bottom Action Bar -->
+<footer class="fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-xl border-t border-outline-variant/15 px-6 pt-4 pb-8 z-50">
+<div class="max-w-xl mx-auto">
+<button class="w-full py-4 rounded-xl coupon-gradient text-on-primary font-headline font-bold text-base shadow-lg active:scale-[0.98] transition-all flex items-center justify-center group disabled:opacity-50 disabled:grayscale disabled:scale-100 disabled:cursor-not-allowed">
+                Select Coupon to Proceed
+                <span class="material-symbols-outlined ml-2 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+<p class="text-center text-[10px] font-medium text-on-surface-variant uppercase tracking-[0.15em] mt-4">Security Verified by Executive Ledger Protocol</p>
+</div>
+</footer>
+<!-- Style logic for selection indicator (Simulated via CSS) -->
+<style>
+        /* This handles the internal scale animation of the custom radio checkmark */
+        input:checked + label .w-3 {
+            transform: scale(1);
+        }
+        input:checked + label {
+            border-color: #000666;
+            background-color: white;
+            box-shadow: 0 4px 20px -2px rgba(0, 6, 102, 0.08);
+        }
+    </style>
+</body></html>

@@ -6,22 +6,18 @@ class NearbySellerEntity extends Equatable {
   final String name;
   final String category;
   final String area;
-  final double distanceKm;
-  final double rating;
-  final int totalRatings;
-  final String? imageUrl;
-  final String bestCouponLabel; // e.g. "20% OFF" or "BUY 1 GET 1"
+  final double lat;
+  final double lng;
+  final double? distanceKm;
 
   const NearbySellerEntity({
     required this.id,
     required this.name,
     required this.category,
     required this.area,
-    required this.distanceKm,
-    required this.rating,
-    required this.totalRatings,
-    this.imageUrl,
-    required this.bestCouponLabel,
+    required this.lat,
+    required this.lng,
+    this.distanceKm,
   });
 
   @override

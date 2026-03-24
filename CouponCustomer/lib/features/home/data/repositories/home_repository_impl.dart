@@ -8,8 +8,8 @@ import '../../domain/entities/home_coupon_entity.dart';
 import '../../domain/entities/nearby_seller_entity.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../datasources/home_remote_datasource.dart';
-import '../models/home_coupon_model.dart';
 import '../models/nearby_seller_model.dart';
+import '../models/home_coupon_model.dart';
 
 @Injectable(as: HomeRepository)
 class HomeRepositoryImpl implements HomeRepository {
@@ -18,15 +18,9 @@ class HomeRepositoryImpl implements HomeRepository {
   HomeRepositoryImpl(this._remote);
 
   @override
-  Future<Either<Failure, List<HomeCouponEntity>>> getFeaturedCoupons({
-    required String category,
-    required int page,
-  }) async {
+  Future<Either<Failure, List<HomeCouponEntity>>> getAllCoupons() async {
     try {
-      final models = await _remote.getFeaturedCoupons(
-        category: category,
-        page: page,
-      );
+      final models = await _remote.getAllCoupons();
       return Right(models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
       return Left(mapDioExceptionToFailure(e));
@@ -37,10 +31,16 @@ class HomeRepositoryImpl implements HomeRepository {
 
   @override
   Future<Either<Failure, List<NearbySellerEntity>>> getNearbySellers({
+    required String areaId,
+    String? categoryType,
     required int page,
   }) async {
     try {
-      final models = await _remote.getNearbySellers(page: page);
+      final models = await _remote.getNearbySellers(
+        areaId: areaId,
+        categoryType: categoryType,
+        page: page,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
       return Left(mapDioExceptionToFailure(e));

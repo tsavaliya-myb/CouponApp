@@ -9,14 +9,12 @@ part 'nearby_seller_model.g.dart';
 class NearbySellerModel with _$NearbySellerModel {
   const factory NearbySellerModel({
     required String id,
-    required String name,
+    required String businessName,
     required String category,
     required String area,
-    required double distanceKm,
-    required double rating,
-    required int totalRatings,
-    String? imageUrl,
-    required String bestCouponLabel,
+    required double lat,
+    required double lng,
+    double? distanceKm,
   }) = _NearbySellerModel;
 
   factory NearbySellerModel.fromJson(Map<String, dynamic> json) =>
@@ -26,13 +24,11 @@ class NearbySellerModel with _$NearbySellerModel {
 extension NearbySellerModelX on NearbySellerModel {
   NearbySellerEntity toEntity() => NearbySellerEntity(
         id: id,
-        name: name,
+        name: businessName,
         category: category,
         area: area,
         distanceKm: distanceKm,
-        rating: rating,
-        totalRatings: totalRatings,
-        imageUrl: imageUrl,
-        bestCouponLabel: bestCouponLabel,
+        lat: lat,
+        lng: lng,
       );
 }

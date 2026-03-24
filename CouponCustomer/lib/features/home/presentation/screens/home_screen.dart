@@ -1,9 +1,9 @@
 // lib/features/home/presentation/screens/home_screen.dart
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
@@ -12,6 +12,7 @@ import '../../../../core/widgets/shimmer_loader.dart';
 import '../../domain/entities/home_coupon_entity.dart';
 import '../../domain/entities/nearby_seller_entity.dart';
 import '../providers/home_provider.dart';
+import '../../../coupons/presentation/screens/my_coupons_screen.dart';
 
 // ─── Home Screen ─────────────────────────────────────────────────────────────
 
@@ -25,7 +26,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with AutomaticKeepAliveClientMixin {
   final _scrollController = ScrollController();
-  int _navIndex = 0;
 
   @override
   bool get wantKeepAlive => true;
@@ -53,169 +53,128 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: AppColors.bgPage,
+      backgroundColor: AppColors.dsSurface, // #FDF3FF
+      extendBody: true, // Needed for floating authentic glass bottom nav
       body: RefreshIndicator(
-        color: AppColors.primaryAccent,
+        color: AppColors.dsPrimary,
+        backgroundColor: AppColors.dsSurfaceContainerLowest,
         onRefresh: () async {
-          await ref.read(featuredCouponsProvider.notifier).refresh();
+          await ref.read(allCouponsProvider.notifier).refresh();
         },
         child: CustomScrollView(
           controller: _scrollController,
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // ── Top Safe Area padding ──────────────────────────────────────
-            const SliverToBoxAdapter(child: _TopSafeAreaSpacer()),
-            // ── Header ────────────────────────────────────────────────────
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            // ── Header (Greeting & Search) ────────────────────────────────
             const SliverToBoxAdapter(child: _HomeHeader()),
-            const SliverToBoxAdapter(
-              child: SizedBox(height: AppSpacing.md),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 10)),
             // ── Category Tabs ─────────────────────────────────────────────
             const SliverToBoxAdapter(child: _CategoryTabs()),
-            const SliverToBoxAdapter(
-              child: SizedBox(height: AppSpacing.lg),
-            ),
-            // ── Featured Coupons ──────────────────────────────────────────
-            const SliverToBoxAdapter(child: _FeaturedCouponsSection()),
-            const SliverToBoxAdapter(
-              child: SizedBox(height: AppSpacing.lg),
-            ),
-            // ── Deals Nearby ──────────────────────────────────────────────
+            const SliverToBoxAdapter(child: SizedBox(height: 10)),
+            // ── Active Coupons (Ticket Cards) ──────────────────────────────
+            const SliverToBoxAdapter(child: _ActiveCouponsSection()),
+            const SliverToBoxAdapter(child: SizedBox(height: 10)),
+            // ── Top Sellers in Adajan ─────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.screenPadding,
                 ),
-                child: Text('Deals near you', style: AppTextStyles.heading2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Top Sellers in Adajan',
+                        style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.dsSurfaceContainerLow,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.near_me_rounded,
+                              size: 12,
+                              color: AppColors.dsOnSurface.withOpacity(0.6)),
+                          const SizedBox(width: 4),
+                          Text('Surat',
+                              style: AppTextStyles.dsLabelMd.copyWith(
+                                  color:
+                                      AppColors.dsOnSurface.withOpacity(0.8))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SliverToBoxAdapter(
-              child: SizedBox(height: AppSpacing.sm),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
             const _NearbySellersSection(),
             const SliverToBoxAdapter(
-              child: SizedBox(height: 100), // Bottom nav buffer
+              child: SizedBox(height: 120), // Bottom nav buffer
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: _BottomNavBar(
-        currentIndex: _navIndex,
-        onTap: (i) => setState(() => _navIndex = i),
       ),
     );
   }
 }
 
-// ─── Top Safe Area ────────────────────────────────────────────────────────────
-
-class _TopSafeAreaSpacer extends StatelessWidget {
-  const _TopSafeAreaSpacer();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(height: MediaQuery.of(context).padding.top + AppSpacing.md);
-  }
-}
-
-// ─── Header ───────────────────────────────────────────────────────────────────
-
-class _HomeHeader extends ConsumerWidget {
+class _HomeHeader extends StatelessWidget {
   const _HomeHeader();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Text(
+            'Hello, Aarav!',
+            style: AppTextStyles.dsDisplayLg,
+          ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1),
+          const SizedBox(height: 4),
+          Text(
+            'Ready for your next celebration?',
+            style: AppTextStyles.dsBodyMd
+                .copyWith(color: AppColors.dsOnSurface.withOpacity(0.6)),
+          ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
+          const SizedBox(height: 10),
+          // Search Bar
+          Container(
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.dsSurfaceContainerLow,
+              borderRadius: BorderRadius.circular(100),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
               children: [
-                Text(
-                  'Hi, Alex 👋',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                Icon(Icons.search_rounded,
+                    color: AppColors.dsOnSurface.withOpacity(0.5)),
+                const SizedBox(width: 0),
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search sellers or coupons...',
+                      hintStyle: AppTextStyles.dsBodyMd.copyWith(
+                          color: AppColors.dsOnSurface.withOpacity(0.5)),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: false,
+                      isDense: true,
+                    ),
+                    style: AppTextStyles.dsBodyMd,
                   ),
-                ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1),
-                const SizedBox(height: 2),
-                Text(
-                  'Find amazing deals near you',
-                  style: AppTextStyles.bodySmall,
-                ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
+                ),
               ],
             ),
-          ),
-          // Search icon
-          _IconCircleButton(
-            icon: Icons.search_rounded,
-            onTap: () {},
           ).animate().fadeIn(delay: 150.ms),
-          const SizedBox(width: AppSpacing.sm),
-          // Profile avatar
-          _ProfileAvatar().animate().fadeIn(delay: 200.ms),
         ],
-      ),
-    );
-  }
-}
-
-class _IconCircleButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _IconCircleButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: AppColors.bgCard,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.border),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0A000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Icon(icon, size: 20, color: AppColors.textPrimary),
-      ),
-    );
-  }
-}
-
-class _ProfileAvatar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.primaryAccent, width: 2),
-        ),
-        child: ClipOval(
-          child: Container(
-            color: AppColors.primarySoft,
-            child: Icon(
-              Icons.person_rounded,
-              color: AppColors.primaryAccent,
-              size: 24,
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -224,13 +183,12 @@ class _ProfileAvatar extends StatelessWidget {
 // ─── Category Tabs ────────────────────────────────────────────────────────────
 
 const _kCategories = [
-  ('popular', 'Popular'),
-  ('food', 'Food'),
-  ('salon', 'Salon'),
-  ('retail', 'Retail'),
-  ('cafe', 'Café'),
-  ('spa', 'Spa'),
-  ('theater', 'Theater'),
+  ('ALL', 'All', Icons.grid_view_rounded),
+  ('FOOD', 'Food', Icons.restaurant_rounded),
+  ('CAFE', 'Cafe', Icons.coffee_rounded),
+  ('SALON', 'Salon', Icons.content_cut_rounded),
+  ('THEATER', 'Theater', Icons.movie_rounded),
+  ('SPA', 'Spa', Icons.spa_rounded),
 ];
 
 class _CategoryTabs extends ConsumerWidget {
@@ -239,346 +197,380 @@ class _CategoryTabs extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(selectedCategoryProvider);
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screenPadding,
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Categories',
+                  style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20)),
+              Text('View All',
+                  style: AppTextStyles.dsLabelMd.copyWith(
+                      color: AppColors.dsPrimary, fontWeight: FontWeight.w700)),
+            ],
+          ),
         ),
-        itemCount: _kCategories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) {
-          final (key, label) = _kCategories[i];
-          final isSelected = selected == key;
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOutCubic,
-            child: GestureDetector(
-              onTap: () {
-                ref.read(selectedCategoryProvider.notifier).state = key;
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : AppColors.bgCard,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 32,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            itemCount: _kCategories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (_, i) {
+              final (key, label, icon) = _kCategories[i];
+              final isSelected = selected == key;
+
+              return GestureDetector(
+                onTap: () {
+                  ref.read(selectedCategoryProvider.notifier).state = key;
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.primary
-                        : AppColors.border,
+                        ? AppColors.dsPrimary
+                        : AppColors.dsSurfaceContainerLow,
+                    borderRadius: BorderRadius.circular(100),
                   ),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: AppColors.primary.withOpacity(0.25),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Text(
-                  label,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected
-                        ? AppColors.textOnDark
-                        : AppColors.textSecondary,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        icon,
+                        color: isSelected
+                            ? AppColors.dsSurfaceContainerLowest
+                            : AppColors.dsPrimary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        label.toUpperCase(),
+                        style: AppTextStyles.dsLabelMd.copyWith(
+                          fontSize: 10,
+                          letterSpacing: 0.5,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w600,
+                          color: isSelected
+                              ? AppColors.dsSurfaceContainerLowest
+                              : AppColors.dsOnSurface.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-// ─── Featured Coupons Section ─────────────────────────────────────────────────
+// ─── Active Coupons Section (Ticket Style) ────────────────────────────────────
 
-class _FeaturedCouponsSection extends ConsumerWidget {
-  const _FeaturedCouponsSection();
+class _ActiveCouponsSection extends ConsumerWidget {
+  const _ActiveCouponsSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final couponsAsync = ref.watch(featuredCouponsProvider);
 
-    return couponsAsync.when(
-      loading: () => _buildShimmer(),
-      error: (e, _) => Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screenPadding,
-        ),
-        child: Container(
-          height: 160,
-          decoration: BoxDecoration(
-            color: AppColors.errorLight,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Center(
-            child: Text(
-              'Failed to load coupons',
-              style: AppTextStyles.body.copyWith(color: AppColors.error),
-            ),
-          ),
-        ),
-      ),
-      data: (coupons) {
-        if (coupons.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.screenPadding,
-            ),
-            child: Container(
-              height: 130,
-              decoration: BoxDecoration(
-                color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Center(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: [
+              Text('Your Active Coupons',
+                  style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20)),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const MyCouponsScreen()),
+                ),
                 child: Text(
-                  'No coupons available',
-                  style: AppTextStyles.bodySmall,
+                  'View All',
+                  style: AppTextStyles.dsLabelMd.copyWith(
+                    color: AppColors.dsPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-            ),
-          );
-        }
-        return SizedBox(
-          height: 200,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.screenPadding,
-            ),
-            itemCount: coupons.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 14),
-            itemBuilder: (_, i) =>
-                FeaturedCouponCard(coupon: coupons[i])
-                    .animate()
-                    .fadeIn(
-                      duration: 350.ms,
-                      delay: Duration(milliseconds: 60 * i),
-                    )
-                    .slideY(begin: 0.06),
+            ],
           ),
-        );
-      },
+        ),
+        const SizedBox(height: 16),
+        couponsAsync.when(
+          loading: () => _buildShimmer(),
+          error: (e, _) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text('Failed to load coupons',
+                style: AppTextStyles.dsBodyMd
+                    .copyWith(color: AppColors.dsTertiaryPink)),
+          ),
+          data: (coupons) {
+            if (coupons.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text('No coupons in this category',
+                    style: AppTextStyles.dsBodyMd),
+              );
+            }
+            final preview = coupons.take(3).toList();
+            return SizedBox(
+              height: 170,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                itemCount: preview.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 16),
+                itemBuilder: (_, i) {
+                  return TicketCouponCard(coupon: preview[i])
+                      .animate()
+                      .fadeIn(
+                          duration: 350.ms,
+                          delay: Duration(milliseconds: 60 * i))
+                      .slideY(begin: 0.05);
+                },
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
   Widget _buildShimmer() {
     return SizedBox(
-      height: 200,
+      height: 170,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding:
-            const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
-        itemCount: 3,
-        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        itemCount: 2,
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
         itemBuilder: (_, __) => ShimmerLoader(
-          width: 280,
-          height: 200,
-          borderRadius: 20,
+          width: 320,
+          height: 170,
+          borderRadius: 24,
         ),
       ),
     );
   }
 }
 
-// ─── Featured Coupon Card ─────────────────────────────────────────────────────
-
-class FeaturedCouponCard extends StatelessWidget {
+class TicketCouponCard extends StatelessWidget {
   final HomeCouponEntity coupon;
 
-  const FeaturedCouponCard({super.key, required this.coupon});
-
-  Color get _bgColor => AppColors.forCategory(coupon.category);
+  const TicketCouponCard({super.key, required this.coupon});
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd/MM');
+    final dateFormat = DateFormat('dd MMM yyyy');
+
     return Container(
-      width: 280,
+      width: 320,
+      height: 170,
       decoration: BoxDecoration(
-        color: _bgColor,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.dsSurfaceContainerLowest,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: _bgColor.withOpacity(0.4),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: AppColors.dsOnSurface.withOpacity(0.04), // Ambient shadow
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Stack(
         children: [
-          // Decorative blob
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Container(
-              width: 130,
-              height: 130,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.07),
+          Row(
+            children: [
+              // Left side (Brand)
+              Container(
+                width: 100,
+                decoration: const BoxDecoration(
+                  color: AppColors.dsSurfaceContainerHighest,
+                  borderRadius:
+                      BorderRadius.horizontal(left: Radius.circular(24)),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: const BoxDecoration(
+                          color: AppColors.dsSurfaceContainerLowest,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.coffee,
+                            color: AppColors.dsPrimary), // Placeholder icon
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          coupon.sellerName.toUpperCase(),
+                          style: AppTextStyles.dsLabelMd.copyWith(
+                              color: AppColors.dsPrimary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                        ),
+                      )
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-          Positioned(
-            right: 10,
-            bottom: -30,
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.06),
-              ),
-            ),
-          ),
-          // Coupon notch left
-          Positioned(
-            left: -1,
-            top: 0,
-            bottom: 0,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 16,
-                  height: 16,
-                  decoration: const BoxDecoration(
-                    color: AppColors.bgPage,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Coupon notch right
-          Positioned(
-            right: -1,
-            top: 0,
-            bottom: 0,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 16,
-                  height: 16,
-                  decoration: const BoxDecoration(
-                    color: AppColors.bgPage,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Discount headline
-                Text(
-                  '${coupon.discountPercent}% off',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.1,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                // Seller name
-                Text(
-                  coupon.sellerName,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white.withOpacity(0.90),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                // Min spend
-                if (coupon.minSpend != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'on orders above ₹${coupon.minSpend}',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.70),
-                    ),
-                  ),
-                ],
-                const Spacer(),
-                // Dashed divider
-                Row(
-                  children: List.generate(
-                    24,
-                    (_) => Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
-                        height: 1,
-                        color: Colors.white.withOpacity(0.25),
+              // Right side (Details)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${coupon.discountPercent}% OFF',
+                            style: AppTextStyles.dsDisplayLg.copyWith(
+                                fontSize: 24, color: AppColors.dsSecondaryMint),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color:
+                                  AppColors.dsSecondaryMint.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'VERIFIED',
+                              style: AppTextStyles.dsLabelMd.copyWith(
+                                color: AppColors.dsSecondaryMint,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Validity
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_rounded,
-                      size: 11,
-                      color: Colors.white.withOpacity(0.65),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'VALID ${dateFormat.format(coupon.validFrom)} – ${dateFormat.format(coupon.validUntil)}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.8,
-                        color: Colors.white.withOpacity(0.70),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Premium Deal Selection',
+                        style: AppTextStyles.dsTitleLg.copyWith(fontSize: 14),
                       ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on,
+                              size: 12,
+                              color: AppColors.dsOnSurface.withOpacity(0.5)),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Local Venue',
+                            style: AppTextStyles.dsLabelMd.copyWith(
+                                color: AppColors.dsOnSurface.withOpacity(0.5)),
+                          ),
+                        ],
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        coupon.category.toUpperCase(),
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
+                      const Spacer(),
+                      // Dashed line internal horizontal
+                      Row(
+                        children: List.generate(
+                          20,
+                          (_) => Expanded(
+                            child: Container(
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 1.5),
+                              height: 1,
+                              color: AppColors.dsSurfaceContainerHighest,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('VALID TILL',
+                                  style: AppTextStyles.dsLabelMd.copyWith(
+                                      fontSize: 9,
+                                      color: AppColors.dsOnSurface
+                                          .withOpacity(0.4))),
+                              Text(
+                                  dateFormat
+                                      .format(coupon.validUntil)
+                                      .toUpperCase(),
+                                  style: AppTextStyles.dsLabelMd.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.dsTertiaryPink)),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.dsPrimary,
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Text(
+                              'Redeem',
+                              style: AppTextStyles.dsLabelMd.copyWith(
+                                  color: AppColors.dsSurfaceContainerLowest,
+                                  fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
+            ],
+          ),
+
+          // Left Punch Out
+          Positioned(
+            left: -12,
+            top: 73,
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: const BoxDecoration(
+                color: AppColors.dsSurface,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          // Right Punch Out
+          Positioned(
+            right: -12,
+            top: 73,
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: const BoxDecoration(
+                color: AppColors.dsSurface,
+                shape: BoxShape.circle,
+              ),
             ),
           ),
         ],
@@ -586,6 +578,8 @@ class FeaturedCouponCard extends StatelessWidget {
     );
   }
 }
+
+
 
 // ─── Nearby Sellers Section (Sliver) ─────────────────────────────────────────
 
@@ -600,59 +594,38 @@ class _NearbySellersSection extends ConsumerWidget {
       loading: () => SliverList(
         delegate: SliverChildBuilderDelegate(
           (_, i) => Padding(
-            padding: const EdgeInsets.only(
-              left: AppSpacing.screenPadding,
-              right: AppSpacing.screenPadding,
-              bottom: 12,
-            ),
+            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 16),
             child: ShimmerLoader(
-              width: double.infinity,
-              height: 90,
-              borderRadius: 16,
-            ),
+                width: double.infinity, height: 110, borderRadius: 24),
           ),
           childCount: 4,
         ),
       ),
       error: (e, _) => SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.screenPadding,
-          ),
-          child: Text(
-            'Failed to load sellers',
-            style: AppTextStyles.body.copyWith(color: AppColors.error),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text('Failed to load sellers',
+              style: AppTextStyles.dsBodyMd
+                  .copyWith(color: AppColors.dsTertiaryPink)),
         ),
       ),
       data: (sellers) {
         if (sellers.isEmpty) {
           return SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screenPadding,
-              ),
-              child: Text(
-                'No sellers nearby',
-                style: AppTextStyles.bodySmall,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text('No sellers nearby', style: AppTextStyles.dsBodyMd),
             ),
           );
         }
         return SliverList(
           delegate: SliverChildBuilderDelegate(
             (_, i) => Padding(
-              padding: const EdgeInsets.only(
-                left: AppSpacing.screenPadding,
-                right: AppSpacing.screenPadding,
-                bottom: 12,
-              ),
+              padding: const EdgeInsets.only(left: 24, right: 24, bottom: 20),
               child: NearbySellerCard(seller: sellers[i])
                   .animate()
                   .fadeIn(
-                    duration: 300.ms,
-                    delay: Duration(milliseconds: 50 * i),
-                  )
+                      duration: 300.ms, delay: Duration(milliseconds: 50 * i))
                   .slideY(begin: 0.05),
             ),
             childCount: sellers.length,
@@ -663,7 +636,7 @@ class _NearbySellersSection extends ConsumerWidget {
   }
 }
 
-// ─── Nearby Seller Card ───────────────────────────────────────────────────────
+// ─── Nearby Seller Card Editorial ───────────────────────────────────────────────
 
 class NearbySellerCard extends StatelessWidget {
   final NearbySellerEntity seller;
@@ -673,121 +646,86 @@ class NearbySellerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        color: AppColors.dsSurfaceContainerLowest,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 10,
-            offset: Offset(0, 2),
+            color: AppColors.dsOnSurface.withOpacity(0.04), // Ambient shadows
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // Seller image
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: seller.imageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: seller.imageUrl!,
-                        width: 70,
-                        height: 70,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => ShimmerLoader(
-                          width: 70,
-                          height: 70,
-                          borderRadius: 12,
-                        ),
-                        errorWidget: (_, __, ___) =>
-                            _CategoryPlaceholder(category: seller.category),
-                        memCacheWidth: 140,
-                        memCacheHeight: 140,
-                      )
-                    : _CategoryPlaceholder(category: seller.category),
-              ),
-              // Badge
-              Positioned(
-                top: 4,
-                left: 4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryAccent,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    seller.bestCouponLabel,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 14),
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  seller.name,
-                  style: AppTextStyles.heading3,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${seller.category} • ${seller.area} • ${seller.distanceKm.toStringAsFixed(1)} km',
-                  style: AppTextStyles.bodySmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.star_rounded,
-                      color: AppColors.warning,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      seller.rating.toStringAsFixed(1),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '(${seller.totalRatings}+)',
-                      style: AppTextStyles.bodySmall,
-                    ),
-                  ],
-                ),
-              ],
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left large image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: _CategoryPlaceholder(category: seller.category),
             ),
-          ),
-          // Chevron
-          Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.textHint,
-          ),
-        ],
+            const SizedBox(width: 16),
+            // Right info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          seller.name,
+                          style: AppTextStyles.dsTitleLg.copyWith(fontSize: 18),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (seller.distanceKm != null)
+                        Text(
+                          '${seller.distanceKm!.toStringAsFixed(1)} km',
+                          style: AppTextStyles.dsLabelMd.copyWith(
+                              color: AppColors.dsOnSurface.withOpacity(0.5)),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${seller.category} • ${seller.area}',
+                    style: AppTextStyles.dsLabelMd.copyWith(
+                        color: AppColors.dsOnSurface.withOpacity(0.6)),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Green Mint Save Badge Placeholder until deals are fetched
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.dsSurfaceContainerLow, // Use low surface
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Top Rated',
+                          style: AppTextStyles.dsLabelMd.copyWith(
+                            color: AppColors.dsSecondaryMint,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -812,137 +750,14 @@ class _CategoryPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 70,
-      height: 70,
+      width: 100,
+      height: 100,
       decoration: BoxDecoration(
-        color: AppColors.forCategory(category).withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.dsSurfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Center(
-        child: Text(_emoji, style: const TextStyle(fontSize: 28)),
-      ),
-    );
-  }
-}
-
-// ─── Bottom Navigation Bar ────────────────────────────────────────────────────
-
-class _BottomNavBar extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onTap;
-
-  const _BottomNavBar({
-    required this.currentIndex,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.bgCard,
-        border: Border(top: BorderSide(color: AppColors.border)),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 16,
-            offset: Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            children: [
-              _NavItem(
-                icon: Icons.home_rounded,
-                label: 'Home',
-                isSelected: currentIndex == 0,
-                onTap: () => onTap(0),
-              ),
-              _NavItem(
-                icon: Icons.grid_view_rounded,
-                label: 'Coupons',
-                isSelected: currentIndex == 1,
-                onTap: () => onTap(1),
-              ),
-              _NavItem(
-                icon: Icons.bookmark_border_rounded,
-                label: 'Saved',
-                isSelected: currentIndex == 2,
-                onTap: () => onTap(2),
-              ),
-              _NavItem(
-                icon: Icons.person_outline_rounded,
-                label: 'Profile',
-                isSelected: currentIndex == 3,
-                onTap: () => onTap(3),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.primarySoft
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
-                  size: 22,
-                  color: isSelected
-                      ? AppColors.primaryAccent
-                      : AppColors.textHint,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10,
-                  fontWeight:
-                      isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected
-                      ? AppColors.primaryAccent
-                      : AppColors.textHint,
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: Text(_emoji, style: const TextStyle(fontSize: 32)),
       ),
     );
   }

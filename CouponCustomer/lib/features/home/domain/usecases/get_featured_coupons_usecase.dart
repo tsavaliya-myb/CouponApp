@@ -9,10 +9,7 @@ class GetFeaturedCouponsUsecase {
 
   GetFeaturedCouponsUsecase(this._repository);
 
-  Future<Either<Failure, List<HomeCouponEntity>>> call({
-    required String category,
-    required int page,
-  }) {
-    return _repository.getFeaturedCoupons(category: category, page: page);
+  Future<Either<Failure, List<HomeCouponEntity>>> call() {
+    return _repository.getAllCoupons();
   }
 }

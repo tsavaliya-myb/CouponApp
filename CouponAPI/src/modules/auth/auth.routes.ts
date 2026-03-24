@@ -5,11 +5,35 @@ import {
   adminLoginSchema,
   refreshSchema,
   logoutSchema,
+  sendOtpSchema,
+  verifyOtpSchema,
 } from './auth.validator';
 import './auth.swagger';
 
 const router = Router();
 const authController = new AuthController();
+
+/**
+ * @route   POST /api/v1/auth/send-otp
+ * @desc    Send a 6-digit OTP to a user's phone number
+ * @access  Public
+ */
+router.post(
+  '/send-otp',
+  validate(sendOtpSchema),
+  authController.sendOtp
+);
+
+/**
+ * @route   POST /api/v1/auth/verify-otp
+ * @desc    Verify a 6-digit OTP and establish session
+ * @access  Public
+ */
+router.post(
+  '/verify-otp',
+  validate(verifyOtpSchema),
+  authController.verifyOtp
+);
 
 /**
  * @route   POST /api/v1/auth/admin/login

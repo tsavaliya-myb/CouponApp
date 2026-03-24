@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { SellersService } from './sellers.service';
 import { sendSuccess, sendCreated } from '../../shared/utils/response';
-import type { FindSellersDto } from './sellers.validator';
+import type { FindSellersDto, GetSellersByAreaCategoryDto } from './sellers.validator';
 
 const sellersService = new SellersService();
 
@@ -48,6 +48,16 @@ export class SellersController {
     try {
       const query = req.query as unknown as FindSellersDto;
       const sellers = await sellersService.findSellersNearUser(query);
+      sendSuccess(res, sellers.data, 200, sellers.meta);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getSellersByAreaCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const query = req.query as unknown as GetSellersByAreaCategoryDto;
+      const sellers = await sellersService.getSellersByAreaCategory(query);
       sendSuccess(res, sellers.data, 200, sellers.meta);
     } catch (err) {
       next(err);

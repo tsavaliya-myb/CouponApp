@@ -10,11 +10,22 @@ import '../security/token_service.dart';
 import '../storage/hive_service.dart';
 import '../storage/secure_storage.dart';
 import '../../services/notification_service.dart';
+// Auth feature
+import '../../features/auth/data/datasources/auth_remote_datasource.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/domain/usecases/send_otp_usecase.dart';
+import '../../features/auth/domain/usecases/verify_otp_usecase.dart';
+import '../../features/auth/domain/usecases/logout_usecase.dart';
+// Home feature
+import '../../features/home/data/datasources/home_remote_datasource.dart';
+import '../../features/home/data/repositories/home_repository_impl.dart';
+import '../../features/home/domain/repositories/home_repository.dart';
+import '../../features/home/domain/usecases/get_featured_coupons_usecase.dart';
+import '../../features/home/domain/usecases/get_nearby_sellers_usecase.dart';
 
 final GetIt getIt = GetIt.instance;
 
-/// Register all app-level dependencies.
-/// Call this in main() before runApp().
 Future<void> configureDependencies() async {
   // ---------------------------------------------------------------------------
   // Third-party singletons
@@ -32,30 +43,60 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<SecureStorageService>(
     () => SecureStorageService(getIt<FlutterSecureStorage>()),
   );
-
   getIt.registerLazySingleton<TokenService>(
     () => TokenService(getIt<SecureStorageService>()),
   );
-
   getIt.registerLazySingleton<QrTokenService>(() => QrTokenService());
-
   getIt.registerLazySingleton<HiveService>(() => HiveService());
-
   getIt.registerLazySingleton<NotificationService>(() => NotificationService());
 
   // ---------------------------------------------------------------------------
   // Network
   // ---------------------------------------------------------------------------
   getIt.registerLazySingleton<RetryInterceptor>(() => RetryInterceptor());
-
   getIt.registerLazySingleton<AuthInterceptor>(
     () => AuthInterceptor(getIt<TokenService>()),
   );
-
   getIt.registerLazySingleton<ApiClient>(
-    () => ApiClient(
-      getIt<AuthInterceptor>(),
-      getIt<RetryInterceptor>(),
+    () => ApiClient(getIt<AuthInterceptor>(), getIt<RetryInterceptor>()),
+  );
+
+  // ---------------------------------------------------------------------------
+  // Auth feature
+  // ---------------------------------------------------------------------------
+  getIt.registerLazySingleton<AuthRemoteDatasource>(
+    () => AuthRemoteDatasourceImpl(getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      getIt<AuthRemoteDatasource>(),
+      getIt<TokenService>(),
     ),
   );
+  getIt.registerFactory<SendOtpUsecase>(
+    () => SendOtpUsecase(getIt<AuthRepository>()),
+  );
+  getIt.registerFactory<VerifyOtpUsecase>(
+    () => VerifyOtpUsecase(getIt<AuthRepository>()),
+  );
+  getIt.registerFactory<LogoutUsecase>(
+    () => LogoutUsecase(getIt<AuthRepository>()),
+  );
+
+  // ---------------------------------------------------------------------------
+  // Home feature
+  // ---------------------------------------------------------------------------
+  getIt.registerLazySingleton<HomeRemoteDatasource>(
+    () => HomeRemoteDatasourceImpl(getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<HomeRepository>(
+    () => HomeRepositoryImpl(getIt<HomeRemoteDatasource>()),
+  );
+  getIt.registerFactory<GetFeaturedCouponsUsecase>(
+    () => GetFeaturedCouponsUsecase(getIt<HomeRepository>()),
+  );
+  getIt.registerFactory<GetNearbySellersUsecase>(
+    () => GetNearbySellersUsecase(getIt<HomeRepository>()),
+  );
 }
+

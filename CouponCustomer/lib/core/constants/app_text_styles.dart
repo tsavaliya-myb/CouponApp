@@ -82,4 +82,40 @@ class AppTextStyles {
         decoration: TextDecoration.underline,
         decorationColor: AppColors.primaryAccent,
       );
+
+  // --- Editorial Design System ---
+  static TextStyle get dsDisplayLg => GoogleFonts.plusJakartaSans(
+        fontSize: 32,
+        fontWeight: FontWeight.w800, // Large, expressive
+        color: AppColors.dsOnSurface,
+        height: 1.2,
+        letterSpacing: -1.0,
+      );
+
+  static TextStyle get dsTitleLg => GoogleFonts.beVietnamPro(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: AppColors.dsOnSurface,
+      );
+
+  static TextStyle get dsBodyMd => GoogleFonts.beVietnamPro(
+        fontSize: 16, // Clean, legible
+        fontWeight: FontWeight.w400,
+        color: AppColors.dsOnSurface,
+        height: 1.5,
+      );
+
+  static TextStyle get dsLabelMd => GoogleFonts.beVietnamPro(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: AppColors.dsOnSurface,
+        letterSpacing: 0.5,
+      );
+  
+  static TextStyle get dsButton => GoogleFonts.plusJakartaSans(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: AppColors.dsSurfaceContainerLowest, // white
+      );
+  // -------------------------------
 }

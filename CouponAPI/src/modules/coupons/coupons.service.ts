@@ -16,8 +16,8 @@ export class CouponsService {
     const skip = (page - 1) * limit;
 
     const where: Prisma.UserCouponWhereInput = {
-      status: 'ACTIVE',
-      usesRemaining: { gt: 0 },
+      status: { in: ['ACTIVE', 'USED'] },
+
       couponBook: {
         userId,
         // Only active coupon books (within validity period)

@@ -8,11 +8,13 @@ class HomeCouponEntity extends Equatable {
   final String sellerArea;
   final String category;
   final int discountPercent;
+  final String couponType; // STANDARD | BOGO
   final int? minSpend;
   final DateTime validFrom;
   final DateTime validUntil;
   final bool isActive;
   final int usesRemaining;
+  final int maxUsesPerBook;
 
   const HomeCouponEntity({
     required this.id,
@@ -21,11 +23,13 @@ class HomeCouponEntity extends Equatable {
     required this.sellerArea,
     required this.category,
     required this.discountPercent,
+    required this.couponType,
     this.minSpend,
     required this.validFrom,
     required this.validUntil,
     required this.isActive,
     required this.usesRemaining,
+    required this.maxUsesPerBook,
   });
 
   bool get isUsable =>

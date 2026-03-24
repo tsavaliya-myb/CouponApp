@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Seller Onboarding | Executive Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#4c56af",
+              "on-secondary-container": "#217128",
+              "outline": "#767683",
+              "surface-bright": "#fbf8fe",
+              "surface": "#fbf8fe",
+              "on-secondary-fixed-variant": "#005312",
+              "on-primary-fixed-variant": "#343d96",
+              "surface-container-highest": "#e4e1e7",
+              "background": "#fbf8fe",
+              "primary-fixed": "#e0e0ff",
+              "surface-container-high": "#eae7ed",
+              "surface-variant": "#e4e1e7",
+              "secondary-fixed-dim": "#88d982",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "inverse-surface": "#303034",
+              "on-surface": "#1b1b1f",
+              "error-container": "#ffdad6",
+              "on-error": "#ffffff",
+              "on-tertiary-fixed": "#331200",
+              "tertiary-container": "#532100",
+              "tertiary": "#321100",
+              "on-surface-variant": "#454652",
+              "on-primary-container": "#8690ee",
+              "primary-container": "#1a237e",
+              "secondary-fixed": "#a3f69c",
+              "on-error-container": "#93000a",
+              "outline-variant": "#c6c5d4",
+              "on-primary-fixed": "#000767",
+              "surface-container": "#f0edf2",
+              "primary-fixed-dim": "#bdc2ff",
+              "tertiary-fixed-dim": "#ffb68f",
+              "tertiary-fixed": "#ffdbca",
+              "on-primary": "#ffffff",
+              "on-background": "#1b1b1f",
+              "surface-dim": "#dcd9de",
+              "primary": "#000666",
+              "inverse-primary": "#bdc2ff",
+              "on-secondary-fixed": "#002204",
+              "on-secondary": "#ffffff",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#773200",
+              "secondary": "#1b6d24",
+              "on-tertiary-container": "#f57009",
+              "secondary-container": "#a0f399",
+              "surface-container-low": "#f6f2f8",
+              "inverse-on-surface": "#f3f0f5"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-step-line {
+            background: linear-gradient(90deg, #000666 0%, #1a237e 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e4e1e7;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased custom-scrollbar">
+<!-- Top Navigation Anchor (As per JSON hierarchy) -->
+<header class="fixed top-0 left-0 w-full z-50 bg-[#fbf8fe] dark:bg-slate-950">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#1A237E]" data-icon="shield_person">shield_person</span>
+<h1 class="font-['Manrope'] font-extrabold text-[#1A237E] dark:text-indigo-400 tracking-tighter text-xl">Executive Ledger</h1>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<span class="font-['Inter'] text-[11px] font-medium tracking-wide uppercase text-slate-400">Merchant Enrollment</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant/20">
+<img alt="Profile Photo" class="w-full h-full object-cover" data-alt="Default user profile avatar placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwqWl_1N16DlJEJB9xrYoJ3RcNtI1mR8jdZC-B4PlgeuEFlxMzMRj6hNU8xic7gEHGZz5d6iLXlZeKoloRzayi_R-27E3KeNsOxnk-AxhS0fefECOmJoZxCyBx0eKlX-yGHBDhQ7M6CBrKSwqvIJG2uF53YYnqNBsqy_TSCPlqpOqnJiT0pHuw1nZoaXbZ7KWZfUa4gwurCfI4DhWDm7JHKnHbuWkC-pl9vTwQ39iB6vQCBtj4irkhS8IemJOZxtyu-kCck7Q3n9M"/>
+</div>
+</div>
+<div class="bg-[#eae7ed] dark:bg-slate-800 h-[1px] w-full opacity-30"></div>
+</header>
+<main class="pt-24 pb-12 px-4 md:px-8 max-w-5xl mx-auto">
+<!-- Editorial Header -->
+<div class="mb-12 text-center md:text-left">
+<p class="font-label text-label-sm uppercase tracking-widest text-primary font-semibold mb-2">Onboarding Journey</p>
+<h2 class="font-headline text-3xl md:text-4xl font-extrabold tracking-tight text-on-background">Establish Your Command Center</h2>
+<p class="mt-3 text-on-surface-variant max-w-xl font-body leading-relaxed">Join the network of elite sellers. Complete your business profile to activate your ledger and start processing settlements.</p>
+</div>
+<!-- Stepper Component -->
+<nav class="mb-12 relative">
+<div class="absolute top-5 left-0 w-full h-0.5 bg-surface-container-highest -z-10"></div>
+<div class="flex justify-between items-start">
+<!-- Step 1 -->
+<div class="flex flex-col items-center gap-3 group">
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-primary text-on-primary ring-4 ring-primary/10 font-bold transition-all">1</div>
+<span class="font-label text-xs font-bold uppercase tracking-tighter text-primary">Business</span>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container-highest text-on-surface-variant font-bold border border-outline-variant/20">2</div>
+<span class="font-label text-xs font-medium uppercase tracking-tighter text-outline">Operations</span>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container-highest text-on-surface-variant font-bold border border-outline-variant/20">3</div>
+<span class="font-label text-xs font-medium uppercase tracking-tighter text-outline">Finance</span>
+</div>
+<!-- Step 4 -->
+<div class="flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container-highest text-on-surface-variant font-bold border border-outline-variant/20">4</div>
+<span class="font-label text-xs font-medium uppercase tracking-tighter text-outline">Location</span>
+</div>
+</div>
+</nav>
+<form class="space-y-8">
+<!-- Section 1: Business Details -->
+<section class="bg-surface-container-lowest rounded-xl p-8 shadow-[0_12px_32px_-4px_rgba(27,27,31,0.06)] ring-1 ring-outline-variant/10">
+<div class="flex items-center gap-4 mb-8">
+<div class="p-3 rounded-lg bg-primary-fixed text-on-primary-fixed-variant">
+<span class="material-symbols-outlined" data-icon="store">store</span>
+</div>
+<div>
+<h3 class="font-headline text-xl font-bold text-on-surface">Business Details</h3>
+<p class="text-on-surface-variant text-sm">Official identity and contact information.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-1.5 md:col-span-2">
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Business Name</label>
+<input class="w-full bg-surface-container-low border-none border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 font-body text-sm transition-all placeholder:text-outline" placeholder="e.g. Sovereign Textiles Co." type="text"/>
+</div>
+<div class="space-y-1.5">
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Category</label>
+<select class="w-full bg-surface-container-low border-none border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 font-body text-sm transition-all text-on-surface">
+<option>Retail &amp; Apparel</option>
+<option>Food &amp; Beverage</option>
+<option>Professional Services</option>
+<option>Logistics</option>
+</select>
+</div>
+<div class="space-y-1.5">
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">City</label>
+<input class="w-full bg-surface-container-low border-none border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 font-body text-sm transition-all placeholder:text-outline" placeholder="London" type="text"/>
+</div>
+<div class="space-y-1.5">
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Area / Landmark</label>
+<input class="w-full bg-surface-container-low border-none border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 font-body text-sm transition-all placeholder:text-outline" placeholder="Mayfair District" type="text"/>
+</div>
+<div class="space-y-1.5">
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Phone Number</label>
+<input class="w-full bg-surface-container-low border-none border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 font-body text-sm transition-all placeholder:text-outline" placeholder="+44 20 7946 0958" type="tel"/>
+</div>
+<div class="space-y-1.5 md:col-span-2">
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Full Business Address</label>
+<textarea class="w-full bg-surface-container-low border-none border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 font-body text-sm transition-all placeholder:text-outline resize-none" placeholder="Suite 405, Regents Plaza..." rows="3"></textarea>
+</div>
+</div>
+</section>
+<!-- Section 2: Operations -->
+<section class="bg-surface-container-lowest rounded-xl p-8 shadow-[0_12px_32px_-4px_rgba(27,27,31,0.06)] ring-1 ring-outline-variant/10">
+<div class="flex items-center gap-4 mb-8">
+<div class="p-3 rounded-lg bg-secondary-container text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+</div>
+<div>
+<h3 class="font-headline text-xl font-bold text-on-surface">Operations</h3>
+<p class="text-on-surface-variant text-sm">Define your availability windows.</p>
+</div>
+</div>
+<div class="space-y-8">
+<div>
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant block mb-4">Days of Availability</label>
+<div class="flex flex-wrap gap-3">
+<!-- Custom Styled Checkboxes as Chips -->
+<label class="cursor-pointer group">
+<input checked="" class="hidden peer" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-label text-xs font-semibold peer-checked:bg-primary peer-checked:text-on-primary border border-outline-variant/10 peer-checked:border-transparent transition-all active:scale-95">Mon</div>
+</label>
+<label class="cursor-pointer group">
+<input checked="" class="hidden peer" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-label text-xs font-semibold peer-checked:bg-primary peer-checked:text-on-primary border border-outline-variant/10 peer-checked:border-transparent transition-all active:scale-95">Tue</div>
+</label>
+<label class="cursor-pointer group">
+<input checked="" class="hidden peer" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-label text-xs font-semibold peer-checked:bg-primary peer-checked:text-on-primary border border-outline-variant/10 peer-checked:border-transparent transition-all active:scale-95">Wed</div>
+</label>
+<label class="cursor-pointer group">
+<input checked="" class="hidden peer" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-label text-xs font-semibold peer-checked:bg-primary peer-checked:text-on-primary border border-outline-variant/10 peer-checked:border-transparent transition-all active:scale-95">Thu</div>
+</label>
+<label class="cursor-pointer group">
+<input checked="" class="hidden peer" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-label text-xs font-semibold peer-checked:bg-primary peer-checked:text-on-primary border border-outline-variant/10 peer-checked:border-transparent transition-all active:scale-95">Fri</div>
+</label>
+<label class="cursor-pointer group">
+<input class="hidden peer" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-label text-xs font-semibold peer-checked:bg-primary peer-checked:text-on-primary border border-outline-variant/10 peer-checked:border-transparent transition-all active:scale-95">Sat</div>
+</label>
+<label class="cursor-pointer group">
+<input class="hidden peer" type="checkbox"/>
+<div class="px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-label text-xs font-semibold peer-checked:bg-primary peer-checked:text-on-primary border border-outline-variant/10 peer-checked:border-transparent transition-all active:scale-95">Sun</div>
+</label>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-outline-variant/10">
+<div class="space-y-1.5">
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Start Time</label>
+<input class="w-full bg-surface-container-low border-none border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 font-body text-sm transition-all text-on-surface" type="time" value="09:00"/>
+</div>
+<div class="space-y-1.5">
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">End Time</label>
+<input class="w-full bg-surface-container-low border-none border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-3 font-body text-sm transition-all text-on-surface" type="time" value="18:00"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Finance -->
+<section class="bg-surface-container-lowest rounded-xl p-8 shadow-[0_12px_32px_-4px_rgba(27,27,31,0.06)] ring-1 ring-outline-variant/10">
+<div class="flex items-center gap-4 mb-8">
+<div class="p-3 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<div>
+<h3 class="font-headline text-xl font-bold text-on-surface">Financials</h3>
+<p class="text-on-surface-variant text-sm">Where your earnings will be deposited.</p>
+</div>
+</div>
+<div class="space-y-6">
+<div class="bg-surface-container p-5 rounded-lg border border-outline-variant/20 flex items-start gap-4">
+<span class="material-symbols-outlined text-tertiary-container" data-icon="info">info</span>
+<p class="text-xs text-on-surface-variant leading-relaxed">Ensure the UPI ID is correct. Settlements are processed daily at 00:00 UTC and cannot be reversed once initiated.</p>
+</div>
+<div class="space-y-1.5">
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Primary UPI ID</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low border-none border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-t-lg px-4 py-4 font-body text-base font-medium tracking-tight transition-all placeholder:text-outline" placeholder="merchantname@bank" type="text"/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-secondary uppercase bg-secondary-container/30 px-2 py-1 rounded">Verified</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 4: Location -->
+<section class="bg-surface-container-lowest rounded-xl p-8 shadow-[0_12px_32px_-4px_rgba(27,27,31,0.06)] ring-1 ring-outline-variant/10">
+<div class="flex items-center gap-4 mb-8">
+<div class="p-3 rounded-lg bg-primary-fixed text-on-primary-fixed-variant">
+<span class="material-symbols-outlined" data-icon="location_on">location_on</span>
+</div>
+<div>
+<h3 class="font-headline text-xl font-bold text-on-surface">Spatial Pin</h3>
+<p class="text-on-surface-variant text-sm">Geographical mapping for delivery logistics.</p>
+</div>
+</div>
+<div class="space-y-6">
+<div class="relative w-full h-48 bg-surface-container-high rounded-lg overflow-hidden flex items-center justify-center">
+<img alt="Location Map" class="w-full h-full object-cover opacity-50 grayscale" data-alt="Stylized map showing business location in city center" data-location="London" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpThSHqP0yJRM6bBeH7YQ4AX2TeKA4sf1zyoQfk56tSauNdJ27PMFQXx4vjwnOFhva1zB1zckMO4mIfhRfIyGzAvrDqc7O_AtLBAp0jREGuynyR6RvG8DqKZC7vn1mInbkxvHJ7uPiNAq-QChcaQ8OWEtWrFLd9jBSNTKZRvItNaGzMaQ-kUhYRQyv-a-fuG9HGAmv8Tha0fWILt3le73Zp-smzI8ovHytOCiDujsK9qGnpFz4Uebo3sPKIgVhsjZFDmrW6_FKpZc"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<button class="bg-primary text-on-primary px-6 py-3 rounded-full font-label text-xs font-bold uppercase tracking-widest shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-sm" data-icon="my_location">my_location</span>
+                                Get My Current Location
+                            </button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1.5">
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Latitude</label>
+<input class="w-full bg-surface-container-high border-none rounded-lg px-4 py-2 font-body text-xs text-outline cursor-not-allowed" placeholder="51.5074" readonly="" type="text"/>
+</div>
+<div class="space-y-1.5">
+<label class="font-label text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Longitude</label>
+<input class="w-full bg-surface-container-high border-none rounded-lg px-4 py-2 font-body text-xs text-outline cursor-not-allowed" placeholder="-0.1278" readonly="" type="text"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Final Submission -->
+<div class="pt-8 flex flex-col gap-4">
+<div class="flex items-center gap-3 p-4 bg-surface-container-high/50 rounded-lg">
+<input class="rounded text-primary focus:ring-primary h-4 w-4" id="terms" type="checkbox"/>
+<label class="text-xs text-on-surface-variant leading-tight" for="terms">I certify that all provided details are accurate and I agree to the <span class="text-primary font-bold cursor-pointer">Service Agreement</span> and <span class="text-primary font-bold cursor-pointer">Settlement Terms</span>.</label>
+</div>
+<button class="w-full py-5 rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline text-lg font-extrabold tracking-tight shadow-xl hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-3" type="submit">
+                    Submit for Approval
+                    <span class="material-symbols-outlined" data-icon="verified">verified</span>
+</button>
+<p class="text-center font-label text-[10px] text-outline uppercase tracking-[0.2em]">Application Review usually takes 24-48 business hours</p>
+</div>
+</form>
+</main>
+<!-- Bottom Nav Shell (Suppressed for focused task journey as per instructions) -->
+<!-- We omit the BottomNavBar here because this is a Focused/Transactional journey -->
+<footer class="mt-12 py-8 border-t border-outline-variant/10 text-center">
+<p class="text-on-surface-variant text-[11px] font-label uppercase tracking-widest opacity-60">© 2024 Executive Ledger Global. All Rights Reserved.</p>
+</footer>
+</body></html>

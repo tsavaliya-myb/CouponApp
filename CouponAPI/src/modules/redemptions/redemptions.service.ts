@@ -126,10 +126,15 @@ export class RedemptionsService {
     // ─── EXECUTE ATOMIC TRANSACTION ───
     const redemption = await prisma.$transaction(async (tx) => {
       
-      // 1. Decrement UserCoupon uses
+      // 1. Decrement UserCoupon uses and conditionally update status
+      const userCouponUpdateData: Prisma.UserCouponUpdateInput = { usesRemaining: { decrement: 1 } };
+      if (userCoupon.usesRemaining === 1) {
+        userCouponUpdateData.status = 'USED';
+      }
+
       await tx.userCoupon.update({
         where: { id: userCouponId },
-        data: { usesRemaining: { decrement: 1 } },
+        data: userCouponUpdateData,
       });
 
       // 2. Create Redemption Record

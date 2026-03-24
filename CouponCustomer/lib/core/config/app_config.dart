@@ -43,4 +43,16 @@ class AppConfig {
         enableAnalytics: true,
         enablePerformance: true,
       );
+
+  /// Development flavor — points to local backend.
+  /// Run with: flutter run (no extra flags needed)
+  factory AppConfig.dev() => const AppConfig(
+        appName: 'CouponApp (Dev)',
+        baseUrl: 'http://localhost:3000/api/v1',
+        razorpayKey: 'rzp_test_placeholder',
+        qrSecretKey: 'dev_qr_secret_key_32chars_padded!',
+        appVersion: '1.0.0-dev',
+        enableAnalytics: false,
+        enablePerformance: false,
+      );
 }

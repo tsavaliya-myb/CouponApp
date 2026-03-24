@@ -44,6 +44,20 @@ class AppColors {
   static const Color catCafe       = Color(0xFF3B1F6B);
   static const Color catDefault    = Color(0xFF374151);
 
+  // --- Editorial Design System ---
+  static const Color dsPrimary = Color(0xFF5D3FD3);
+  static const Color dsPrimaryContainer = Color(0xFFA391FF);
+  static const Color dsSecondaryMint = Color(0xFF006A35);
+  static const Color dsTertiaryPink = Color(0xFF993C50);
+  
+  static const Color dsSurface = Color(0xFFFDF3FF);
+  static const Color dsSurfaceContainerLow = Color(0xFFF9EDFF);
+  static const Color dsSurfaceContainerHighest = Color(0xFFEBD4FF);
+  static const Color dsSurfaceContainerLowest = Color(0xFFFFFFFF);
+  
+  static const Color dsOnSurface = Color(0xFF38274C);
+  // -------------------------------
+
   /// Returns the card background color for a given category string.
   static Color forCategory(String category) {
     return switch (category.toLowerCase()) {

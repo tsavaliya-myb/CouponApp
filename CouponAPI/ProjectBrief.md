@@ -184,6 +184,10 @@ Users get notified 5-7 days before expiry. After expiry the app shows a renewal 
 - Wait screen showing pending approval status
 - Notified when approved and activated
 
+### Login
+- Register with phone number
+- Verify phone with OTP
+
 ### Dashboard
 - Today's redemption count
 - This week's redemption count

@@ -8,6 +8,7 @@ import type {
   RegisterSellerDto,
   UpdateSellerDto,
   FindSellersDto,
+  GetSellersByAreaCategoryDto,
   LoginSellerResponse,
   ProfileResponse,
   SellerDashboardResponse,
@@ -194,6 +195,53 @@ export class SellersService {
     const total = sellersWithDistance.length;
     const skip = (page - 1) * limit;
     const paginatedData = sellersWithDistance.slice(skip, skip + limit);
+
+    return {
+      data: paginatedData,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      }
+    };
+  }
+
+  // ─── Customer View: Get Sellers by Area and Category ──────────────────────────
+  async getSellersByAreaCategory(dto: GetSellersByAreaCategoryDto): Promise<PaginatedDistanceSellersResponse> {
+    const { areaId, categoryType, page, limit } = dto;
+
+    const whereClause: any = { 
+      status: 'ACTIVE', 
+      areaId, 
+    };
+    
+    if (categoryType) {
+      whereClause.category = categoryType;
+    }
+
+    const total = await prisma.seller.count({ where: whereClause });
+    const skip = (page - 1) * limit;
+
+    const sellers = await prisma.seller.findMany({
+      where: whereClause,
+      include: {
+        area: { select: { name: true } },
+      },
+      skip,
+      take: limit,
+      orderBy: { businessName: 'asc' }, // Order by name ascending
+    });
+
+    const paginatedData = sellers.map(seller => ({
+      id: seller.id,
+      businessName: seller.businessName,
+      category: seller.category,
+      area: seller.area?.name ?? null,
+      lat: seller.latitude ?? null,
+      lng: seller.longitude ?? null,
+      distanceKm: null,
+    }));
 
     return {
       data: paginatedData,

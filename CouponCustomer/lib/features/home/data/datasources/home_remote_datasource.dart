@@ -5,12 +5,14 @@ import '../models/home_coupon_model.dart';
 import '../models/nearby_seller_model.dart';
 
 abstract class HomeRemoteDatasource {
-  Future<List<HomeCouponModel>> getFeaturedCoupons({
-    required String category,
+  /// Fetches ALL user coupons in one call (client-side category filtering).
+  Future<List<HomeCouponModel>> getAllCoupons();
+
+  Future<List<NearbySellerModel>> getNearbySellers({
+    required String areaId,
+    String? categoryType,
     required int page,
   });
-
-  Future<List<NearbySellerModel>> getNearbySellers({required int page});
 }
 
 @Injectable(as: HomeRemoteDatasource)
@@ -20,13 +22,10 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
   HomeRemoteDatasourceImpl(this._apiClient);
 
   @override
-  Future<List<HomeCouponModel>> getFeaturedCoupons({
-    required String category,
-    required int page,
-  }) async {
+  Future<List<HomeCouponModel>> getAllCoupons() async {
     final response = await _apiClient.client.get(
-      '/coupons/featured',
-      queryParameters: {'category': category, 'page': page, 'limit': 20},
+      '/coupons',
+      queryParameters: {'page': 1, 'limit': 200},
     );
     final List data = response.data['data'] as List;
     return data
@@ -35,10 +34,23 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
   }
 
   @override
-  Future<List<NearbySellerModel>> getNearbySellers({required int page}) async {
+  Future<List<NearbySellerModel>> getNearbySellers({
+    required String areaId,
+    String? categoryType,
+    required int page,
+  }) async {
+    final queryParams = <String, dynamic>{
+      'areaId': areaId,
+      'page': page,
+      'limit': 20,
+    };
+    if (categoryType != null && categoryType != 'ALL') {
+      queryParams['categoryType'] = categoryType;
+    }
+
     final response = await _apiClient.client.get(
-      '/sellers/nearby',
-      queryParameters: {'page': page, 'limit': 20},
+      '/sellers/by-area-category',
+      queryParameters: queryParams,
     );
     final List data = response.data['data'] as List;
     return data

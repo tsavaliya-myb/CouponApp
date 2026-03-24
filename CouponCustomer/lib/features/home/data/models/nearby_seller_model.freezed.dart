@@ -21,14 +21,12 @@ NearbySellerModel _$NearbySellerModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$NearbySellerModel {
   String get id => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
+  String get businessName => throw _privateConstructorUsedError;
   String get category => throw _privateConstructorUsedError;
   String get area => throw _privateConstructorUsedError;
-  double get distanceKm => throw _privateConstructorUsedError;
-  double get rating => throw _privateConstructorUsedError;
-  int get totalRatings => throw _privateConstructorUsedError;
-  String? get imageUrl => throw _privateConstructorUsedError;
-  String get bestCouponLabel => throw _privateConstructorUsedError;
+  double get lat => throw _privateConstructorUsedError;
+  double get lng => throw _privateConstructorUsedError;
+  double? get distanceKm => throw _privateConstructorUsedError;
 
   /// Serializes this NearbySellerModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -48,14 +46,12 @@ abstract class $NearbySellerModelCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String name,
+      String businessName,
       String category,
       String area,
-      double distanceKm,
-      double rating,
-      int totalRatings,
-      String? imageUrl,
-      String bestCouponLabel});
+      double lat,
+      double lng,
+      double? distanceKm});
 }
 
 /// @nodoc
@@ -74,23 +70,21 @@ class _$NearbySellerModelCopyWithImpl<$Res, $Val extends NearbySellerModel>
   @override
   $Res call({
     Object? id = null,
-    Object? name = null,
+    Object? businessName = null,
     Object? category = null,
     Object? area = null,
-    Object? distanceKm = null,
-    Object? rating = null,
-    Object? totalRatings = null,
-    Object? imageUrl = freezed,
-    Object? bestCouponLabel = null,
+    Object? lat = null,
+    Object? lng = null,
+    Object? distanceKm = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
+      businessName: null == businessName
+          ? _value.businessName
+          : businessName // ignore: cast_nullable_to_non_nullable
               as String,
       category: null == category
           ? _value.category
@@ -100,26 +94,18 @@ class _$NearbySellerModelCopyWithImpl<$Res, $Val extends NearbySellerModel>
           ? _value.area
           : area // ignore: cast_nullable_to_non_nullable
               as String,
-      distanceKm: null == distanceKm
+      lat: null == lat
+          ? _value.lat
+          : lat // ignore: cast_nullable_to_non_nullable
+              as double,
+      lng: null == lng
+          ? _value.lng
+          : lng // ignore: cast_nullable_to_non_nullable
+              as double,
+      distanceKm: freezed == distanceKm
           ? _value.distanceKm
           : distanceKm // ignore: cast_nullable_to_non_nullable
-              as double,
-      rating: null == rating
-          ? _value.rating
-          : rating // ignore: cast_nullable_to_non_nullable
-              as double,
-      totalRatings: null == totalRatings
-          ? _value.totalRatings
-          : totalRatings // ignore: cast_nullable_to_non_nullable
-              as int,
-      imageUrl: freezed == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
-      bestCouponLabel: null == bestCouponLabel
-          ? _value.bestCouponLabel
-          : bestCouponLabel // ignore: cast_nullable_to_non_nullable
-              as String,
+              as double?,
     ) as $Val);
   }
 }
@@ -134,14 +120,12 @@ abstract class _$$NearbySellerModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      String name,
+      String businessName,
       String category,
       String area,
-      double distanceKm,
-      double rating,
-      int totalRatings,
-      String? imageUrl,
-      String bestCouponLabel});
+      double lat,
+      double lng,
+      double? distanceKm});
 }
 
 /// @nodoc
@@ -158,23 +142,21 @@ class __$$NearbySellerModelImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? name = null,
+    Object? businessName = null,
     Object? category = null,
     Object? area = null,
-    Object? distanceKm = null,
-    Object? rating = null,
-    Object? totalRatings = null,
-    Object? imageUrl = freezed,
-    Object? bestCouponLabel = null,
+    Object? lat = null,
+    Object? lng = null,
+    Object? distanceKm = freezed,
   }) {
     return _then(_$NearbySellerModelImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
+      businessName: null == businessName
+          ? _value.businessName
+          : businessName // ignore: cast_nullable_to_non_nullable
               as String,
       category: null == category
           ? _value.category
@@ -184,26 +166,18 @@ class __$$NearbySellerModelImplCopyWithImpl<$Res>
           ? _value.area
           : area // ignore: cast_nullable_to_non_nullable
               as String,
-      distanceKm: null == distanceKm
+      lat: null == lat
+          ? _value.lat
+          : lat // ignore: cast_nullable_to_non_nullable
+              as double,
+      lng: null == lng
+          ? _value.lng
+          : lng // ignore: cast_nullable_to_non_nullable
+              as double,
+      distanceKm: freezed == distanceKm
           ? _value.distanceKm
           : distanceKm // ignore: cast_nullable_to_non_nullable
-              as double,
-      rating: null == rating
-          ? _value.rating
-          : rating // ignore: cast_nullable_to_non_nullable
-              as double,
-      totalRatings: null == totalRatings
-          ? _value.totalRatings
-          : totalRatings // ignore: cast_nullable_to_non_nullable
-              as int,
-      imageUrl: freezed == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
-      bestCouponLabel: null == bestCouponLabel
-          ? _value.bestCouponLabel
-          : bestCouponLabel // ignore: cast_nullable_to_non_nullable
-              as String,
+              as double?,
     ));
   }
 }
@@ -213,14 +187,12 @@ class __$$NearbySellerModelImplCopyWithImpl<$Res>
 class _$NearbySellerModelImpl implements _NearbySellerModel {
   const _$NearbySellerModelImpl(
       {required this.id,
-      required this.name,
+      required this.businessName,
       required this.category,
       required this.area,
-      required this.distanceKm,
-      required this.rating,
-      required this.totalRatings,
-      this.imageUrl,
-      required this.bestCouponLabel});
+      required this.lat,
+      required this.lng,
+      this.distanceKm});
 
   factory _$NearbySellerModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$NearbySellerModelImplFromJson(json);
@@ -228,25 +200,21 @@ class _$NearbySellerModelImpl implements _NearbySellerModel {
   @override
   final String id;
   @override
-  final String name;
+  final String businessName;
   @override
   final String category;
   @override
   final String area;
   @override
-  final double distanceKm;
+  final double lat;
   @override
-  final double rating;
+  final double lng;
   @override
-  final int totalRatings;
-  @override
-  final String? imageUrl;
-  @override
-  final String bestCouponLabel;
+  final double? distanceKm;
 
   @override
   String toString() {
-    return 'NearbySellerModel(id: $id, name: $name, category: $category, area: $area, distanceKm: $distanceKm, rating: $rating, totalRatings: $totalRatings, imageUrl: $imageUrl, bestCouponLabel: $bestCouponLabel)';
+    return 'NearbySellerModel(id: $id, businessName: $businessName, category: $category, area: $area, lat: $lat, lng: $lng, distanceKm: $distanceKm)';
   }
 
   @override
@@ -255,25 +223,21 @@ class _$NearbySellerModelImpl implements _NearbySellerModel {
         (other.runtimeType == runtimeType &&
             other is _$NearbySellerModelImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name) &&
+            (identical(other.businessName, businessName) ||
+                other.businessName == businessName) &&
             (identical(other.category, category) ||
                 other.category == category) &&
             (identical(other.area, area) || other.area == area) &&
+            (identical(other.lat, lat) || other.lat == lat) &&
+            (identical(other.lng, lng) || other.lng == lng) &&
             (identical(other.distanceKm, distanceKm) ||
-                other.distanceKm == distanceKm) &&
-            (identical(other.rating, rating) || other.rating == rating) &&
-            (identical(other.totalRatings, totalRatings) ||
-                other.totalRatings == totalRatings) &&
-            (identical(other.imageUrl, imageUrl) ||
-                other.imageUrl == imageUrl) &&
-            (identical(other.bestCouponLabel, bestCouponLabel) ||
-                other.bestCouponLabel == bestCouponLabel));
+                other.distanceKm == distanceKm));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, category, area,
-      distanceKm, rating, totalRatings, imageUrl, bestCouponLabel);
+  int get hashCode => Object.hash(
+      runtimeType, id, businessName, category, area, lat, lng, distanceKm);
 
   /// Create a copy of NearbySellerModel
   /// with the given fields replaced by the non-null parameter values.
@@ -295,14 +259,12 @@ class _$NearbySellerModelImpl implements _NearbySellerModel {
 abstract class _NearbySellerModel implements NearbySellerModel {
   const factory _NearbySellerModel(
       {required final String id,
-      required final String name,
+      required final String businessName,
       required final String category,
       required final String area,
-      required final double distanceKm,
-      required final double rating,
-      required final int totalRatings,
-      final String? imageUrl,
-      required final String bestCouponLabel}) = _$NearbySellerModelImpl;
+      required final double lat,
+      required final double lng,
+      final double? distanceKm}) = _$NearbySellerModelImpl;
 
   factory _NearbySellerModel.fromJson(Map<String, dynamic> json) =
       _$NearbySellerModelImpl.fromJson;
@@ -310,21 +272,17 @@ abstract class _NearbySellerModel implements NearbySellerModel {
   @override
   String get id;
   @override
-  String get name;
+  String get businessName;
   @override
   String get category;
   @override
   String get area;
   @override
-  double get distanceKm;
+  double get lat;
   @override
-  double get rating;
+  double get lng;
   @override
-  int get totalRatings;
-  @override
-  String? get imageUrl;
-  @override
-  String get bestCouponLabel;
+  double? get distanceKm;
 
   /// Create a copy of NearbySellerModel
   /// with the given fields replaced by the non-null parameter values.

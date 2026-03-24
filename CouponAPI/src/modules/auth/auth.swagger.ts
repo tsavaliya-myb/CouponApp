@@ -3,9 +3,13 @@ import {
   adminLoginSchema, 
   refreshSchema, 
   logoutSchema,
+  sendOtpSchema,
+  verifyOtpSchema,
   adminLoginResponseSchema,
   refreshResponseSchema,
   logoutResponseSchema,
+  sendOtpResponseSchema,
+  verifyOtpResponseSchema,
 } from './auth.validator';
 import { z } from 'zod';
 
@@ -17,6 +21,71 @@ const errorResponse = z.object({
 });
 
 // ─── Register Auth Endpoints ──────────────────────────────────────────────────
+
+openApiRegistry.registerPath({
+  method: 'post',
+  path: '/auth/send-otp',
+  summary: 'Send OTP',
+  description: 'Send a 6-digit OTP to a mobile number for login/registration.',
+  tags: ['Auth'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: sendOtpSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'OTP sent successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean().default(true),
+            data: sendOtpResponseSchema,
+          }),
+        },
+      },
+    },
+  },
+});
+
+openApiRegistry.registerPath({
+  method: 'post',
+  path: '/auth/verify-otp',
+  summary: 'Verify OTP',
+  description: 'Verify phone number and OTP to login or register a user.',
+  tags: ['Auth'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: verifyOtpSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Successfully verified and logged in',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean().default(true),
+            data: verifyOtpResponseSchema,
+          }),
+        },
+      },
+    },
+    401: {
+      description: 'Invalid or expired OTP',
+      content: { 'application/json': { schema: errorResponse } },
+    },
+  },
+});
+
 openApiRegistry.registerPath({
   method: 'post',
   path: '/auth/admin/login',

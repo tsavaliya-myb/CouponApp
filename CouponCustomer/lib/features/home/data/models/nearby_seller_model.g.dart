@@ -10,26 +10,22 @@ _$NearbySellerModelImpl _$$NearbySellerModelImplFromJson(
         Map<String, dynamic> json) =>
     _$NearbySellerModelImpl(
       id: json['id'] as String,
-      name: json['name'] as String,
+      businessName: json['businessName'] as String,
       category: json['category'] as String,
       area: json['area'] as String,
-      distanceKm: (json['distanceKm'] as num).toDouble(),
-      rating: (json['rating'] as num).toDouble(),
-      totalRatings: (json['totalRatings'] as num).toInt(),
-      imageUrl: json['imageUrl'] as String?,
-      bestCouponLabel: json['bestCouponLabel'] as String,
+      lat: (json['lat'] as num).toDouble(),
+      lng: (json['lng'] as num).toDouble(),
+      distanceKm: (json['distanceKm'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$$NearbySellerModelImplToJson(
         _$NearbySellerModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'name': instance.name,
+      'businessName': instance.businessName,
       'category': instance.category,
       'area': instance.area,
+      'lat': instance.lat,
+      'lng': instance.lng,
       'distanceKm': instance.distanceKm,
-      'rating': instance.rating,
-      'totalRatings': instance.totalRatings,
-      'imageUrl': instance.imageUrl,
-      'bestCouponLabel': instance.bestCouponLabel,
     };

@@ -1,7 +1,9 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
+import 'core/providers/auth_provider.dart';
 import 'core/config/app_config.dart';
 import 'core/di/injection.dart';
 import 'core/storage/hive_service.dart';
@@ -13,8 +15,8 @@ import 'services/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Setup environment config (prod flavor only)
-  AppConfig.setup(AppConfig.prod());
+  // 1. Setup environment config — use dev() to point at localhost:3000
+  AppConfig.setup(AppConfig.dev());
 
   // 2. Firebase removed
 
@@ -28,6 +30,16 @@ void main() async {
   // 6. Initialize Push Notifications
   await getIt<NotificationService>().init();
 
-  // 7. Launch app inside ProviderScope (Riverpod root)
-  runApp(const ProviderScope(child: App()));
+  // 7. Initialize SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+
+  // 8. Launch app inside ProviderScope (Riverpod root)
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const App(),
+    ),
+  );
 }

@@ -5,17 +5,98 @@ import { redis } from '../../config/redis';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../shared/utils/jwt';
 import { UnauthorizedError, BadRequestError } from '../../shared/utils/AppError';
 import { REDIS_PREFIX, TTL } from '../../shared/constants';
-import type { 
-  AdminLoginDto, 
-  RefreshDto, 
+import type {
+  AdminLoginDto,
+  RefreshDto,
   LogoutDto,
   AdminLoginResponse,
   RefreshResponse,
   LogoutResponse,
+  SendOtpDto,
+  VerifyOtpDto,
+  SendOtpResponse,
+  VerifyOtpResponse,
 } from './auth.validator';
 
 
 export class AuthService {
+
+  // ─── Send OTP ──────────────────────────────────────────────────────────────
+  async sendOtp(dto: SendOtpDto): Promise<SendOtpResponse> {
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Store in Redis with otp:{phone} key, 5-min TTL
+    const otpKey = `${REDIS_PREFIX.OTP}${dto.phone}`;
+    await redis.set(otpKey, otp, 'EX', TTL.OTP_SEC);
+
+    // Skip MSG91 for now as per user request
+    console.log(`[DEV] OTP for ${dto.phone} is ${otp}`);
+
+    return { message: 'OTP sent successfully' };
+  }
+
+  // ─── Verify OTP ────────────────────────────────────────────────────────────
+  async verifyOtp(dto: VerifyOtpDto): Promise<VerifyOtpResponse> {
+    const otpKey = `${REDIS_PREFIX.OTP}${dto.phone}`;
+    const storedOtp = await redis.get(otpKey);
+
+    if (!storedOtp || storedOtp !== dto.otp) {
+      throw UnauthorizedError('Invalid or expired OTP');
+    }
+
+    // OTP matched, delete it
+    await redis.del(otpKey);
+
+    // Find user by phone, or create if not exists
+    let user = await prisma.user.findUnique({
+      where: { phone: dto.phone },
+    });
+
+    let isNewUser = false;
+    if (!user) {
+      user = await prisma.user.create({
+        data: { phone: dto.phone },
+      });
+      isNewUser = true;
+    }
+
+    if (user.status === 'BLOCKED') {
+      throw UnauthorizedError('Your account has been blocked');
+    }
+
+    // Role is inferred as 'customer' for regular users
+    const payload = {
+      userId: user.id,
+      role: 'customer' as const,
+      phone: user.phone,
+    };
+
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken(payload);
+
+    // Store refresh token in Redis
+    const jti = crypto.randomUUID();
+    const refreshKey = `${REDIS_PREFIX.REFRESH_TOKEN}${jti}`;
+    await redis.set(refreshKey, user.id, 'EX', TTL.REFRESH_TOKEN_SEC);
+
+    const fullRefreshToken = `${jti}:${refreshToken}`;
+
+    return {
+      accessToken,
+      refreshToken: fullRefreshToken,
+      user: {
+        id: user.id,
+        phone: user.phone,
+        name: user.name,
+        email: user.email,
+        cityId: user.cityId,
+        areaId: user.areaId,
+        status: user.status,
+      },
+      isNewUser,
+    };
+  }
 
   // ─── Admin Login ────────────────────────────────────────────────────────────
   async adminLogin(dto: AdminLoginDto): Promise<AdminLoginResponse> {
@@ -34,11 +115,11 @@ export class AuthService {
 
     const payload = {
       userId: admin.id,
-      role:   'admin' as const,
-      email:  admin.email,
+      role: 'admin' as const,
+      email: admin.email,
     };
 
-    const accessToken  = signAccessToken(payload);
+    const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 
     // Store refresh token in Redis with 7d TTL
@@ -54,9 +135,9 @@ export class AuthService {
       accessToken,
       refreshToken: fullRefreshToken,
       admin: {
-        id:    admin.id,
+        id: admin.id,
         email: admin.email,
-        name:  admin.name,
+        name: admin.name,
       },
     };
   }
@@ -83,9 +164,9 @@ export class AuthService {
     // Issue a new access token with same payload
     const accessToken = signAccessToken({
       userId: decoded.userId,
-      role:   decoded.role,
-      email:  decoded.email,
-      phone:  decoded.phone,
+      role: decoded.role,
+      email: decoded.email,
+      phone: decoded.phone,
     });
 
     return { accessToken };

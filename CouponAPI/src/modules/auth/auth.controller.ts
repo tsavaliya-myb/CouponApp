@@ -6,6 +6,26 @@ const authService = new AuthService();
 
 export class AuthController {
 
+  // POST /api/v1/auth/send-otp
+  sendOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await authService.sendOtp(req.body);
+      sendSuccess(res, result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // POST /api/v1/auth/verify-otp
+  verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await authService.verifyOtp(req.body);
+      sendSuccess(res, result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   // POST /api/v1/auth/admin/login
   adminLogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

@@ -6,6 +6,7 @@ import {
   registerSellerSchema,
   updateSellerSchema,
   findSellersSchema,
+  getSellersByAreaCategorySchema,
 } from './sellers.validator';
 
 import './sellers.swagger';
@@ -27,6 +28,13 @@ router.get(
   authenticate,
   validate(findSellersSchema, 'query'),
   controller.findSellers
+);
+
+router.get(
+  '/by-area-category',
+  authenticate,
+  validate(getSellersByAreaCategorySchema, 'query'),
+  controller.getSellersByAreaCategory
 );
 
 // ─── Protected Routes (Sellers Only) ──────────────────────────────────────────
