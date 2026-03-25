@@ -48,6 +48,7 @@ _$CouponDetailModelImpl _$$CouponDetailModelImplFromJson(
       type: json['type'] as String,
       status: json['status'] as String,
       isBaseCoupon: json['isBaseCoupon'] as bool,
+      description: json['description'] as String?,
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
       seller:
@@ -66,6 +67,7 @@ Map<String, dynamic> _$$CouponDetailModelImplToJson(
       'type': instance.type,
       'status': instance.status,
       'isBaseCoupon': instance.isBaseCoupon,
+      'description': instance.description,
       'createdAt': instance.createdAt,
       'updatedAt': instance.updatedAt,
       'seller': instance.seller,

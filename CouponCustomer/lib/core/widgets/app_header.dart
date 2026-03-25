@@ -1,5 +1,6 @@
 // lib/core/widgets/app_header.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
 
@@ -7,7 +8,8 @@ class AppHeader extends StatelessWidget {
   final String title;
   final Widget? leftWidget;
   final Widget? rightWidget;
-  final bool showDefaultNotification;
+  final bool showSearchBar;
+  final bool showProfileIcon;
   final bool showDefaultLocation;
   final bool isItalic;
   final TextStyle? titleStyle;
@@ -17,7 +19,8 @@ class AppHeader extends StatelessWidget {
     required this.title,
     this.leftWidget,
     this.rightWidget,
-    this.showDefaultNotification = true,
+    this.showSearchBar = true,
+    this.showProfileIcon = true,
     this.showDefaultLocation = true,
     this.isItalic = false,
     this.titleStyle,
@@ -27,12 +30,8 @@ class AppHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget? activeLeftWidget = leftWidget;
     if (activeLeftWidget == null && showDefaultLocation) {
-      activeLeftWidget = const Icon(Icons.location_on, color: AppColors.dsPrimary, size: 24);
-    }
-
-    Widget? activeRightWidget = rightWidget;
-    if (activeRightWidget == null && showDefaultNotification) {
-      activeRightWidget = Icon(Icons.notifications_rounded, color: AppColors.dsOnSurface.withOpacity(0.6), size: 28);
+      activeLeftWidget =
+          const Icon(Icons.location_on, color: AppColors.dsPrimary, size: 24);
     }
 
     return Padding(
@@ -40,26 +39,84 @@ class AppHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Expanded(
+            child: Row(
+              children: [
+                if (activeLeftWidget != null) ...[
+                  activeLeftWidget,
+                  const SizedBox(width: 8),
+                ],
+                Flexible(
+                  child: Text(
+                    title,
+                    style: titleStyle ??
+                        AppTextStyles.dsTitleLg.copyWith(
+                          color: AppColors.dsPrimary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 22,
+                          fontStyle:
+                              isItalic ? FontStyle.italic : FontStyle.normal,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Row(
             children: [
-              if (activeLeftWidget != null) ...[
-                activeLeftWidget,
-                const SizedBox(width: 8),
+              if (showSearchBar) ...[
+                _HeaderIcon(
+                  icon: Icons.search_rounded,
+                  onTap: () {
+                    // TODO: Implement search
+                  },
+                ),
+                const SizedBox(width: 12),
               ],
-              Text(
-                title,
-                style: titleStyle ??
-                    AppTextStyles.dsTitleLg.copyWith(
-                      color: AppColors.dsPrimary,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 22,
-                      fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
-                    ),
-              ),
+              if (showProfileIcon)
+                _HeaderIcon(
+                  icon: Icons.person_rounded,
+                  onTap: () => context.go('/profile'),
+                ),
+              if (rightWidget != null) ...[
+                const SizedBox(width: 12),
+                rightWidget!,
+              ],
             ],
           ),
-          if (activeRightWidget != null) activeRightWidget,
         ],
+      ),
+    );
+  }
+}
+
+class _HeaderIcon extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _HeaderIcon({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.dsSurfaceContainerLow,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: AppColors.dsPrimary.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: AppColors.dsPrimary,
+        ),
       ),
     );
   }

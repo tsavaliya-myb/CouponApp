@@ -11,6 +11,9 @@ import '../../domain/usecases/get_nearby_sellers_usecase.dart';
 
 final selectedCategoryProvider = StateProvider<String>((ref) => 'ALL');
 
+// Separate category state for the Sellers screen
+final selectedSellerCategoryProvider = StateProvider<String>((ref) => 'ALL');
+
 // ─── All Coupons (single fetch) ────────────────────────────────────────────────
 // Fetched ONCE. Category filtering is done client-side via filteredCouponsProvider.
 
@@ -51,7 +54,12 @@ final filteredCouponsProvider =
 });
 
 // Keep alias for backward compat with home_screen references
-final featuredCouponsProvider = filteredCouponsProvider;
+final featuredCouponsProvider =
+    Provider.autoDispose<AsyncValue<List<HomeCouponEntity>>>((ref) {
+  final filteredAsync = ref.watch(filteredCouponsProvider);
+  return filteredAsync.whenData((list) =>
+      list.where((c) => c.status != 'USED').toList());
+});
 
 // ─── Nearby Sellers (paginated) ───────────────────────────────────────────────
 
@@ -71,7 +79,7 @@ class NearbySellersNotifier
 
   Future<List<NearbySellerEntity>> _fetch() async {
     final usecase = GetIt.I<GetNearbySellersUsecase>();
-    final category = ref.read(selectedCategoryProvider);
+    final category = ref.read(selectedSellerCategoryProvider);
     // TODO: Get actual areaId from user profile provider once implemented
     const userAreaId = 'a331158a-24ed-47fc-8e3e-fa84e78cc4c4';
     
@@ -101,3 +109,28 @@ class NearbySellersNotifier
 final nearbySellersProvider =
     AutoDisposeAsyncNotifierProvider<NearbySellersNotifier,
         List<NearbySellerEntity>>(NearbySellersNotifier.new);
+
+// ─── Filtered sellers (client-side, no extra request) ─────────────────────────
+
+final filteredSellersProvider =
+    Provider.autoDispose<AsyncValue<List<NearbySellerEntity>>>((ref) {
+  final allAsync = ref.watch(nearbySellersProvider);
+  final category = ref.watch(selectedSellerCategoryProvider);
+
+  return allAsync.whenData((all) {
+    if (category == 'ALL') return all;
+    return all.where((s) => s.category == category).toList();
+  });
+});
+
+final homeFilteredSellersProvider =
+    Provider.autoDispose<AsyncValue<List<NearbySellerEntity>>>((ref) {
+  final allAsync = ref.watch(nearbySellersProvider);
+  final category = ref.watch(selectedCategoryProvider);
+
+  return allAsync.whenData((all) {
+    if (category == 'ALL') return all;
+    return all.where((s) => s.category == category).toList();
+  });
+});
+

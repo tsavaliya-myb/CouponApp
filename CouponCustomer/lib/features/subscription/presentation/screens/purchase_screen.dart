@@ -29,6 +29,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
               const SizedBox(height: 16),
               AppHeader(
                 title: 'The Win',
+                showSearchBar: false, 
                 titleStyle: AppTextStyles.dsTitleLg.copyWith(
                   color: AppColors.dsOnSurface, 
                   fontWeight: FontWeight.w800,

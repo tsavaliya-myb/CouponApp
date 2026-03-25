@@ -25,7 +25,7 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
   Future<List<HomeCouponModel>> getAllCoupons() async {
     final response = await _apiClient.client.get(
       '/coupons',
-      queryParameters: {'page': 1, 'limit': 200},
+      queryParameters: {'page': 1, 'limit': 50},
     );
     final List data = response.data['data'] as List;
     return data

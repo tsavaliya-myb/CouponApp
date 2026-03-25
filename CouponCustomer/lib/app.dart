@@ -6,13 +6,21 @@ import 'core/theme/app_theme.dart';
 import 'core/widgets/main_shell_scaffold.dart';
 import 'features/home/presentation/screens/home_screen.dart';
 import 'features/coupons/presentation/screens/my_coupons_screen.dart';
+import 'features/coupons/presentation/screens/coupon_detail_screen.dart';
 import 'features/qr/presentation/screens/qr_screen.dart';
 import 'features/wallet/presentation/screens/wallet_screen.dart';
 import 'features/splash/presentation/screens/splash_screen.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/otp_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
-
+import 'features/profile/presentation/screens/account_settings_screen.dart';
+import 'features/profile/presentation/screens/support_screen.dart';
+import 'features/profile/presentation/screens/about_us_screen.dart';
+import 'features/sellers/presentation/screens/sellers_screen.dart';
+import 'features/sellers/presentation/screens/seller_detail_screen.dart';
+import 'features/home/domain/entities/nearby_seller_entity.dart';
+import 'features/home/domain/entities/home_coupon_entity.dart';
+import 'features/wallet/presentation/screens/wallet_ledger_screen.dart';
 
 // ---------------------------------------------------------------------------
 // Router
@@ -75,6 +83,15 @@ final _router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              path: '/sellers',
+              name: 'sellers',
+              builder: (_, __) => const SellersScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
               path: '/wallet',
               name: 'wallet',
               builder: (_, __) => const WalletScreen(),
@@ -91,6 +108,42 @@ final _router = GoRouter(
           ],
         ),
       ],
+    ),
+    GoRoute(
+      path: '/seller-detail',
+      name: 'seller-detail',
+      builder: (context, state) {
+        final seller = state.extra as NearbySellerEntity;
+        return SellerDetailScreen(seller: seller);
+      },
+    ),
+    GoRoute(
+      path: '/coupon-detail',
+      name: 'coupon-detail',
+      builder: (context, state) {
+        final coupon = state.extra as HomeCouponEntity;
+        return CouponDetailScreen(coupon: coupon);
+      },
+    ),
+    GoRoute(
+      path: '/wallet-ledger',
+      name: 'wallet-ledger',
+      builder: (_, __) => const WalletLedgerScreen(),
+    ),
+    GoRoute(
+      path: '/account-settings',
+      name: 'account-settings',
+      builder: (_, __) => const AccountSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/support',
+      name: 'support',
+      builder: (_, __) => const SupportScreen(),
+    ),
+    GoRoute(
+      path: '/about-us',
+      name: 'about-us',
+      builder: (_, __) => const AboutUsScreen(),
     ),
   ],
 );

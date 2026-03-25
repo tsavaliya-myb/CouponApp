@@ -23,6 +23,15 @@ import '../../features/home/data/repositories/home_repository_impl.dart';
 import '../../features/home/domain/repositories/home_repository.dart';
 import '../../features/home/domain/usecases/get_featured_coupons_usecase.dart';
 import '../../features/home/domain/usecases/get_nearby_sellers_usecase.dart';
+// Wallet feature
+import '../../features/wallet/data/datasources/wallet_remote_data_source.dart';
+import '../../features/wallet/data/repositories/wallet_repository_impl.dart';
+import '../../features/wallet/domain/repositories/wallet_repository.dart';
+import '../../features/wallet/domain/usecases/get_wallet_usecase.dart';
+// Profile feature
+import '../../features/profile/data/datasources/profile_remote_datasource.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/domain/repositories/profile_repository.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -97,6 +106,29 @@ Future<void> configureDependencies() async {
   );
   getIt.registerFactory<GetNearbySellersUsecase>(
     () => GetNearbySellersUsecase(getIt<HomeRepository>()),
+  );
+
+  // ---------------------------------------------------------------------------
+  // Wallet feature
+  // ---------------------------------------------------------------------------
+  getIt.registerLazySingleton<WalletRemoteDataSource>(
+    () => WalletRemoteDataSourceImpl(getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<WalletRepository>(
+    () => WalletRepositoryImpl(getIt<WalletRemoteDataSource>()),
+  );
+  getIt.registerFactory<GetWalletUseCase>(
+    () => GetWalletUseCase(getIt<WalletRepository>()),
+  );
+
+  // ---------------------------------------------------------------------------
+  // Profile feature
+  // ---------------------------------------------------------------------------
+  getIt.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(getIt<ProfileRemoteDataSource>()),
   );
 }
 

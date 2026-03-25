@@ -30,6 +30,7 @@ class _RedemptionHistoryScreenState extends State<RedemptionHistoryScreen> {
               const SizedBox(height: 16),
               AppHeader(
                 title: 'Redemption History',
+                showSearchBar: false,
                 titleStyle: AppTextStyles.dsTitleLg.copyWith(
                   color: AppColors.dsPrimary,
                   fontWeight: FontWeight.w800,
@@ -38,10 +39,10 @@ class _RedemptionHistoryScreenState extends State<RedemptionHistoryScreen> {
                 leftWidget: Builder(
                   builder: (ctx) => GestureDetector(
                     onTap: () => Navigator.pop(ctx),
-                    child: const Icon(Icons.arrow_back_rounded, color: AppColors.dsPrimary, size: 28),
+                    child: const Icon(Icons.arrow_back_rounded,
+                        color: AppColors.dsPrimary, size: 28),
                   ),
                 ),
-                rightWidget: const Icon(Icons.notifications_rounded, color: AppColors.dsPrimary, size: 24),
               ),
               const SizedBox(height: 24),
 

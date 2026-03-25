@@ -14,7 +14,7 @@ class AppBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
+      padding: const EdgeInsets.only(left: 24, right: 24, bottom: 10),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(100),
         child: BackdropFilter(
@@ -24,11 +24,15 @@ class AppBottomNavBar extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.dsSurfaceContainerLowest.withOpacity(0.8),
               borderRadius: BorderRadius.circular(100),
+              border: Border.all(
+                color: AppColors.dsPrimary.withOpacity(0.12),
+                width: 1.5,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.dsOnSurface.withOpacity(0.04),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
+                  color: AppColors.dsOnSurface.withOpacity(0.08),
+                  blurRadius: 32,
+                  offset: const Offset(0, 12),
                 ),
               ],
             ),
@@ -76,14 +80,14 @@ class AppBottomNavBar extends StatelessWidget {
                   ),
                 ),
                 _NavItem(
-                  icon: Icons.account_balance_wallet_rounded,
-                  label: 'Wallet',
+                  icon: Icons.storefront_rounded,
+                  label: 'Sellers',
                   isSelected: currentIndex == 3,
                   onTap: () => onTap(3),
                 ),
                 _NavItem(
-                  icon: Icons.person_rounded,
-                  label: 'Profile',
+                  icon: Icons.account_balance_wallet_rounded,
+                  label: 'Wallet',
                   isSelected: currentIndex == 4,
                   onTap: () => onTap(4),
                 ),

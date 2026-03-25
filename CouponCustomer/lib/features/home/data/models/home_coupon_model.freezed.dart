@@ -406,6 +406,7 @@ mixin _$CouponDetailModel {
   String get type => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   bool get isBaseCoupon => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
   String get createdAt => throw _privateConstructorUsedError;
   String get updatedAt => throw _privateConstructorUsedError;
   CouponSellerModel get seller => throw _privateConstructorUsedError;
@@ -436,6 +437,7 @@ abstract class $CouponDetailModelCopyWith<$Res> {
       String type,
       String status,
       bool isBaseCoupon,
+      String? description,
       String createdAt,
       String updatedAt,
       CouponSellerModel seller});
@@ -467,6 +469,7 @@ class _$CouponDetailModelCopyWithImpl<$Res, $Val extends CouponDetailModel>
     Object? type = null,
     Object? status = null,
     Object? isBaseCoupon = null,
+    Object? description = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? seller = null,
@@ -508,6 +511,10 @@ class _$CouponDetailModelCopyWithImpl<$Res, $Val extends CouponDetailModel>
           ? _value.isBaseCoupon
           : isBaseCoupon // ignore: cast_nullable_to_non_nullable
               as bool,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -552,6 +559,7 @@ abstract class _$$CouponDetailModelImplCopyWith<$Res>
       String type,
       String status,
       bool isBaseCoupon,
+      String? description,
       String createdAt,
       String updatedAt,
       CouponSellerModel seller});
@@ -582,6 +590,7 @@ class __$$CouponDetailModelImplCopyWithImpl<$Res>
     Object? type = null,
     Object? status = null,
     Object? isBaseCoupon = null,
+    Object? description = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
     Object? seller = null,
@@ -623,6 +632,10 @@ class __$$CouponDetailModelImplCopyWithImpl<$Res>
           ? _value.isBaseCoupon
           : isBaseCoupon // ignore: cast_nullable_to_non_nullable
               as bool,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -652,6 +665,7 @@ class _$CouponDetailModelImpl implements _CouponDetailModel {
       required this.type,
       required this.status,
       required this.isBaseCoupon,
+      this.description,
       required this.createdAt,
       required this.updatedAt,
       required this.seller});
@@ -678,6 +692,8 @@ class _$CouponDetailModelImpl implements _CouponDetailModel {
   @override
   final bool isBaseCoupon;
   @override
+  final String? description;
+  @override
   final String createdAt;
   @override
   final String updatedAt;
@@ -686,7 +702,7 @@ class _$CouponDetailModelImpl implements _CouponDetailModel {
 
   @override
   String toString() {
-    return 'CouponDetailModel(id: $id, sellerId: $sellerId, discountPct: $discountPct, adminCommissionPct: $adminCommissionPct, minSpend: $minSpend, maxUsesPerBook: $maxUsesPerBook, type: $type, status: $status, isBaseCoupon: $isBaseCoupon, createdAt: $createdAt, updatedAt: $updatedAt, seller: $seller)';
+    return 'CouponDetailModel(id: $id, sellerId: $sellerId, discountPct: $discountPct, adminCommissionPct: $adminCommissionPct, minSpend: $minSpend, maxUsesPerBook: $maxUsesPerBook, type: $type, status: $status, isBaseCoupon: $isBaseCoupon, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, seller: $seller)';
   }
 
   @override
@@ -709,6 +725,8 @@ class _$CouponDetailModelImpl implements _CouponDetailModel {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.isBaseCoupon, isBaseCoupon) ||
                 other.isBaseCoupon == isBaseCoupon) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -729,6 +747,7 @@ class _$CouponDetailModelImpl implements _CouponDetailModel {
       type,
       status,
       isBaseCoupon,
+      description,
       createdAt,
       updatedAt,
       seller);
@@ -761,6 +780,7 @@ abstract class _CouponDetailModel implements CouponDetailModel {
       required final String type,
       required final String status,
       required final bool isBaseCoupon,
+      final String? description,
       required final String createdAt,
       required final String updatedAt,
       required final CouponSellerModel seller}) = _$CouponDetailModelImpl;
@@ -786,6 +806,8 @@ abstract class _CouponDetailModel implements CouponDetailModel {
   String get status;
   @override
   bool get isBaseCoupon;
+  @override
+  String? get description;
   @override
   String get createdAt;
   @override

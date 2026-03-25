@@ -19,8 +19,10 @@ class MainShellScaffold extends StatelessWidget {
       case 2:
         return 'Identity QR';
       case 3:
-        return 'Wallet';
+        return 'Sellers';
       case 4:
+        return 'Wallet';
+      case 5:
         return 'Profile';
       default:
         return 'The Win';
@@ -42,6 +44,7 @@ class MainShellScaffold extends StatelessWidget {
             alignment: Alignment.center,
             child: AppHeader(
               title: _getScreenName(navigationShell.currentIndex),
+              showProfileIcon: navigationShell.currentIndex == 5 ? false : true,
             ),
           ),
         ),

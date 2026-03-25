@@ -24,7 +24,8 @@ class AppConfig {
   static AppConfig? _instance;
 
   static AppConfig get current {
-    assert(_instance != null, 'AppConfig.setup() must be called before accessing AppConfig.current');
+    assert(_instance != null,
+        'AppConfig.setup() must be called before accessing AppConfig.current');
     return _instance!;
   }
 
@@ -48,7 +49,7 @@ class AppConfig {
   /// Run with: flutter run (no extra flags needed)
   factory AppConfig.dev() => const AppConfig(
         appName: 'CouponApp (Dev)',
-        baseUrl: 'http://localhost:3000/api/v1',
+        baseUrl: 'http://192.168.1.9:3000/api/v1',
         razorpayKey: 'rzp_test_placeholder',
         qrSecretKey: 'dev_qr_secret_key_32chars_padded!',
         appVersion: '1.0.0-dev',

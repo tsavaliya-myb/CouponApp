@@ -8,11 +8,13 @@ class HomeCouponEntity extends Equatable {
   final String sellerArea;
   final String category;
   final int discountPercent;
-  final String couponType; // STANDARD | BOGO
+  final String couponType;
   final int? minSpend;
+  final String? description;
   final DateTime validFrom;
   final DateTime validUntil;
   final bool isActive;
+  final String status;
   final int usesRemaining;
   final int maxUsesPerBook;
 
@@ -25,9 +27,11 @@ class HomeCouponEntity extends Equatable {
     required this.discountPercent,
     required this.couponType,
     this.minSpend,
+    this.description,
     required this.validFrom,
     required this.validUntil,
     required this.isActive,
+    required this.status,
     required this.usesRemaining,
     required this.maxUsesPerBook,
   });
@@ -36,5 +40,5 @@ class HomeCouponEntity extends Equatable {
       isActive && usesRemaining > 0 && validUntil.isAfter(DateTime.now());
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [id, status];
 }
