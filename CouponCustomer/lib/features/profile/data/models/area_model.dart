@@ -8,10 +8,10 @@ class AreaModel with _$AreaModel {
   const factory AreaModel({
     required String id,
     required String name,
-    required String cityId,
-    required bool isActive,
-    required DateTime createdAt,
-    required DateTime updatedAt,
+    String? cityId,
+    @Default(true) bool isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) = _AreaModel;
 
   factory AreaModel.fromJson(Map<String, dynamic> json) =>

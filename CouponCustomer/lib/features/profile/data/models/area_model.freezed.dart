@@ -22,10 +22,10 @@ AreaModel _$AreaModelFromJson(Map<String, dynamic> json) {
 mixin _$AreaModel {
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  String get cityId => throw _privateConstructorUsedError;
+  String? get cityId => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
-  DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime get updatedAt => throw _privateConstructorUsedError;
+  DateTime? get createdAt => throw _privateConstructorUsedError;
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this AreaModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -45,10 +45,10 @@ abstract class $AreaModelCopyWith<$Res> {
   $Res call(
       {String id,
       String name,
-      String cityId,
+      String? cityId,
       bool isActive,
-      DateTime createdAt,
-      DateTime updatedAt});
+      DateTime? createdAt,
+      DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -68,10 +68,10 @@ class _$AreaModelCopyWithImpl<$Res, $Val extends AreaModel>
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? cityId = null,
+    Object? cityId = freezed,
     Object? isActive = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -82,22 +82,22 @@ class _$AreaModelCopyWithImpl<$Res, $Val extends AreaModel>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      cityId: null == cityId
+      cityId: freezed == cityId
           ? _value.cityId
           : cityId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       isActive: null == isActive
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
-      createdAt: null == createdAt
+      createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
+              as DateTime?,
+      updatedAt: freezed == updatedAt
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -113,10 +113,10 @@ abstract class _$$AreaModelImplCopyWith<$Res>
   $Res call(
       {String id,
       String name,
-      String cityId,
+      String? cityId,
       bool isActive,
-      DateTime createdAt,
-      DateTime updatedAt});
+      DateTime? createdAt,
+      DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -134,10 +134,10 @@ class __$$AreaModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? cityId = null,
+    Object? cityId = freezed,
     Object? isActive = null,
-    Object? createdAt = null,
-    Object? updatedAt = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
   }) {
     return _then(_$AreaModelImpl(
       id: null == id
@@ -148,22 +148,22 @@ class __$$AreaModelImplCopyWithImpl<$Res>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      cityId: null == cityId
+      cityId: freezed == cityId
           ? _value.cityId
           : cityId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       isActive: null == isActive
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
-      createdAt: null == createdAt
+      createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
+              as DateTime?,
+      updatedAt: freezed == updatedAt
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
+              as DateTime?,
     ));
   }
 }
@@ -174,10 +174,10 @@ class _$AreaModelImpl implements _AreaModel {
   const _$AreaModelImpl(
       {required this.id,
       required this.name,
-      required this.cityId,
-      required this.isActive,
-      required this.createdAt,
-      required this.updatedAt});
+      this.cityId,
+      this.isActive = true,
+      this.createdAt,
+      this.updatedAt});
 
   factory _$AreaModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$AreaModelImplFromJson(json);
@@ -187,13 +187,14 @@ class _$AreaModelImpl implements _AreaModel {
   @override
   final String name;
   @override
-  final String cityId;
+  final String? cityId;
   @override
+  @JsonKey()
   final bool isActive;
   @override
-  final DateTime createdAt;
+  final DateTime? createdAt;
   @override
-  final DateTime updatedAt;
+  final DateTime? updatedAt;
 
   @override
   String toString() {
@@ -241,10 +242,10 @@ abstract class _AreaModel implements AreaModel {
   const factory _AreaModel(
       {required final String id,
       required final String name,
-      required final String cityId,
-      required final bool isActive,
-      required final DateTime createdAt,
-      required final DateTime updatedAt}) = _$AreaModelImpl;
+      final String? cityId,
+      final bool isActive,
+      final DateTime? createdAt,
+      final DateTime? updatedAt}) = _$AreaModelImpl;
 
   factory _AreaModel.fromJson(Map<String, dynamic> json) =
       _$AreaModelImpl.fromJson;
@@ -254,13 +255,13 @@ abstract class _AreaModel implements AreaModel {
   @override
   String get name;
   @override
-  String get cityId;
+  String? get cityId;
   @override
   bool get isActive;
   @override
-  DateTime get createdAt;
+  DateTime? get createdAt;
   @override
-  DateTime get updatedAt;
+  DateTime? get updatedAt;
 
   /// Create a copy of AreaModel
   /// with the given fields replaced by the non-null parameter values.

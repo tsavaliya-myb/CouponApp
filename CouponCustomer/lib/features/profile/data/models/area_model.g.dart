@@ -10,10 +10,14 @@ _$AreaModelImpl _$$AreaModelImplFromJson(Map<String, dynamic> json) =>
     _$AreaModelImpl(
       id: json['id'] as String,
       name: json['name'] as String,
-      cityId: json['cityId'] as String,
-      isActive: json['isActive'] as bool,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      cityId: json['cityId'] as String?,
+      isActive: json['isActive'] as bool? ?? true,
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
     );
 
 Map<String, dynamic> _$$AreaModelImplToJson(_$AreaModelImpl instance) =>
@@ -22,6 +26,6 @@ Map<String, dynamic> _$$AreaModelImplToJson(_$AreaModelImpl instance) =>
       'name': instance.name,
       'cityId': instance.cityId,
       'isActive': instance.isActive,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
     };

@@ -16,6 +16,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<UserModel> getUser() async {
     final response = await _apiClient.client.get('/users/me');
+    print(response.data);
     return UserModel.fromJson(response.data['data']);
   }
 
