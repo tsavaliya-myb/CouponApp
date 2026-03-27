@@ -12,6 +12,7 @@ import '../../../../core/widgets/shimmer_loader.dart';
 import '../providers/home_provider.dart';
 import '../../../../core/widgets/coupon_card.dart';
 import '../../../../core/widgets/seller_card.dart';
+import 'package:coupon_customer/features/profile/presentation/providers/profile_provider.dart';
 
 // ─── Home Screen ─────────────────────────────────────────────────────────────
 
@@ -111,11 +112,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 }
 
-class _HomeHeader extends StatelessWidget {
+class _HomeHeader extends ConsumerWidget {
   const _HomeHeader();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(profileProvider);
+    final displayName = profileAsync.when(
+      data: (user) => (user.name != null && user.name!.isNotEmpty) ? user.name : 'Friend',
+      error: (_, __) => 'Friend',
+      loading: () => '...',
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -123,7 +131,7 @@ class _HomeHeader extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Hello, Aarav!',
+            'Hello, $displayName!',
             style: AppTextStyles.dsDisplayLg.copyWith(fontSize: 24),
           ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1),
           Text(

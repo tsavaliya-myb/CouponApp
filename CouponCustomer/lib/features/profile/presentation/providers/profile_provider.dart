@@ -34,3 +34,12 @@ final areasProvider = FutureProvider.family<List<AreaModel>, String>((ref, cityI
     (areas) => areas.where((a) => a.isActive).toList(),
   );
 });
+
+final citiesProvider = FutureProvider<List<CityModel>>((ref) async {
+  final repository = GetIt.I<ProfileRepository>();
+  final result = await repository.getCities();
+  return result.fold(
+    (f) => throw f.message,
+    (cities) => cities.where((c) => c.status == 'ACTIVE').toList(),
+  );
+});

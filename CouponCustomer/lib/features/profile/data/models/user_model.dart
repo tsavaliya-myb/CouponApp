@@ -31,6 +31,7 @@ class CityModel with _$CityModel {
   const factory CityModel({
     required String id,
     required String name,
+    @Default('ACTIVE') String status,
   }) = _CityModel;
 
   factory CityModel.fromJson(Map<String, dynamic> json) =>

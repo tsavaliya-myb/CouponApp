@@ -69,7 +69,7 @@ class AppHeader extends StatelessWidget {
                 _HeaderIcon(
                   icon: Icons.search_rounded,
                   onTap: () {
-                    // TODO: Implement search
+                    context.push('/search');
                   },
                 ),
                 const SizedBox(width: 12),
@@ -101,22 +101,11 @@ class _HeaderIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.dsSurfaceContainerLow,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: AppColors.dsPrimary.withOpacity(0.1),
-            width: 1,
-          ),
-        ),
-        child: Icon(
-          icon,
-          size: 20,
-          color: AppColors.dsPrimary,
-        ),
+      behavior: HitTestBehavior.opaque,
+      child: Icon(
+        icon,
+        size: 28,
+        color: AppColors.dsOnSurface.withOpacity(0.8),
       ),
     );
   }

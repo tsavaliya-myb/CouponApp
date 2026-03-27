@@ -21,6 +21,7 @@ import 'features/sellers/presentation/screens/seller_detail_screen.dart';
 import 'features/home/domain/entities/nearby_seller_entity.dart';
 import 'features/home/domain/entities/home_coupon_entity.dart';
 import 'features/wallet/presentation/screens/wallet_ledger_screen.dart';
+import 'features/home/presentation/screens/search_screen.dart';
 
 // ---------------------------------------------------------------------------
 // Router
@@ -144,6 +145,11 @@ final _router = GoRouter(
       path: '/about-us',
       name: 'about-us',
       builder: (_, __) => const AboutUsScreen(),
+    ),
+    GoRoute(
+      path: '/search',
+      name: 'search',
+      builder: (_, __) => const SearchScreen(),
     ),
   ],
 );

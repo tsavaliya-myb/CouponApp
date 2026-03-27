@@ -1,263 +1,274 @@
 // lib/features/qr/presentation/screens/qr_screen.dart
-import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_text_styles.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get_it/get_it.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
-class QrScreen extends StatefulWidget {
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/security/qr_token_service.dart';
+import '../../../../core/security/token_service.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
+
+class QrScreen extends ConsumerStatefulWidget {
   const QrScreen({super.key});
 
   @override
-  State<QrScreen> createState() => _QrScreenState();
+  ConsumerState<QrScreen> createState() => _QrScreenState();
 }
 
-class _QrScreenState extends State<QrScreen> {
+class _QrScreenState extends ConsumerState<QrScreen> {
+  Timer? _refreshTimer;
+  String? _qrPayloadBase64;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimers();
+    _generateQrPayload();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimers() {
+    // Timer to trigger the actual payload refresh
+    _refreshTimer = Timer.periodic(AppConstants.qrRefreshInterval, (_) {
+      _generateQrPayload();
+    });
+  }
+
+  Future<void> _generateQrPayload() async {
+    final userState = ref.read(profileProvider);
+    if (userState is! AsyncData) return;
+
+    final user = userState.value;
+    if (user == null || user.status != 'ACTIVE') return;
+
+    final tokenService = GetIt.I<TokenService>();
+    final accessToken = await tokenService.getAccessToken();
+
+    if (accessToken != null) {
+      final qrService = GetIt.I<QrTokenService>();
+      final payload = qrService.generateUserQrPayload(
+        userId: user.id,
+        subscriptionToken: accessToken,
+      );
+
+      if (mounted) {
+        setState(() {
+          _qrPayloadBase64 = payload;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final userState = ref.watch(profileProvider);
+
     return Scaffold(
       backgroundColor: AppColors.dsSurface,
-      extendBody: true, // Needed for floating authentic glass bottom nav
+      extendBody: true,
       body: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              
-              // ── Active Subscription Pill ──────────────────────────────────
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.dsSecondaryMint.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: AppColors.dsSecondaryMint,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'SUBSCRIPTION ACTIVE - SURAT BOOK',
-                        style: AppTextStyles.dsLabelMd.copyWith(
-                          color: AppColors.dsSecondaryMint,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        userState.when(
+                          data: (user) {
+                            final isActive = user.status == 'ACTIVE';
+                            final city = user.city?.name ?? 'UNKNOWN CITY';
 
-              // ── QR Identity Card ────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: AppColors.dsSurfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.dsOnSurface.withOpacity(0.04), // Ambient shadow
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // User Info Row
-                      Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppColors.dsSurfaceContainerLow,
-                              shape: BoxShape.circle,
-                              image: const DecorationImage(
-                                image: NetworkImage('https://i.pravatar.cc/150?img=11'), // Placeholder Avatar
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Aarav Mehta', style: AppTextStyles.dsTitleLg),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Verified Diamond Tier',
-                                style: AppTextStyles.dsBodyMd.copyWith(
-                                  color: AppColors.dsOnSurface.withOpacity(0.6),
-                                  fontFamily: 'Be Vietnam Pro', // Serif styling approximated
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
+                            if (!isActive) {
+                              return _buildExpiredState();
+                            }
 
-                      // QR Code Frame
-                      SizedBox(
-                        width: 240,
-                        height: 240,
-                        child: CustomPaint(
-                          painter: _QrCornersPainter(
-                            color: AppColors.dsPrimary,
-                            strokeWidth: 4,
-                            cornerLength: 24,
-                            borderRadius: 24,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.dsSurfaceContainerLow.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  Icons.qr_code_2_rounded,
-                                  size: 160,
-                                  color: AppColors.dsOnSurface.withOpacity(0.8),
-                                ),
-                              ),
+                            return Column(
+                              children: [
+                                _buildActiveSubscriptionPill(city),
+                                const SizedBox(height: 24),
+                                _buildQrCard(
+                                    user.name ?? 'Valued Customer', city),
+                              ],
+                            );
+                          },
+                          loading: () => const Center(
+                              child: Padding(
+                            padding: EdgeInsets.all(48.0),
+                            child: CircularProgressIndicator(),
+                          )),
+                          error: (err, stack) => Center(
+                            child: Text(
+                              'Error loading profile',
+                              style: AppTextStyles.dsBodyMd
+                                  .copyWith(color: AppColors.error),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      Text(
-                        'Show this to the seller for\nredemption',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.dsTitleLg.copyWith(
-                          fontSize: 16,
-                          color: AppColors.dsOnSurface.withOpacity(0.8),
-                         ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Refresh Timer
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.dsSurfaceContainerLow,
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.refresh_rounded, color: AppColors.dsPrimary, size: 16),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Refreshes in 1:45',
-                              style: AppTextStyles.dsLabelMd.copyWith(color: AppColors.dsPrimary, fontWeight: FontWeight.w700),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 48),
-
-              // ── Redemption Guide ──────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text('Redemption Guide', style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20)),
-              ),
-              const SizedBox(height: 16),
-              
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    _GuideStep(
-                      number: '01',
-                      text: 'Ensure the merchant is ready to scan before revealing this screen.',
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    _GuideStep(
-                      number: '02',
-                      text: 'For high-security vouchers, you may be asked for a one-time verification pin.',
-                    ),
-                  ],
+                  ),
                 ),
               ),
-
-              const SizedBox(height: 140), // Buffer for the glassmorphic bottom nav
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
-}
 
-
-class _GuideStep extends StatelessWidget {
-  final String number;
-  final String text;
-
-  const _GuideStep({required this.number, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.dsSurfaceContainerLow.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.dsPrimary.withOpacity(0.15),
-              shape: BoxShape.circle,
+  Widget _buildExpiredState() {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: AppColors.dsSurfaceContainerLowest,
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: AppColors.error.withOpacity(0.3)),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.error_outline_rounded,
+                color: AppColors.error, size: 64),
+            const SizedBox(height: 16),
+            Text(
+              'Subscription Expired',
+              style: AppTextStyles.dsTitleLg.copyWith(color: AppColors.error),
             ),
-            child: Center(
-              child: Text(
-                number,
-                style: AppTextStyles.dsTitleLg.copyWith(
+            const SizedBox(height: 8),
+            Text(
+              'Please renew your subscription to access your QR code and continue redeeming coupons.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.dsBodyMd
+                  .copyWith(color: AppColors.dsOnSurface.withOpacity(0.7)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveSubscriptionPill(String cityName) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.dsSecondaryMint.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: AppColors.dsSecondaryMint,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'SUBSCRIPTION ACTIVE - ${cityName.toUpperCase()}',
+              style: AppTextStyles.dsLabelMd.copyWith(
+                color: AppColors.dsSecondaryMint,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQrCard(String userName, String city) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.dsSurfaceContainerLowest,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.dsOnSurface.withOpacity(0.04), // Ambient shadow
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // QR Code Frame
+            SizedBox(
+              width: 300,
+              height: 300,
+              child: CustomPaint(
+                painter: _QrCornersPainter(
                   color: AppColors.dsPrimary,
-                  fontSize: 14,
+                  strokeWidth: 4,
+                  cornerLength: 32,
+                  borderRadius: 32,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.dsSurfaceContainerLow.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Center(
+                      child: _qrPayloadBase64 == null
+                          ? const CircularProgressIndicator()
+                          : QrImageView(
+                              data: _qrPayloadBase64!,
+                              version: QrVersions.auto,
+                              size: 240,
+                              backgroundColor: Colors.transparent,
+                              eyeStyle: const QrEyeStyle(
+                                eyeShape: QrEyeShape.square,
+                                color: AppColors.dsOnSurface,
+                              ),
+                              dataModuleStyle: const QrDataModuleStyle(
+                                dataModuleShape: QrDataModuleShape.square,
+                                color: AppColors.dsOnSurface,
+                              ),
+                            ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              text,
-              style: AppTextStyles.dsBodyMd.copyWith(
-                color: AppColors.dsOnSurface.withOpacity(0.7),
-                height: 1.4,
+            const SizedBox(height: 32),
+
+            Text(
+              'Show this to the seller for\nredemption',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.dsTitleLg.copyWith(
+                fontSize: 16,
+                color: AppColors.dsOnSurface.withOpacity(0.8),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -286,28 +297,32 @@ class _QrCornersPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final path = Path();
-    
+
     // Top-left
     path.moveTo(0, cornerLength);
-    path.arcToPoint(Offset(borderRadius, 0), radius: Radius.circular(borderRadius));
+    path.arcToPoint(Offset(borderRadius, 0),
+        radius: Radius.circular(borderRadius));
     path.lineTo(cornerLength, 0);
 
     // Top-right
     path.moveTo(size.width - cornerLength, 0);
     path.lineTo(size.width - borderRadius, 0);
-    path.arcToPoint(Offset(size.width, borderRadius), radius: Radius.circular(borderRadius));
+    path.arcToPoint(Offset(size.width, borderRadius),
+        radius: Radius.circular(borderRadius));
     path.lineTo(size.width, cornerLength);
 
     // Bottom-right
     path.moveTo(size.width, size.height - cornerLength);
     path.lineTo(size.width, size.height - borderRadius);
-    path.arcToPoint(Offset(size.width - borderRadius, size.height), radius: Radius.circular(borderRadius));
+    path.arcToPoint(Offset(size.width - borderRadius, size.height),
+        radius: Radius.circular(borderRadius));
     path.lineTo(size.width - cornerLength, size.height);
 
     // Bottom-left
     path.moveTo(cornerLength, size.height);
     path.lineTo(borderRadius, size.height);
-    path.arcToPoint(Offset(0, size.height - borderRadius), radius: Radius.circular(borderRadius));
+    path.arcToPoint(Offset(0, size.height - borderRadius),
+        radius: Radius.circular(borderRadius));
     path.lineTo(0, size.height - cornerLength);
 
     canvas.drawPath(path, paint);
@@ -316,5 +331,3 @@ class _QrCornersPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
-

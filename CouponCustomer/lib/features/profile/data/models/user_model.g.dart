@@ -52,10 +52,12 @@ _$CityModelImpl _$$CityModelImplFromJson(Map<String, dynamic> json) =>
     _$CityModelImpl(
       id: json['id'] as String,
       name: json['name'] as String,
+      status: json['status'] as String? ?? 'ACTIVE',
     );
 
 Map<String, dynamic> _$$CityModelImplToJson(_$CityModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
+      'status': instance.status,
     };

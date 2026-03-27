@@ -6,6 +6,7 @@ abstract class ProfileRemoteDataSource {
   Future<UserModel> getUser();
   Future<UserModel> updateUser(Map<String, dynamic> data);
   Future<List<AreaModel>> getAreas(String cityId);
+  Future<List<CityModel>> getCities();
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -16,7 +17,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<UserModel> getUser() async {
     final response = await _apiClient.client.get('/users/me');
-    print(response.data);
     return UserModel.fromJson(response.data['data']);
   }
 
@@ -31,5 +31,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     final response = await _apiClient.client.get('/admin/cities/$cityId/areas');
     final list = response.data['data'] as List;
     return list.map((e) => AreaModel.fromJson(e)).toList();
+  }
+
+  @override
+  Future<List<CityModel>> getCities() async {
+    final response = await _apiClient.client.get('/admin/cities');
+    final list = response.data['data'] as List;
+    return list.map((e) => CityModel.fromJson(e)).toList();
   }
 }

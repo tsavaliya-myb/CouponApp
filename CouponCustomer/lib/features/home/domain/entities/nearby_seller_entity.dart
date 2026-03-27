@@ -20,6 +20,26 @@ class NearbySellerEntity extends Equatable {
     this.distanceKm,
   });
 
+  NearbySellerEntity copyWith({
+    String? id,
+    String? name,
+    String? category,
+    String? area,
+    double? lat,
+    double? lng,
+    double? distanceKm,
+  }) {
+    return NearbySellerEntity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      area: area ?? this.area,
+      lat: lat ?? this.lat,
+      lng: lng ?? this.lng,
+      distanceKm: distanceKm ?? this.distanceKm,
+    );
+  }
+
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [id, name, category, area, lat, lng, distanceKm];
 }

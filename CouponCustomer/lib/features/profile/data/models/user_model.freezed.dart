@@ -471,6 +471,7 @@ CityModel _$CityModelFromJson(Map<String, dynamic> json) {
 mixin _$CityModel {
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
+  String get status => throw _privateConstructorUsedError;
 
   /// Serializes this CityModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -487,7 +488,7 @@ abstract class $CityModelCopyWith<$Res> {
   factory $CityModelCopyWith(CityModel value, $Res Function(CityModel) then) =
       _$CityModelCopyWithImpl<$Res, CityModel>;
   @useResult
-  $Res call({String id, String name});
+  $Res call({String id, String name, String status});
 }
 
 /// @nodoc
@@ -507,6 +508,7 @@ class _$CityModelCopyWithImpl<$Res, $Val extends CityModel>
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? status = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -516,6 +518,10 @@ class _$CityModelCopyWithImpl<$Res, $Val extends CityModel>
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
               as String,
     ) as $Val);
   }
@@ -529,7 +535,7 @@ abstract class _$$CityModelImplCopyWith<$Res>
       __$$CityModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String id, String name});
+  $Res call({String id, String name, String status});
 }
 
 /// @nodoc
@@ -547,6 +553,7 @@ class __$$CityModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? status = null,
   }) {
     return _then(_$CityModelImpl(
       id: null == id
@@ -557,6 +564,10 @@ class __$$CityModelImplCopyWithImpl<$Res>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -564,7 +575,8 @@ class __$$CityModelImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$CityModelImpl implements _CityModel {
-  const _$CityModelImpl({required this.id, required this.name});
+  const _$CityModelImpl(
+      {required this.id, required this.name, this.status = 'ACTIVE'});
 
   factory _$CityModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$CityModelImplFromJson(json);
@@ -573,10 +585,13 @@ class _$CityModelImpl implements _CityModel {
   final String id;
   @override
   final String name;
+  @override
+  @JsonKey()
+  final String status;
 
   @override
   String toString() {
-    return 'CityModel(id: $id, name: $name)';
+    return 'CityModel(id: $id, name: $name, status: $status)';
   }
 
   @override
@@ -585,12 +600,13 @@ class _$CityModelImpl implements _CityModel {
         (other.runtimeType == runtimeType &&
             other is _$CityModelImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name));
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.status, status) || other.status == status));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name);
+  int get hashCode => Object.hash(runtimeType, id, name, status);
 
   /// Create a copy of CityModel
   /// with the given fields replaced by the non-null parameter values.
@@ -610,7 +626,9 @@ class _$CityModelImpl implements _CityModel {
 
 abstract class _CityModel implements CityModel {
   const factory _CityModel(
-      {required final String id, required final String name}) = _$CityModelImpl;
+      {required final String id,
+      required final String name,
+      final String status}) = _$CityModelImpl;
 
   factory _CityModel.fromJson(Map<String, dynamic> json) =
       _$CityModelImpl.fromJson;
@@ -619,6 +637,8 @@ abstract class _CityModel implements CityModel {
   String get id;
   @override
   String get name;
+  @override
+  String get status;
 
   /// Create a copy of CityModel
   /// with the given fields replaced by the non-null parameter values.

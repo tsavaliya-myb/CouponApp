@@ -46,4 +46,16 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Left(ServerFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, List<CityModel>>> getCities() async {
+    try {
+      final cities = await remoteDataSource.getCities();
+      return Right(cities);
+    } on DioException catch (e) {
+      return Left(ServerFailure(message: e.message ?? 'Server Error'));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }
