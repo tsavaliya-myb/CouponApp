@@ -14,12 +14,20 @@ import './cities.swagger';
 const router = Router();
 const controller = new CitiesController();
 
-// All routes in this module strictly require Admin role
+// ─── PUBLIC ROUTES (no token required) ───────────────────────────────────────
+
+router.get('/', controller.getCities);
+
+router.get(
+  '/:cityId/areas',
+  controller.getAreas
+);
+
+// ─── PROTECTED ROUTES (Admin only) ───────────────────────────────────────────
+
 router.use(authenticate, authorize('admin'));
 
 // ─── CITIES ───────────────────────────────────────────────────────────────────
-
-router.get('/', controller.getCities);
 
 router.post(
   '/',
@@ -31,13 +39,6 @@ router.patch(
   '/:id',
   validate(updateCitySchema),
   controller.updateCity
-);
-
-// ─── AREAS (Nested under City) ────────────────────────────────────────────────
-
-router.get(
-  '/:cityId/areas',
-  controller.getAreas
 );
 
 router.post(

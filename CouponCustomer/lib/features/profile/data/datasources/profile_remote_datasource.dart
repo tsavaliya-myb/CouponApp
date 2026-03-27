@@ -28,7 +28,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<List<AreaModel>> getAreas(String cityId) async {
-    final response = await _apiClient.client.get('/users/cities/$cityId/areas');
+    final response = await _apiClient.client.get('/admin/cities/$cityId/areas');
     final list = response.data['data'] as List;
     return list.map((e) => AreaModel.fromJson(e)).toList();
   }

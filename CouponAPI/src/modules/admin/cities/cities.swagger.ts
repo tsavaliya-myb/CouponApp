@@ -29,7 +29,6 @@ openApiRegistry.registerPath({
   summary: 'List Cities',
   description: 'Returns all cities with counts of areas, users, and sellers. Requires Admin role.',
   tags: ['Admin - Cities & Areas'],
-  // security: [{ bearerAuth: [] }],
   responses: {
     200: {
       description: 'Success',
@@ -104,7 +103,6 @@ openApiRegistry.registerPath({
   path: '/admin/cities/{cityId}/areas',
   summary: 'List Areas by City',
   tags: ['Admin - Cities & Areas'],
-  // security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ cityId: z.string().uuid() }),
   },
