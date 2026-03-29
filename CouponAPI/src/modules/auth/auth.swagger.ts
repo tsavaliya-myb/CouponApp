@@ -88,6 +88,70 @@ openApiRegistry.registerPath({
 
 openApiRegistry.registerPath({
   method: 'post',
+  path: '/auth/seller/send-otp',
+  summary: 'Send Seller OTP',
+  description: 'Send a 6-digit OTP to a seller mobile number.',
+  tags: ['Auth', 'Sellers'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: sendOtpSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'OTP sent successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean().default(true),
+            data: sendOtpResponseSchema,
+          }),
+        },
+      },
+    },
+  },
+});
+
+openApiRegistry.registerPath({
+  method: 'post',
+  path: '/auth/seller/verify-otp',
+  summary: 'Verify Seller OTP',
+  description: 'Verify phone number and OTP for seller. Returns registrationToken if new, or access tokens if exists.',
+  tags: ['Auth', 'Sellers'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: verifyOtpSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Successfully verified',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean().default(true),
+            data: z.any().openapi({ description: 'sellerVerifyOtpResponseSchema' }),
+          }),
+        },
+      },
+    },
+    401: {
+      description: 'Invalid or expired OTP',
+      content: { 'application/json': { schema: errorResponse } },
+    },
+  },
+});
+
+openApiRegistry.registerPath({
+  method: 'post',
   path: '/auth/admin/login',
   summary: 'Admin Login',
   description: 'Login for admin users. Returns JWT access token and refresh token.',

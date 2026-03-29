@@ -36,6 +36,28 @@ router.post(
 );
 
 /**
+ * @route   POST /api/v1/auth/seller/send-otp
+ * @desc    Send a 6-digit OTP to a seller's phone number
+ * @access  Public
+ */
+router.post(
+  '/seller/send-otp',
+  validate(sendOtpSchema), // Resusing the same phone validation schema or `sellerSendOtpSchema`
+  authController.sellerSendOtp
+);
+
+/**
+ * @route   POST /api/v1/auth/seller/verify-otp
+ * @desc    Verify seller OTP. If new, returns registration token. If exists, returns access token.
+ * @access  Public
+ */
+router.post(
+  '/seller/verify-otp',
+  validate(verifyOtpSchema),
+  authController.sellerVerifyOtp
+);
+
+/**
  * @route   POST /api/v1/auth/admin/login
  * @desc    Admin login with email + password — returns JWT access + refresh token pair
  * @access  Public

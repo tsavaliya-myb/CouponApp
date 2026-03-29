@@ -26,6 +26,26 @@ export class AuthController {
     }
   };
 
+  // POST /api/v1/auth/seller/send-otp
+  sellerSendOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await authService.sellerSendOtp(req.body);
+      sendSuccess(res, result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // POST /api/v1/auth/seller/verify-otp
+  sellerVerifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await authService.sellerVerifyOtp(req.body);
+      sendSuccess(res, result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   // POST /api/v1/auth/admin/login
   adminLogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

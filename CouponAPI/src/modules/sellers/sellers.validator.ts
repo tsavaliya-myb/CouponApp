@@ -4,7 +4,6 @@ import { PAGINATION } from '../../shared/constants';
 
 // ─── Seller Registration ──────────────────────────────────────────────────────
 export const registerSellerSchema = z.object({
-  phone: z.string().regex(/^[0-9]{10}$/, 'Phone number must be exactly 10 digits'),
   businessName: z.string().min(2, 'Business name is required').max(150),
   category: z.nativeEnum(SellerCategory).optional(),
   cityId: z.string().uuid('Invalid City ID'),

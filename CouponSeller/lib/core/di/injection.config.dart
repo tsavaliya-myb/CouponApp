@@ -14,6 +14,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 
+import '../../features/auth/data/datasources/auth_remote_datasource.dart'
+    as _i161;
+import '../../features/auth/data/repositories/auth_repository_impl.dart'
+    as _i153;
+import '../../features/auth/domain/repositories/auth_repository.dart' as _i787;
+import '../../features/auth/domain/usecases/send_otp_usecase.dart' as _i663;
+import '../../features/auth/domain/usecases/verify_otp_usecase.dart' as _i503;
 import '../config/app_config.dart' as _i650;
 import '../network/api_client.dart' as _i557;
 import '../network/auth_interceptor.dart' as _i908;
@@ -31,13 +38,13 @@ extension GetItInjectableX on _i174.GetIt {
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final registerModule = _$RegisterModule();
-    gh.singleton<_i10.RetryInterceptor>(() => _i10.RetryInterceptor());
-    gh.singleton<_i660.QrTokenService>(() => _i660.QrTokenService());
-    gh.singleton<_i459.HiveService>(() => _i459.HiveService());
     gh.singleton<_i650.AppConfig>(() => registerModule.appConfig);
     gh.singleton<_i558.FlutterSecureStorage>(
       () => registerModule.secureStorage,
     );
+    gh.singleton<_i10.RetryInterceptor>(() => _i10.RetryInterceptor());
+    gh.singleton<_i660.QrTokenService>(() => _i660.QrTokenService());
+    gh.singleton<_i459.HiveService>(() => _i459.HiveService());
     gh.singleton<_i361.Dio>(
       () => registerModule.refreshDio,
       instanceName: 'refreshDio',
@@ -57,6 +64,21 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i908.AuthInterceptor>(),
         gh<_i10.RetryInterceptor>(),
       ),
+    );
+    gh.factory<_i161.AuthRemoteDatasource>(
+      () => _i161.AuthRemoteDatasourceImpl(gh<_i557.ApiClient>()),
+    );
+    gh.factory<_i787.AuthRepository>(
+      () => _i153.AuthRepositoryImpl(
+        gh<_i161.AuthRemoteDatasource>(),
+        gh<_i495.TokenService>(),
+      ),
+    );
+    gh.factory<_i663.SendOtpUsecase>(
+      () => _i663.SendOtpUsecase(gh<_i787.AuthRepository>()),
+    );
+    gh.factory<_i503.VerifyOtpUsecase>(
+      () => _i503.VerifyOtpUsecase(gh<_i787.AuthRepository>()),
     );
     return this;
   }

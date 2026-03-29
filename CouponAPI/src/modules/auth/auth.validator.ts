@@ -27,12 +27,25 @@ export const verifyOtpSchema = z.object({
   otp: z.string().length(6, 'OTP must be exactly 6 digits'),
 });
 
+// ─── Seller Send OTP ──────────────────────────────────────────────────────────
+export const sellerSendOtpSchema = z.object({
+  phone: z.string().regex(/^[0-9]{10}$/, 'Invalid phone number (must be 10 digits)'),
+});
+
+// ─── Seller Verify OTP ────────────────────────────────────────────────────────
+export const sellerVerifyOtpSchema = z.object({
+  phone: z.string().regex(/^[0-9]{10}$/, 'Invalid phone number (must be 10 digits)'),
+  otp: z.string().length(6, 'OTP must be exactly 6 digits'),
+});
+
 // ─── Inferred Types ───────────────────────────────────────────────────────────
 export type AdminLoginDto  = z.infer<typeof adminLoginSchema>;
 export type RefreshDto     = z.infer<typeof refreshSchema>;
 export type LogoutDto      = z.infer<typeof logoutSchema>;
 export type SendOtpDto     = z.infer<typeof sendOtpSchema>;
 export type VerifyOtpDto   = z.infer<typeof verifyOtpSchema>;
+export type SellerSendOtpDto = z.infer<typeof sellerSendOtpSchema>;
+export type SellerVerifyOtpDto = z.infer<typeof sellerVerifyOtpSchema>;
 
 // ─── Response Schemas ─────────────────────────────────────────────────────────
 
@@ -73,8 +86,27 @@ export const verifyOtpResponseSchema = z.object({
   isNewUser: z.boolean(),
 });
 
+export const sellerSendOtpResponseSchema = z.object({
+  message: z.string(),
+});
+
+export const sellerVerifyOtpResponseSchema = z.union([
+  z.object({
+    isRegistered: z.literal(true),
+    status: z.string(),
+    accessToken: z.string(),
+    refreshToken: z.string(),
+  }),
+  z.object({
+    isRegistered: z.literal(false),
+    registrationToken: z.string(),
+  }),
+]);
+
 export type AdminLoginResponse = z.infer<typeof adminLoginResponseSchema>;
 export type RefreshResponse = z.infer<typeof refreshResponseSchema>;
 export type LogoutResponse = z.infer<typeof logoutResponseSchema>;
 export type SendOtpResponse = z.infer<typeof sendOtpResponseSchema>;
 export type VerifyOtpResponse = z.infer<typeof verifyOtpResponseSchema>;
+export type SellerSendOtpResponse = z.infer<typeof sellerSendOtpResponseSchema>;
+export type SellerVerifyOtpResponse = z.infer<typeof sellerVerifyOtpResponseSchema>;

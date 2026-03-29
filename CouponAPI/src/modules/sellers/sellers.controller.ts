@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { SellersService } from './sellers.service';
 import { sendSuccess, sendCreated } from '../../shared/utils/response';
+import { verifyRegistrationToken } from '../../shared/utils/jwt';
+import { UnauthorizedError } from '../../shared/utils/AppError';
 import type { FindSellersDto, GetSellersByAreaCategoryDto } from './sellers.validator';
 
 const sellersService = new SellersService();
@@ -9,7 +11,15 @@ export class SellersController {
   
   register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const result = await sellersService.register(req.body);
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        throw UnauthorizedError('No registration token provided');
+      }
+
+      const token = authHeader.split(' ')[1];
+      const { phone } = verifyRegistrationToken(token);
+
+      const result = await sellersService.register(phone, req.body);
       sendCreated(res, result);
     } catch (err) {
       next(err);

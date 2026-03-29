@@ -31,45 +31,28 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
 
 export class SellersService {
 
-  // ─── Register (Bypasses OTP for MVP) ────────────────────────────────────────
-  async register(dto: RegisterSellerDto): Promise<LoginSellerResponse> {
-    let seller = await prisma.seller.findUnique({
-      where: { phone: dto.phone },
+  // ─── Register ────────────────────────────────────────
+  async register(phone: string, dto: RegisterSellerDto): Promise<LoginSellerResponse> {
+    const existingSeller = await prisma.seller.findUnique({
+      where: { phone },
     });
 
-    if (seller) {
-      if (dto.businessName || dto.cityId || dto.areaId) {
-        seller = await prisma.seller.update({
-          where: { id: seller.id },
-          data: {
-            businessName: dto.businessName || seller.businessName,
-            category: dto.category || seller.category,
-            cityId: dto.cityId || seller.cityId,
-            areaId: dto.areaId || seller.areaId,
-            upiId: dto.upiId || seller.upiId,
-            latitude: dto.lat !== undefined ? dto.lat : seller.latitude,
-            longitude: dto.lng !== undefined ? dto.lng : seller.longitude,
-          }
-        });
-      }
-    } else {
-      seller = await prisma.seller.create({
-        data: {
-          phone: dto.phone,
-          businessName: dto.businessName,
-          category: dto.category,
-          cityId: dto.cityId,
-          areaId: dto.areaId,
-          upiId: dto.upiId,
-          latitude: dto.lat,
-          longitude: dto.lng,
-        },
-      });
+    if (existingSeller) {
+      throw ConflictError('A seller with this phone number is already registered.');
     }
 
-    if (seller.status === 'SUSPENDED') {
-      throw BadRequestError('Seller account is suspended. Please contact support.');
-    }
+    const seller = await prisma.seller.create({
+      data: {
+        phone,
+        businessName: dto.businessName,
+        category: dto.category,
+        cityId: dto.cityId,
+        areaId: dto.areaId,
+        upiId: dto.upiId,
+        latitude: dto.lat,
+        longitude: dto.lng,
+      },
+    });
 
     const payload = {
       userId: seller.id,
@@ -96,9 +79,7 @@ export class SellersService {
         areaId: seller.areaId,
         status: seller.status,
       },
-      message: seller.status === 'PENDING'
-        ? 'Account created. Waiting for admin approval to appear in search.'
-        : 'Login successful.',
+      message: 'Account created. Waiting for admin approval to appear in search.',
     };
   }
 

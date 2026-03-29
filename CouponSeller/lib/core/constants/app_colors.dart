@@ -3,40 +3,39 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary Brand
-  static const Color primary        = Color(0xFF1C0A3E);
-  static const Color primaryLight   = Color(0xFF2D1260);
-  static const Color primaryAccent  = Color(0xFF7C3AED);
-  static const Color primarySoft    = Color(0xFFEDE9FE);
+  // Primary & Secondary
+  static const Color primary = Color(0xFF003461);
+  static const Color primaryContainer = Color(0xFF004B87);
+  static const Color secondary = Color(0xFF1B6D24);
 
-  // Backgrounds
-  static const Color bgPage         = Color(0xFFF4F2EE);
-  static const Color bgCard         = Color(0xFFFFFFFF);
-  static const Color bgSecondary    = Color(0xFFF9F8F5);
+  // Surface Hierarchy (Architecture)
+  static const Color surface = Color(0xFFF9F9FF);
+  static const Color surfaceContainerLow = Color(0xFFF3F3F9);
+  static const Color surfaceContainerHigh = Color(0xFFEBEBEF);
+  static const Color surfaceContainerHighest = Color(0xFFE3E3E9);
+  static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
+  static const Color surfaceBright = Color(0xFFF9F9FF);
 
-  // Semantic
-  static const Color success        = Color(0xFF4ADE80);
-  static const Color successDark    = Color(0xFF16A34A);
-  static const Color warning        = Color(0xFFF59E0B);
-  static const Color error          = Color(0xFFEF4444);
-  static const Color errorLight     = Color(0xFFFEE2E2);
-  static const Color info           = Color(0xFF3B82F6);
+  // Functional
+  static const Color onSurface = Color(0xFF191C20);
+  static const Color outlineVariant = Color(0xFFC2C6D1);
+  static const Color error = Color(0xFFBA1A1A);
+  static const Color errorContainer = Color(0xFFFFDAD6);
 
-  // Text
-  static const Color textPrimary    = Color(0xFF1A1A1A);
-  static const Color textSecondary  = Color(0xFF6B7280);
-  static const Color textHint       = Color(0xFF9CA3AF);
-  static const Color textOnDark     = Color(0xFFFFFFFF);
-  static const Color textMuted      = Color(0xFFA78BCA);
+  // Tokens for legacy/compatibility
+  static const Color bgPage = surface;
+  static const Color bgCard = surfaceContainerLowest;
+  static const Color textPrimary = onSurface;
+  static const Color textSecondary = Color(0xFF44474E);
+  static const Color textOnDark = Colors.white;
+  static const Color border = Color(0x26C2C6D1); // 15% opacity
 
-  // Border
-  static const Color border         = Color(0xFFE0DDD6);
-  static const Color borderStrong   = Color(0xFFD1CFC8);
-
-  // Category (coupon card backgrounds)
-  static const Color catFood        = Color(0xFF1C0A3E);
-  static const Color catSalon       = Color(0xFF064E3B);
-  static const Color catTheater     = Color(0xFF7C2D12);
-  static const Color catSpa         = Color(0xFF1E3A5F);
-  static const Color catCafe        = Color(0xFF3B1F6B);
+  // Gradients
+  static const Gradient primaryGradient = LinearGradient(
+    colors: [primary, primaryContainer],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    stops: [0.0, 1.0],
+    transform: GradientRotation(135 * 3.14159 / 180),
+  );
 }

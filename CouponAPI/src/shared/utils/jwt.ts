@@ -36,6 +36,23 @@ export const verifyRefreshToken = (token: string): JwtPayload =>
   jwt.verify(token, env.JWT_REFRESH_SECRET) as JwtPayload;
 
 /**
+ * Signs a short-lived registration token (15 mins) for sellers who verified OTP but haven't registered.
+ */
+export const signRegistrationToken = (phone: string): string =>
+  jwt.sign({ phone, role: 'registration_only' }, env.JWT_SECRET, { expiresIn: '15m' });
+
+/**
+ * Verifies a registration token. Throws if invalid, expired, or wrong role.
+ */
+export const verifyRegistrationToken = (token: string): { phone: string } => {
+  const payload = jwt.verify(token, env.JWT_SECRET) as any;
+  if (payload.role !== 'registration_only' || !payload.phone) {
+    throw new Error('Invalid registration token');
+  }
+  return { phone: payload.phone };
+};
+
+/**
  * Signs a short-lived QR identity token (5 min) for the user QR code screen.
  */
 export const signQrToken = (userId: string): string =>

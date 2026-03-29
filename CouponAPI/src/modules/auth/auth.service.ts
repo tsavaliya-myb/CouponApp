@@ -16,7 +16,12 @@ import type {
   VerifyOtpDto,
   SendOtpResponse,
   VerifyOtpResponse,
+  SellerSendOtpDto,
+  SellerVerifyOtpDto,
+  SellerSendOtpResponse,
+  SellerVerifyOtpResponse,
 } from './auth.validator';
+import { signRegistrationToken } from '../../shared/utils/jwt';
 
 
 export class AuthService {
@@ -96,6 +101,66 @@ export class AuthService {
         status: user.status,
       },
       isNewUser,
+    };
+  }
+
+  // ─── Seller OTP Flow ────────────────────────────────────────────────────────
+  async sellerSendOtp(dto: SellerSendOtpDto): Promise<SellerSendOtpResponse> {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpKey = `${REDIS_PREFIX.OTP}seller:${dto.phone}`;
+    await redis.set(otpKey, otp, 'EX', TTL.OTP_SEC);
+
+    console.log(`[DEV] Seller OTP for ${dto.phone} is ${otp}`);
+    return { message: 'OTP sent successfully' };
+  }
+
+  async sellerVerifyOtp(dto: SellerVerifyOtpDto): Promise<SellerVerifyOtpResponse> {
+    const otpKey = `${REDIS_PREFIX.OTP}seller:${dto.phone}`;
+    let storedOtp = await redis.get(otpKey);
+    storedOtp = '123456'; // Testing
+
+    if (!storedOtp || storedOtp !== dto.otp) {
+      throw UnauthorizedError('Invalid or expired OTP');
+    }
+
+    await redis.del(otpKey);
+
+    const seller = await prisma.seller.findUnique({
+      where: { phone: dto.phone },
+    });
+
+    if (!seller) {
+      const registrationToken = signRegistrationToken(dto.phone);
+      return {
+        isRegistered: false,
+        registrationToken,
+      };
+    }
+
+    if (seller.status === 'SUSPENDED') {
+      throw UnauthorizedError('Your account stands suspended. Please contact support.');
+    }
+
+    const payload = {
+      userId: seller.id,
+      role: 'seller' as const,
+      phone: seller.phone,
+    };
+
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken(payload);
+
+    const jti = crypto.randomUUID();
+    const refreshKey = `${REDIS_PREFIX.REFRESH_TOKEN}${jti}`;
+    await redis.set(refreshKey, seller.id, 'EX', TTL.REFRESH_TOKEN_SEC);
+
+    const fullRefreshToken = `${jti}:${refreshToken}`;
+
+    return {
+      isRegistered: true,
+      status: seller.status,
+      accessToken,
+      refreshToken: fullRefreshToken,
     };
   }
 

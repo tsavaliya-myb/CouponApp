@@ -25,9 +25,10 @@ const errorResponse = z.object({
 openApiRegistry.registerPath({
   method: 'post',
   path: '/sellers/register',
-  summary: 'Register / Login Seller (MVP)',
-  description: 'Registers or logs in a seller. Bypasses OTP for MVP.',
+  summary: 'Register Seller Profile',
+  description: 'Registers a seller. Requires a valid registrationToken in the Authorization header (obtained via /auth/seller/verify-otp).',
   tags: ['Sellers'],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: { 'application/json': { schema: registerSellerSchema } },

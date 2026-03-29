@@ -9,10 +9,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Single environment setup
-  AppConfig.setup(AppConfig.prod()); 
+  AppConfig.setup(AppConfig.dev()); 
   
   // Init DI
   configureDependencies();
 
-  runApp(const ProviderScope(child: App()));
+  runApp(const ProviderScope(child: CouponSellerApp()));
 }

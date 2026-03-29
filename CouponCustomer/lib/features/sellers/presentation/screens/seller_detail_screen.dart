@@ -1,9 +1,12 @@
 // lib/features/sellers/presentation/screens/seller_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart' hide Path;
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/widgets/shimmer_loader.dart';
@@ -158,6 +161,11 @@ class SellerDetailScreen extends ConsumerWidget {
             ),
           ),
 
+          // ── Map Section ───────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: _SellerMapSection(seller: seller, accent: _accent),
+          ),
+
           // ── Section label ─────────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
@@ -271,6 +279,193 @@ class SellerDetailScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+// ─── Map Section ─────────────────────────────────────────────────────────────
+
+Future<void> _openInGoogleMaps(double lat, double lng, String name) async {
+  final encoded = Uri.encodeComponent(name);
+  final uri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng&query_place_id=$encoded');
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
+
+class _SellerMapSection extends StatelessWidget {
+  final NearbySellerEntity seller;
+  final Color accent;
+
+  const _SellerMapSection({required this.seller, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final point = LatLng(seller.lat, seller.lng);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header row ──────────────────────────────────────────────────
+          Row(
+            children: [
+              Icon(Icons.location_on_rounded, size: 16, color: accent),
+              const SizedBox(width: 6),
+              Text('Location',
+                  style: AppTextStyles.dsTitleLg.copyWith(fontSize: 16)),
+              const Spacer(),
+              // Open in Google Maps button
+              GestureDetector(
+                onTap: () => _openInGoogleMaps(
+                    seller.lat, seller.lng, seller.name),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [accent, accent.withOpacity(0.75)],
+                    ),
+                    borderRadius: BorderRadius.circular(100),
+                    boxShadow: [
+                      BoxShadow(
+                        color: accent.withOpacity(0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.open_in_new_rounded,
+                          size: 12, color: Colors.white),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Open in Maps',
+                        style: AppTextStyles.dsLabelMd.copyWith(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // ── Map ──────────────────────────────────────────────────────────
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: SizedBox(
+              height: 180,
+              child: Stack(
+                children: [
+                  FlutterMap(
+                    options: MapOptions(
+                      initialCenter: point,
+                      initialZoom: 15.5,
+                      interactionOptions: const InteractionOptions(
+                        flags: InteractiveFlag.none, // static — no drag/zoom
+                      ),
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.couponapp.customer',
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: point,
+                            width: 48,
+                            height: 56,
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: accent,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: Colors.white, width: 2.5),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: accent.withOpacity(0.5),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.storefront_rounded,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                CustomPaint(
+                                  size: const Size(12, 8),
+                                  painter: _PinTailPainter(color: accent),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  // Subtle gradient overlay at bottom
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 40,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            AppColors.dsSurface.withOpacity(0.3),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Triangle tail for the map pin marker
+class _PinTailPainter extends CustomPainter {
+  final Color color;
+  const _PinTailPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_PinTailPainter old) => old.color != color;
 }
 
 // ─── Coupon Card (seller detail variant) ──────────────────────────────────────
