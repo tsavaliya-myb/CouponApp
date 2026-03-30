@@ -18,7 +18,7 @@ class AppConfig {
 
   factory AppConfig.prod() => const AppConfig(
     appName: 'Coupon Seller',
-    baseUrl: 'https://api.example.com/v1',
+    baseUrl: 'https://couponapp-r1vv.onrender.com/api/v1',
     razorpayKey: 'prod_key',
     appVersion: '1.0.0',
   );

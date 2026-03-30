@@ -1,8 +1,8 @@
 import { openApiRegistry } from '../../config/swagger';
 import { z } from 'zod';
-import { 
-  scanQrSchema, 
-  confirmRedemptionSchema, 
+import {
+  scanQrSchema,
+  confirmRedemptionSchema,
   redemptionHistoryQuerySchema,
   scanQrResponseSchema,
   confirmRedemptionResponseSchema,
@@ -78,7 +78,7 @@ openApiRegistry.registerPath({
 
 openApiRegistry.registerPath({
   method: 'get',
-  path: '/sellers/me/redemptions',
+  path: '/redemptions/seller/history',
   summary: 'Seller Redemption History',
   description: 'Lists redemptions processed by the authenticated seller.',
   tags: ['Seller - Redemptions'],

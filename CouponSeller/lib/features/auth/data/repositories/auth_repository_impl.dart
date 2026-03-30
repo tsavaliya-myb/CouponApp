@@ -6,6 +6,7 @@ import '../../../../core/error/error_handler.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/security/token_service.dart';
 import '../../domain/entities/auth_result_entity.dart';
+import '../../domain/entities/seller_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 
@@ -55,6 +56,43 @@ class AuthRepositoryImpl implements AuthRepository {
         ));
       } else {
         return Left(ServerFailure(message: 'Failed to verify OTP'));
+      }
+    } on DioException catch (e) {
+      return Left(mapDioExceptionToFailure(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, SellerEntity>> registerSeller(RegisterSellerParams params) async {
+    try {
+      final response = await _remoteDatasource.registerSeller(params);
+      if (response.success) {
+        final data = response.data;
+        
+        await _tokenService.saveTokens(
+          access: data.accessToken,
+          refresh: data.refreshToken,
+        );
+
+        final seller = data.seller;
+        return Right(SellerEntity(
+          id: seller.id,
+          phone: seller.phone,
+          businessName: seller.businessName,
+          category: seller.category,
+          cityId: seller.cityId,
+          areaId: seller.areaId,
+          status: seller.status,
+          address: seller.address,
+          email: seller.email,
+          upiId: seller.upiId,
+          lat: seller.lat,
+          lng: seller.lng,
+        ));
+      } else {
+        return Left(ServerFailure(message: 'Failed to register seller'));
       }
     } on DioException catch (e) {
       return Left(mapDioExceptionToFailure(e));

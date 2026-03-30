@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/auth_response_model.dart';
+import '../../domain/entities/seller_entity.dart';
 
 abstract class AuthRemoteDatasource {
   Future<SendOtpResponseModel> sendOtp({required String phone});
@@ -9,6 +10,9 @@ abstract class AuthRemoteDatasource {
     required String phone,
     required String otp,
   });
+  Future<RegisterSellerResponseModel> registerSeller(
+    RegisterSellerParams params,
+  );
 }
 
 @Injectable(as: AuthRemoteDatasource)
@@ -38,6 +42,32 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       data: {'phone': phone, 'otp': otp},
     );
     return VerifyOtpResponseModel.fromJson(
+      Map<String, dynamic>.from(response.data as Map),
+    );
+  }
+
+  @override
+  Future<RegisterSellerResponseModel> registerSeller(
+    RegisterSellerParams params,
+  ) async {
+    final response = await _apiClient.client.post(
+      '/sellers/register',
+      data: {
+        "businessName": params.businessName,
+        "category": params.category,
+        "cityId": params.cityId,
+        "areaId": params.areaId,
+        "address": params.address,
+        "email": params.email,
+        "upiId": params.upiId,
+        "lat": params.lat,
+        "lng": params.lng,
+      },
+      options: Options(
+        headers: {'Authorization': 'Bearer ${params.registrationToken}'},
+      ),
+    );
+    return RegisterSellerResponseModel.fromJson(
       Map<String, dynamic>.from(response.data as Map),
     );
   }

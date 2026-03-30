@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs your location to pin exactly where your business is located on the map.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs your location to pin exactly where your business is located on the map.</string>
 </dict>
 </plist>

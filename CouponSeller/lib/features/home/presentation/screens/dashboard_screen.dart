@@ -5,26 +5,56 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../providers/dashboard_provider.dart';
+import '../../domain/entities/dashboard_entity.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final dashboardAsync = ref.watch(dashboardNotifierProvider);
+
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: SingleChildScrollView(
+      body: dashboardAsync.when(
+        data: (data) => _buildBody(context, ref, data),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+        error: (e, st) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Failed to load dashboard\n${e.toString()}', textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.read(dashboardNotifierProvider.notifier).refresh(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, WidgetRef ref, DashboardEntity dashboard) {
+    return RefreshIndicator(
+      onRefresh: () => ref.read(dashboardNotifierProvider.notifier).refresh(),
+      color: AppColors.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: AppSpacing.xl),
-
             // Greeting Header
-            Text('Seller Dashboard', style: AppTextStyles.headlineLG),
+            Text(dashboard.businessName ?? 'Seller Dashboard', style: AppTextStyles.headlineLG),
             const SizedBox(height: 4),
             Text(
-              'Daily performance & logistics overview',
+              dashboard.city ?? 'Overview',
               style: AppTextStyles.bodyMD.copyWith(
                 color: AppColors.textSecondary.withOpacity(0.7),
               ),
@@ -42,8 +72,7 @@ class DashboardScreen extends ConsumerWidget {
                   child: _buildStatCard(
                     icon: Icons.confirmation_number_rounded,
                     label: "TODAY'S REDEMPTIONS",
-                    value: "12",
-                    // trend: "+15%",
+                    value: "${dashboard.todaysRedemptions}",
                     iconColor: Colors.green,
                   ),
                 ),
@@ -52,7 +81,7 @@ class DashboardScreen extends ConsumerWidget {
                   child: _buildStatCard(
                     icon: Icons.calendar_today_rounded,
                     label: "THIS WEEK",
-                    value: "85",
+                    value: "${dashboard.thisWeekRedemptions}",
                     secondaryLabel: "Past 7 Days",
                     iconColor: AppColors.primary,
                   ),
@@ -67,7 +96,7 @@ class DashboardScreen extends ConsumerWidget {
               Icons.account_balance_rounded,
             ),
             const SizedBox(height: AppSpacing.md),
-            _buildLedgerCard(),
+            _buildLedgerCard(dashboard),
             const SizedBox(height: 40),
 
             // Recent Redemptions Section
@@ -86,7 +115,7 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            _buildRedemptionsList(),
+            _buildRedemptionsList(dashboard.recentRedemptions),
 
             const SizedBox(height: 120), // Padding for Bottom Nav
           ],
@@ -269,7 +298,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLedgerCard() {
+  Widget _buildLedgerCard(DashboardEntity dashboard) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
@@ -281,13 +310,13 @@ class DashboardScreen extends ConsumerWidget {
           _buildLedgerItem(
             icon: Icons.account_balance_wallet_outlined,
             label: 'COMMISSION OWED',
-            value: '₹425',
+            value: '₹${dashboard.commissionOwed.toStringAsFixed(2)}',
           ),
           const SizedBox(height: AppSpacing.md),
           _buildLedgerItem(
             icon: Icons.monetization_on_outlined,
             label: 'COIN RECEIVABLE',
-            value: '₹120',
+            value: '₹${dashboard.coinReceivable.toStringAsFixed(2)}',
           ),
         ],
       ),
@@ -370,7 +399,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRedemptionsList() {
+  Widget _buildRedemptionsList(List<RecentRedemptionEntity> redemptions) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
@@ -386,24 +415,22 @@ class DashboardScreen extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          _buildRedemptionItem(
-            'Store Coupon #8821',
-            'Saket Hub • 2 mins ago',
-            '+₹45.00',
-            Colors.green,
-          ),
-          _buildRedemptionItem(
-            'Dining Offer #4210',
-            'Vasant Kunj • 1 hour ago',
-            '+₹112.00',
-            Colors.green,
-          ),
-          _buildRedemptionItem(
-            'Dining Offer #4210',
-            'Vasant Kunj • 1 hour ago',
-            '+₹112.00',
-            Colors.green,
-          ),
+          if (redemptions.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'No recent redemptions',
+                style: AppTextStyles.bodyMD.copyWith(
+                  color: AppColors.textSecondary.withOpacity(0.5),
+                ),
+              ),
+            ),
+          ...redemptions.map((r) => _buildRedemptionItem(
+                r.couponName,
+                'Ref: ${r.id.substring(0, 8)}', // Using shortened ID instead of location, since we don't have location per coupon
+                '+₹${r.amount.toStringAsFixed(2)}',
+                Colors.green,
+              )),
           const SizedBox(height: AppSpacing.xxl),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

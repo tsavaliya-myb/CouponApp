@@ -48,3 +48,48 @@ class VerifyOtpData with _$VerifyOtpData {
   factory VerifyOtpData.fromJson(Map<String, dynamic> json) =>
       _$VerifyOtpDataFromJson(json);
 }
+
+@freezed
+class RegisterSellerResponseModel with _$RegisterSellerResponseModel {
+  const factory RegisterSellerResponseModel({
+    required bool success,
+    required RegisterSellerData data,
+  }) = _RegisterSellerResponseModel;
+
+  factory RegisterSellerResponseModel.fromJson(Map<String, dynamic> json) =>
+      _$RegisterSellerResponseModelFromJson(json);
+}
+
+@freezed
+class RegisterSellerData with _$RegisterSellerData {
+  const factory RegisterSellerData({
+    required String accessToken,
+    required String refreshToken,
+    required SellerModel seller,
+    required String message,
+  }) = _RegisterSellerData;
+
+  factory RegisterSellerData.fromJson(Map<String, dynamic> json) =>
+      _$RegisterSellerDataFromJson(json);
+}
+
+@freezed
+class SellerModel with _$SellerModel {
+  const factory SellerModel({
+    required String id,
+    required String phone,
+    required String businessName,
+    required String category,
+    required String cityId,
+    required String areaId,
+    required String status,
+    required String address,
+    required String email,
+    required String upiId,
+    required double lat,
+    required double lng,
+  }) = _SellerModel;
+
+  factory SellerModel.fromJson(Map<String, dynamic> json) =>
+      _$SellerModelFromJson(json);
+}

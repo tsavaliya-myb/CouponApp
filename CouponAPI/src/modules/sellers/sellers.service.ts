@@ -48,6 +48,8 @@ export class SellersService {
         category: dto.category,
         cityId: dto.cityId,
         areaId: dto.areaId,
+        address: dto.address,
+        email: dto.email,
         upiId: dto.upiId,
         latitude: dto.lat,
         longitude: dto.lng,
@@ -77,6 +79,11 @@ export class SellersService {
         category: seller.category,
         cityId: seller.cityId,
         areaId: seller.areaId,
+        address: seller.address,
+        email: seller.email,
+        upiId: seller.upiId,
+        lat: seller.latitude,
+        lng: seller.longitude,
         status: seller.status,
       },
       message: 'Account created. Waiting for admin approval to appear in search.',
@@ -113,8 +120,6 @@ export class SellersService {
 
   // ─── Dashboard ────────────────────────────────────────────────────────────────
   async getDashboard(sellerId: string): Promise<SellerDashboardResponse> {
-    // Basic dashboard: we will map this out fully in Phase 13, 
-    // but for now we provide a skeleton response to fulfill Phase 4 requirements.
     const seller = await prisma.seller.findUnique({ where: { id: sellerId } });
     if (!seller) throw NotFoundError('Seller profile not found');
 
@@ -122,10 +127,73 @@ export class SellersService {
       where: { sellerId },
     });
 
+    // Date boundaries
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - 7);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const todaysRedemptions = await prisma.redemption.count({
+      where: {
+        sellerId,
+        redeemedAt: { gte: startOfToday },
+      },
+    });
+
+    const thisWeekRedemptions = await prisma.redemption.count({
+      where: {
+        sellerId,
+        redeemedAt: { gte: startOfWeek },
+      },
+    });
+
+    const commissionAggregation = await prisma.settlement.aggregate({
+      _sum: { commissionTotal: true },
+      where: { sellerId, commissionStatus: 'PENDING' },
+    });
+    const commissionOwed = commissionAggregation._sum.commissionTotal || 0;
+
+    const coinAggregation = await prisma.settlement.aggregate({
+      _sum: { coinCompensationTotal: true },
+      where: { sellerId, coinCompStatus: 'PENDING' },
+    });
+    const coinReceivable = coinAggregation._sum.coinCompensationTotal || 0;
+
+    const recentRedemptionsData = await prisma.redemption.findMany({
+      where: { sellerId },
+      orderBy: { redeemedAt: 'desc' },
+      take: 3,
+      include: {
+        userCoupon: {
+          include: {
+            coupon: true,
+          },
+        },
+      },
+    });
+
+    const recentRedemptions = recentRedemptionsData.map(r => {
+      const couponIdSuffix = r.userCoupon.coupon.id.substring(0, 4).toUpperCase();
+      const typeStr = r.userCoupon.coupon.type === 'BOGO' ? 'BOGO Offer' : 'Store Coupon';
+      return {
+        id: r.id,
+        couponName: `${typeStr} #${couponIdSuffix}`,
+        amount: r.finalAmount,
+        createdAt: r.redeemedAt,
+      };
+    });
+
     return {
       totalRedemptions,
       status: seller.status,
       commissionPct: seller.commissionPct,
+      todaysRedemptions,
+      thisWeekRedemptions,
+      commissionOwed,
+      coinReceivable,
+      recentRedemptions,
     };
   }
 

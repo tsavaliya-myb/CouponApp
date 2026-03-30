@@ -13,6 +13,7 @@ import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/scan/presentation/screens/scan_screen.dart';
 import 'features/redemption/presentation/screens/redemption_screen.dart';
 import 'features/auth/presentation/screens/registration_screen.dart';
+import 'features/auth/presentation/screens/approval_pending_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -39,7 +40,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/registration',
         name: 'registration',
-        builder: (context, state) => const RegistrationScreen(),
+        builder: (context, state) {
+          final extraMap = state.extra as Map<String, dynamic>?;
+          final token = extraMap?['token'] as String? ?? '';
+          final phone = extraMap?['phone'] as String? ?? '';
+          return RegistrationScreen(registrationToken: token, phone: phone);
+        },
+      ),
+      GoRoute(
+        path: '/approval-pending',
+        name: 'approvalPending',
+        builder: (context, state) {
+          final status = state.extra as String? ?? 'PENDING';
+          return ApprovalPendingScreen(status: status);
+        },
       ),
       GoRoute(
         path: '/profile',

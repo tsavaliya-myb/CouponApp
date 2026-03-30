@@ -4,27 +4,69 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/constants/app_spacing.dart';
 
-class SettlementScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/entities/settlement_entity.dart';
+import '../providers/settlement_provider.dart';
+
+class SettlementScreen extends ConsumerStatefulWidget {
   const SettlementScreen({super.key});
 
   @override
-  State<SettlementScreen> createState() => _SettlementScreenState();
+  ConsumerState<SettlementScreen> createState() => _SettlementScreenState();
 }
 
-class _SettlementScreenState extends State<SettlementScreen> {
+class _SettlementScreenState extends ConsumerState<SettlementScreen> {
   @override
   Widget build(BuildContext context) {
+    final settlementAsync = ref.watch(settlementNotifierProvider);
+
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: SingleChildScrollView(
+      body: settlementAsync.when(
+        data: (data) => _buildBody(data),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        error: (e, st) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Failed to load settlements\n$e', textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.read(settlementNotifierProvider.notifier).refresh(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(SettlementEntity entity) {
+    // Calculate total outstanding from the 3 loaded settlements
+    double totalOutstanding = 0;
+    for (var item in entity.items) {
+      if (item.commissionStatus == 'PENDING') {
+        totalOutstanding += item.commissionTotal;
+      }
+      if (item.coinCompStatus == 'PENDING') {
+        totalOutstanding += item.coinCompensationTotal;
+      }
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => ref.read(settlementNotifierProvider.notifier).refresh(),
+      color: AppColors.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: AppSpacing.xl),
-            
+
             // Outstandings Header
-            _buildOutstandingHero(),
+            _buildOutstandingHero(totalOutstanding),
             const SizedBox(height: 32),
 
             // Top Actions
@@ -32,33 +74,32 @@ class _SettlementScreenState extends State<SettlementScreen> {
             const SizedBox(height: 48),
 
             // Statement Periods
-            _buildSectionTitle('Active Statements'),
+            _buildSectionTitle('Last 3 Statements'),
             const SizedBox(height: AppSpacing.md),
-            _buildStatementCard(
-              period: 'Oct 14 - Oct 20, 2023',
-              isPending: true,
-              redemptions: '22',
-              commission: '₹1,100',
-              coins: '₹220',
-              isExpanded: true,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            _buildStatementCard(
-              period: 'Oct 07 - Oct 13, 2023',
-              isPending: false,
-              redemptions: '45',
-              commission: '₹2,250',
-              coins: '₹450',
-            ),
-            const SizedBox(height: AppSpacing.md),
-            _buildStatementCard(
-              period: 'Sep 30 - Oct 06, 2023',
-              isPending: false,
-              redemptions: '30',
-              commission: '₹1,500',
-              coins: '₹300',
-            ),
-            
+            if (entity.items.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: Text(
+                    'No statements found.',
+                    style: AppTextStyles.bodyMD.copyWith(color: AppColors.textSecondary),
+                  ),
+                ),
+              ),
+            ...entity.items.map((item) {
+              final isCommissionPending = item.commissionStatus == 'PENDING';
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: _buildStatementCard(
+                  period: '${_formatDateStr(item.weekStart)} - ${_formatDateStr(item.weekEnd)}',
+                  isPending: isCommissionPending, // Primary status mapping
+                  commission: '₹${item.commissionTotal.toStringAsFixed(2)}',
+                  coins: '₹${item.coinCompensationTotal.toStringAsFixed(2)}',
+                  isExpanded: false,
+                ),
+              );
+            }),
+
             const SizedBox(height: 48),
 
             // Analytics Section
@@ -95,7 +136,7 @@ class _SettlementScreenState extends State<SettlementScreen> {
     );
   }
 
-  Widget _buildOutstandingHero() {
+  Widget _buildOutstandingHero(double totalOutstanding) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -110,7 +151,7 @@ class _SettlementScreenState extends State<SettlementScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          '₹4,850.00',
+          '₹${totalOutstanding.toStringAsFixed(2)}',
           style: AppTextStyles.headlineLG.copyWith(
             fontSize: 48,
             letterSpacing: -2,
@@ -149,23 +190,23 @@ class _SettlementScreenState extends State<SettlementScreen> {
             color: AppColors.surfaceContainerLow,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const Icon(Icons.tune_rounded, color: AppColors.primary, size: 24),
+          child: const Icon(
+            Icons.tune_rounded,
+            color: AppColors.primary,
+            size: 24,
+          ),
         ),
       ],
     );
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: AppTextStyles.headlineSM.copyWith(fontSize: 18),
-    );
+    return Text(title, style: AppTextStyles.headlineSM.copyWith(fontSize: 18));
   }
 
   Widget _buildStatementCard({
     required String period,
     required bool isPending,
-    required String redemptions,
     required String commission,
     required String coins,
     bool isExpanded = false,
@@ -212,8 +253,6 @@ class _SettlementScreenState extends State<SettlementScreen> {
           const SizedBox(height: 32),
           Row(
             children: [
-              _buildStatDetail('Redemptions', redemptions),
-              const SizedBox(width: 48),
               _buildStatDetail('Commission Owed', commission),
             ],
           ),
@@ -222,7 +261,9 @@ class _SettlementScreenState extends State<SettlementScreen> {
           const SizedBox(height: 32),
           Center(
             child: Icon(
-              isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+              isExpanded
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
               color: AppColors.primary.withOpacity(0.4),
             ),
           ),
@@ -235,15 +276,9 @@ class _SettlementScreenState extends State<SettlementScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTextStyles.labelSM.copyWith(fontSize: 9),
-        ),
+        Text(label, style: AppTextStyles.labelSM.copyWith(fontSize: 9)),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: AppTextStyles.headlineSM.copyWith(fontSize: 18),
-        ),
+        Text(value, style: AppTextStyles.headlineSM.copyWith(fontSize: 18)),
       ],
     );
   }
@@ -261,10 +296,7 @@ class _SettlementScreenState extends State<SettlementScreen> {
           children: [
             const Icon(Icons.monetization_on, color: Colors.orange, size: 16),
             const SizedBox(width: 8),
-            Text(
-              value,
-              style: AppTextStyles.headlineSM.copyWith(fontSize: 18),
-            ),
+            Text(value, style: AppTextStyles.headlineSM.copyWith(fontSize: 18)),
           ],
         ),
       ],
@@ -329,5 +361,10 @@ class _SettlementScreenState extends State<SettlementScreen> {
         ],
       ),
     );
+  }
+
+  String _formatDateStr(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.day.toString().padLeft(2, '0')}, ${date.year}';
   }
 }

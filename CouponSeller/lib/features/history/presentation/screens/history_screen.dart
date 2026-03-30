@@ -4,24 +4,29 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/constants/app_spacing.dart';
 
-class HistoryScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/entities/history_entity.dart';
+import '../providers/history_provider.dart';
+
+class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
 
   @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
-  int _selectedPeriodIndex = 0; // 0: Today, 1: This Week, 2: This Month
+class _HistoryScreenState extends ConsumerState<HistoryScreen> {
+  int _selectedPeriodIndex = 0; // 0: This Week, 1: This Month, 2: ALL
 
   @override
   Widget build(BuildContext context) {
+    final historyAsync = ref.watch(historyNotifierProvider);
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: Column(
         children: [
           const SizedBox(height: AppSpacing.xl),
-          
           // Timeframe Selector
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
@@ -31,22 +36,54 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
           // Logs List
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xxxl,
-                0,
-                AppSpacing.xxxl,
-                120, // Bottom Nav Padding
+            child: historyAsync.when(
+              data: (history) => _buildList(history.redemptions),
+              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              error: (e, st) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Failed to load history', style: AppTextStyles.bodyMD),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () => ref.read(historyNotifierProvider.notifier).refresh(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
               ),
-              itemCount: _getMockData().length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-              itemBuilder: (context, index) {
-                final data = _getMockData()[index];
-                return _RedemptionLogCard(data: data);
-              },
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildList(List<RedemptionEntity> redemptions) {
+    if (redemptions.isEmpty) {
+      return Center(
+        child: Text(
+          'No redemptions found.',
+          style: AppTextStyles.bodyMD.copyWith(color: AppColors.textSecondary),
+        ),
+      );
+    }
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () => ref.read(historyNotifierProvider.notifier).refresh(),
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.xxxl,
+          0,
+          AppSpacing.xxxl,
+          120, // Bottom Nav Padding
+        ),
+        itemCount: redemptions.length,
+        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+        itemBuilder: (context, index) {
+          final data = redemptions[index];
+          return _RedemptionLogCard(data: data);
+        },
       ),
     );
   }
@@ -60,19 +97,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
       child: Row(
         children: [
-          _buildTimeframeTab(0, 'Today'),
-          _buildTimeframeTab(1, 'This Week'),
-          _buildTimeframeTab(2, 'This Month'),
+          _buildTimeframeTab(0, 'this_week', 'This Week'),
+          _buildTimeframeTab(1, 'this_month', 'This Month'),
+          _buildTimeframeTab(2, 'all', 'ALL'),
         ],
       ),
     );
   }
 
-  Widget _buildTimeframeTab(int index, String label) {
+  Widget _buildTimeframeTab(int index, String period, String label) {
     bool isSelected = _selectedPeriodIndex == index;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _selectedPeriodIndex = index),
+        onTap: () {
+          if (_selectedPeriodIndex == index) return;
+          setState(() => _selectedPeriodIndex = index);
+          ref.read(historyNotifierProvider.notifier).setPeriod(period);
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -105,50 +146,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  List<Map<String, dynamic>> _getMockData() {
-    return [
-      {
-        'name': 'Mihir Shah',
-        'initials': 'MS',
-        'avatarColor': const Color(0xFFB3CCFF),
-        'coupon': 'SAVE50_DELUXE',
-        'date': '12 Oct 2023 • 02:45 PM',
-        'billAmount': '₹4,250.00',
-        'coinsUsed': '450',
-      },
-      {
-        'name': 'Ankit Kumar',
-        'initials': 'AK',
-        'avatarColor': const Color(0xFFB3FFB3),
-        'coupon': 'FIRST_WALK_FREE',
-        'date': '12 Oct 2023 • 01:12 PM',
-        'billAmount': '₹1,100.00',
-        'coinsUsed': '200',
-      },
-      {
-        'name': 'Rahul Jain',
-        'initials': 'RJ',
-        'avatarColor': const Color(0xFFFFCCB3),
-        'coupon': 'FESTIVE_BOGO',
-        'date': '12 Oct 2023 • 11:30 AM',
-        'billAmount': '₹8,900.00',
-        'coinsUsed': '1,250',
-      },
-      {
-        'name': 'Praveen Nair',
-        'initials': 'PN',
-        'avatarColor': const Color(0xFFE4E6EB),
-        'coupon': 'WEEKEND_REWARD',
-        'date': '12 Oct 2023 • 09:05 AM',
-        'billAmount': '₹2,400.00',
-        'coinsUsed': '310',
-      },
-    ];
-  }
+  // Removed mock data
 }
 
 class _RedemptionLogCard extends StatelessWidget {
-  final Map<String, dynamic> data;
+  final RedemptionEntity data;
 
   const _RedemptionLogCard({required this.data});
 
@@ -177,12 +179,12 @@ class _RedemptionLogCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: data['avatarColor'],
+                  color: const Color(0xFFB3CCFF), // Dynamic color could be used
                   borderRadius: BorderRadius.circular(16),
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  data['initials'],
+                  _getInitials(data.userName),
                   style: AppTextStyles.bodyMD.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -200,7 +202,7 @@ class _RedemptionLogCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          data['name'],
+                          data.userName,
                           style: AppTextStyles.headlineSM.copyWith(fontSize: 16),
                         ),
                         const SizedBox(width: 8),
@@ -214,7 +216,7 @@ class _RedemptionLogCard extends StatelessWidget {
                         children: [
                           const TextSpan(text: 'Coupon: '),
                           TextSpan(
-                            text: data['coupon'],
+                            text: data.couponType,
                             style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF003461)),
                           ),
                         ],
@@ -222,7 +224,7 @@ class _RedemptionLogCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      data['date'],
+                      _formatDate(data.redeemedAt),
                       style: AppTextStyles.bodySM.copyWith(
                         fontSize: 10,
                         color: AppColors.textSecondary.withOpacity(0.6),
@@ -253,7 +255,7 @@ class _RedemptionLogCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    data['billAmount'],
+                    '₹${data.billAmount.toStringAsFixed(2)}',
                     style: AppTextStyles.headlineSM.copyWith(fontSize: 20),
                   ),
                 ],
@@ -294,7 +296,7 @@ class _RedemptionLogCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          data['coinsUsed'],
+                          '${data.coinsUsed.toInt()}',
                           style: AppTextStyles.headlineSM.copyWith(
                             fontSize: 18,
                             color: const Color(0xFF332A00),
@@ -329,5 +331,19 @@ class _RedemptionLogCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getInitials(String name) {
+    if (name.isEmpty) return '??';
+    List<String> parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length > 1) {
+      return '${parts[0][0].toUpperCase()}${parts[1][0].toUpperCase()}';
+    }
+    return name.substring(0, name.length > 1 ? 2 : 1).toUpperCase();
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} • '
+           '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

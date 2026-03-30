@@ -12,11 +12,7 @@ class ConnectivityNotifier extends StateNotifier<bool> {
 
   void _init() {
     Connectivity().onConnectivityChanged.listen((result) {
-      if (result is List) {
-        state = !result.contains(ConnectivityResult.none);
-      } else {
-        state = result != ConnectivityResult.none;
-      }
-    });
+      state = !result.contains(ConnectivityResult.none);
+        });
   }
 }

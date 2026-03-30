@@ -210,10 +210,17 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                                   if (!authResult.isRegistered) {
                                     context.push(
                                       '/registration',
-                                      extra: authResult.registrationToken,
+                                      extra: {
+                                        'token': authResult.registrationToken,
+                                        'phone': widget.phone,
+                                      },
                                     );
                                   } else if (authResult.status == 'ACTIVE') {
                                     context.go('/dashboard');
+                                  } else if (authResult.status == 'PENDING' ||
+                                      authResult.status == 'REJECTED' ||
+                                      authResult.status == 'SUSPENDED') {
+                                    context.go('/approval-pending', extra: authResult.status);
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

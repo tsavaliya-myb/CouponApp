@@ -19,6 +19,14 @@ router.get(
 );
 
 // ─── Protected Routes (Seller) ────────────────────────────────────────────────
+router.get(
+  '/seller/history',
+  authenticate,
+  authorize('seller'),
+  validate(redemptionHistoryQuerySchema, 'query'),
+  controller.getSellerHistory
+);
+
 router.post(
   '/scan',
   authenticate,

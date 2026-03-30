@@ -5,12 +5,14 @@ import { PAGINATION } from '../../shared/constants';
 // ─── Seller Registration ──────────────────────────────────────────────────────
 export const registerSellerSchema = z.object({
   businessName: z.string().min(2, 'Business name is required').max(150),
-  category: z.nativeEnum(SellerCategory).optional(),
+  category: z.nativeEnum(SellerCategory),
   cityId: z.string().uuid('Invalid City ID'),
   areaId: z.string().uuid('Invalid Area ID'),
-  upiId: z.string().max(100).optional(),
-  lat: z.number().min(-90).max(90).optional(),
-  lng: z.number().min(-180).max(180).optional(),
+  address: z.string().min(5, 'Address is required'),
+  email: z.string().email('Invalid email address'),
+  upiId: z.string().min(3, 'UPI ID is required').max(100),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
 });
 
 // ─── Seller Profile Update ────────────────────────────────────────────────────
@@ -57,6 +59,11 @@ export const baseSellerResponseSchema = z.object({
   cityId: z.string().uuid(),
   areaId: z.string().uuid(),
   status: z.nativeEnum(SellerStatus),
+  address: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  upiId: z.string().nullable().optional(),
+  lat: z.number().nullable().optional(),
+  lng: z.number().nullable().optional(),
 });
 
 export const profileResponseSchema = baseSellerResponseSchema.extend({
@@ -85,6 +92,16 @@ export const sellerDashboardResponseSchema = z.object({
   totalRedemptions: z.number(),
   status: z.nativeEnum(SellerStatus),
   commissionPct: z.number(),
+  todaysRedemptions: z.number(),
+  thisWeekRedemptions: z.number(),
+  commissionOwed: z.number(),
+  coinReceivable: z.number(),
+  recentRedemptions: z.array(z.object({
+    id: z.string().uuid(),
+    couponName: z.string(),
+    amount: z.number(),
+    createdAt: z.union([z.date(), z.string()]),
+  })),
 });
 
 export const paginatedDistanceSellersResponseSchema = z.object({

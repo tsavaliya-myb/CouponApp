@@ -4,7 +4,7 @@ import { UserRole } from '../types/roles';
 
 export interface JwtPayload {
   userId: string;
-  role:   UserRole;
+  role: UserRole;
   phone?: string;
   email?: string;
 }
@@ -36,10 +36,10 @@ export const verifyRefreshToken = (token: string): JwtPayload =>
   jwt.verify(token, env.JWT_REFRESH_SECRET) as JwtPayload;
 
 /**
- * Signs a short-lived registration token (15 mins) for sellers who verified OTP but haven't registered.
+ * Signs a short-lived registration token (30 mins) for sellers who verified OTP but haven't registered.
  */
 export const signRegistrationToken = (phone: string): string =>
-  jwt.sign({ phone, role: 'registration_only' }, env.JWT_SECRET, { expiresIn: '15m' });
+  jwt.sign({ phone, role: 'registration_only' }, env.JWT_SECRET, { expiresIn: '30m' });
 
 /**
  * Verifies a registration token. Throws if invalid, expired, or wrong role.
