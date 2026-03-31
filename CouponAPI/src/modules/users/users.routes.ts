@@ -30,9 +30,4 @@ router.patch(
   controller.updateProfile
 );
 
-router.get(
-  '/me/qr',
-  controller.generateQr
-);
-
 export { router as usersRouter };

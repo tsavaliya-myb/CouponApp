@@ -1,12 +1,11 @@
 import { prisma } from '../../config/db';
-import { signAccessToken, signRefreshToken, signQrToken } from '../../shared/utils/jwt';
-import { generateQrBase64 } from '../../shared/utils/qrcode';
+import { signAccessToken, signRefreshToken } from '../../shared/utils/jwt';
 import { ConflictError, NotFoundError, BadRequestError } from '../../shared/utils/AppError';
 import { REDIS_PREFIX, TTL } from '../../shared/constants';
 import { redis } from '../../config/redis';
 import crypto from 'crypto';
-import type { 
-  RegisterUserDto, 
+import type {
+  RegisterUserDto,
   UpdateUserDto,
   LoginUserResponse,
   ProfileResponse,
@@ -14,7 +13,7 @@ import type {
 } from './users.validator';
 
 export class UsersService {
-  
+
   // ─── Register (Bypasses OTP for MVP) ────────────────────────────────────────
 
   async register(dto: RegisterUserDto): Promise<LoginUserResponse> {
@@ -30,15 +29,15 @@ export class UsersService {
       // Throw Conflict if the app strictly expects 'register' to fail on duplicate
       // but for ease of use, we update missing details if provided.
       if (dto.name || dto.email || dto.cityId || dto.areaId) {
-         user = await prisma.user.update({
-           where: { id: user.id },
-           data: {
-             name: dto.name || user.name,
-             email: dto.email || user.email,
-             cityId: dto.cityId || user.cityId,
-             areaId: dto.areaId || user.areaId,
-           }
-         });
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            name: dto.name || user.name,
+            email: dto.email || user.email,
+            cityId: dto.cityId || user.cityId,
+            areaId: dto.areaId || user.areaId,
+          }
+        });
       }
     } else {
       user = await prisma.user.create({
@@ -116,28 +115,5 @@ export class UsersService {
         area: { select: { id: true, name: true } },
       },
     });
-  }
-
-  // ─── QR Code Generation ───────────────────────────────────────────────────────
-
-  async generateQrToken(userId: string): Promise<QrTokenResponse> {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw NotFoundError('User not found');
-
-    if (user.status === 'BLOCKED') {
-      throw BadRequestError('Cannot generate QR code for blocked account');
-    }
-
-    // Embed userId into a short-lived token
-    const qrToken = signQrToken(user.id);
-
-    // Generate Base64 image
-    const qrImageBase64 = await generateQrBase64(qrToken);
-
-    return {
-      qrToken,
-      qrImageBase64,
-      expiresInSeconds: TTL.QR_TOKEN_SEC,
-    };
   }
 }

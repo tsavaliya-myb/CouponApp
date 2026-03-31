@@ -1,14 +1,10 @@
 import { z } from 'zod';
 import { PAGINATION } from '../../shared/constants';
 
-// ─── Seller: Scan Customer QR Token ───────────────────────────────────────────
-export const scanQrSchema = z.object({
-  qrToken: z.string().min(10, 'Invalid QR token format'),
-});
+
 
 // ─── Seller: Confirm Redemption ───────────────────────────────────────────────
 export const confirmRedemptionSchema = z.object({
-  qrToken: z.string(), // Re-verify to ensure session hasn't expired
   userCouponId: z.string().uuid(),
   billAmount: z.number().positive(),
   discountAmount: z.number().min(0),
@@ -22,13 +18,13 @@ export const redemptionHistoryQuerySchema = z.object({
   period: z.enum(['this_week', 'this_month', 'all']).default('all'),
 });
 
-export type ScanQrDto = z.infer<typeof scanQrSchema>;
+
 export type ConfirmRedemptionDto = z.infer<typeof confirmRedemptionSchema>;
 export type RedemptionHistoryQueryDto = z.infer<typeof redemptionHistoryQuerySchema>;
 
 // ─── Response Schemas ─────────────────────────────────────────────────────────
 
-export const scanQrResponseSchema = z.object({
+export const verifyUserResponseSchema = z.object({
   user: z.object({
     id: z.string().uuid(),
     name: z.string().nullable(),
@@ -99,7 +95,7 @@ export const sellerRedemptionHistoryResponseSchema = z.object({
   }),
 });
 
-export type ScanQrResponse = z.infer<typeof scanQrResponseSchema>;
+export type VerifyUserResponse = z.infer<typeof verifyUserResponseSchema>;
 export type ConfirmRedemptionResponse = z.infer<typeof confirmRedemptionResponseSchema>;
 export type CustomerRedemptionHistoryResponse = z.infer<typeof customerRedemptionHistoryResponseSchema>;
 export type SellerRedemptionHistoryResponse = z.infer<typeof sellerRedemptionHistoryResponseSchema>;

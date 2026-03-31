@@ -1,10 +1,9 @@
 import { openApiRegistry } from '../../config/swagger';
 import { z } from 'zod';
 import {
-  scanQrSchema,
   confirmRedemptionSchema,
   redemptionHistoryQuerySchema,
-  scanQrResponseSchema,
+  verifyUserResponseSchema,
   confirmRedemptionResponseSchema,
   customerRedemptionHistoryResponseSchema,
   sellerRedemptionHistoryResponseSchema,
@@ -20,16 +19,16 @@ const errorResponse = z.object({
 // ─── SELLER REDEMPTION FLOW ───────────────────────────────────────────────────
 
 openApiRegistry.registerPath({
-  method: 'post',
-  path: '/redemptions/scan',
-  summary: 'Scan Customer QR',
-  description: 'Seller scans the short-lived user QR token. Validates JWT and returns customer details along with active eligible coupons at this seller. Requires Seller Role.',
+  method: 'get',
+  path: '/redemptions/verifyUser/{userId}',
+  summary: 'Verify Customer',
+  description: 'Seller verifies user by userId and gets eligible coupons. Requires Seller Role.',
   tags: ['Seller - Redemptions'],
   security: [{ bearerAuth: [] }],
   request: {
-    body: {
-      content: { 'application/json': { schema: scanQrSchema } },
-    },
+    params: z.object({
+      userId: z.string().uuid(),
+    }),
   },
   responses: {
     200: {
@@ -38,7 +37,7 @@ openApiRegistry.registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean().default(true),
-            data: scanQrResponseSchema,
+            data: verifyUserResponseSchema,
           }),
         },
       },

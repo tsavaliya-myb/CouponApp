@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { RedemptionsController } from './redemptions.controller';
 import { validate } from '../../shared/middlewares/validate';
 import { authenticate, authorize } from '../../shared/middlewares/auth';
-import { scanQrSchema, confirmRedemptionSchema, redemptionHistoryQuerySchema } from './redemptions.validator';
+import { confirmRedemptionSchema, redemptionHistoryQuerySchema } from './redemptions.validator';
 
 import './redemptions.swagger';
 
@@ -27,12 +27,11 @@ router.get(
   controller.getSellerHistory
 );
 
-router.post(
-  '/scan',
+router.get(
+  '/verifyUser/:userId',
   authenticate,
   authorize('seller'),
-  validate(scanQrSchema),
-  controller.scanQrToken
+  controller.verifyUser
 );
 
 router.post(

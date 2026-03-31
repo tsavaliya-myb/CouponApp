@@ -5,7 +5,7 @@ import { sendSuccess, sendCreated } from '../../shared/utils/response';
 const usersService = new UsersService();
 
 export class UsersController {
-  
+
   register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const result = await usersService.register(req.body);
@@ -29,15 +29,6 @@ export class UsersController {
     try {
       const updatedProfile = await usersService.updateProfile(req.user!.userId, req.body);
       sendSuccess(res, updatedProfile);
-    } catch (err) {
-      next(err);
-    }
-  };
-
-  generateQr = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const qrData = await usersService.generateQrToken(req.user!.userId);
-      sendSuccess(res, qrData);
     } catch (err) {
       next(err);
     }

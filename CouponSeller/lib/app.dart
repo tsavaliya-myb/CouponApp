@@ -64,8 +64,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/redemption',
         name: 'redemption',
         builder: (context, state) {
-          final qrData = state.extra as String? ?? '';
-          return RedemptionScreen(qrData: qrData);
+          return const RedemptionScreen();
         },
       ),
 

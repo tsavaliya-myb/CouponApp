@@ -1,24 +1,35 @@
 // lib/features/scan/presentation/screens/redemption_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../providers/current_redemption_provider.dart';
+import '../providers/redemption_provider.dart';
+import '../../domain/entities/verify_user_entity.dart';
 
-class RedemptionScreen extends StatefulWidget {
-  final String qrData;
-  const RedemptionScreen({super.key, required this.qrData});
+class RedemptionScreen extends ConsumerStatefulWidget {
+  const RedemptionScreen({super.key});
 
   @override
-  State<RedemptionScreen> createState() => _RedemptionScreenState();
+  ConsumerState<RedemptionScreen> createState() => _RedemptionScreenState();
 }
 
-class _RedemptionScreenState extends State<RedemptionScreen> {
+class _RedemptionScreenState extends ConsumerState<RedemptionScreen> {
   String? _selectedCouponId = '1';
   bool _applyCoins = false;
   final TextEditingController _amountController = TextEditingController();
   String? _paymentMethod; // 'CASH' or 'UPI'
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   void dispose() {
@@ -26,8 +37,48 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
     super.dispose();
   }
 
+  void _showSuccess(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.green),
+    );
+  }
+
+  void _showError(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.red),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final entity = ref.watch(currentRedemptionProvider);
+    
+    if (entity == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: const Center(child: Text('No active scan data found.')),
+      );
+    }
+
+    if (_selectedCouponId == '1' || _selectedCouponId == null) {
+      if (entity.eligibleCoupons.isNotEmpty) {
+        _selectedCouponId = entity.eligibleCoupons.first.id;
+      } else {
+        _selectedCouponId = '';
+      }
+    }
+
+    ref.listen(redemptionProvider, (prev, next) {
+      if (!next.isLoading && next.hasValue && next.value == true) {
+        _showSuccess('Redemption completed');
+        context.go('/dashboard');
+      } else if (!next.isLoading && next.hasError) {
+        _showError(next.error.toString());
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.surface, // Clean backdrop
       appBar: AppBar(
@@ -52,16 +103,16 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
             children: [
               const SizedBox(height: AppSpacing.md),
 
-              _buildUserIdentityCard(),
+              _buildUserIdentityCard(entity.user),
               const SizedBox(height: AppSpacing.xxxl),
 
-              _buildCouponSelection(),
+              _buildCouponSelection(entity.eligibleCoupons),
               const SizedBox(height: AppSpacing.xxxl),
 
-              _buildRedemptionDetails(),
+              _buildRedemptionDetails(entity.user),
               const SizedBox(height: AppSpacing.xxxl),
 
-              _buildBillSummary(),
+              _buildBillSummary(entity),
               const SizedBox(height: 120), // Bottom padding
             ],
           ),
@@ -70,7 +121,7 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
     );
   }
 
-  Widget _buildUserIdentityCard() {
+  Widget _buildUserIdentityCard(RedemptionUserEntity user) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
@@ -97,9 +148,9 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(16),
-                  image: const DecorationImage(
+                  image: DecorationImage(
                     image: NetworkImage(
-                      'https://api.dicebear.com/7.x/avataaars/png?seed=RahulS',
+                      'https://api.dicebear.com/7.x/avataaars/png?seed=${user.name.replaceAll(' ', '')}',
                     ),
                     fit: BoxFit.cover,
                   ),
@@ -114,7 +165,7 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
                     Row(
                       children: [
                         Text(
-                          'Rahul S.',
+                          user.name,
                           style: AppTextStyles.headlineMD.copyWith(
                             fontSize: 22,
                             color: AppColors.primary,
@@ -141,7 +192,7 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'SUBSCRIPTION ACTIVE',
+                          'SUBSCRIPTION ${user.hasActiveSubscription ? 'ACTIVE' : 'INACTIVE'}',
                           style: AppTextStyles.labelSM.copyWith(
                             color: AppColors.secondary,
                             letterSpacing: 0.5,
@@ -186,38 +237,9 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      '450 Coins',
+                      '${user.availableCoins.toInt()} Coins',
                       style: AppTextStyles.labelSM.copyWith(
                         color: const Color(0xFF332A00),
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Coupons Pill
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFA6EFA6), // Light green
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.confirmation_number_outlined,
-                      color: Color(0xFF0F5132),
-                      size: 14,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '2 Active Coupons',
-                      style: AppTextStyles.labelSM.copyWith(
-                        color: const Color(0xFF0F5132),
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -231,7 +253,13 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
     );
   }
 
-  Widget _buildCouponSelection() {
+  Widget _buildCouponSelection(List<EligibleCouponEntity> coupons) {
+    if (coupons.isEmpty) {
+       return const Padding(
+         padding: EdgeInsets.symmetric(vertical: 20),
+         child: Text('No applicable coupons found for this user.'),
+       );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -243,19 +271,15 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildCouponItem(
-          id: '1',
-          icon: Icons.percent_rounded,
-          title: '25% Flat Discount',
-          subtitle: 'Valid on bills above ₹500',
-        ),
-        const SizedBox(height: 12),
-        _buildCouponItem(
-          id: '2',
-          icon: Icons.restaurant_rounded,
-          title: 'BOGO on Starters',
-          subtitle: 'Max discount up to ₹200',
-        ),
+        ...coupons.map((c) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildCouponItem(
+            id: c.id,
+            icon: Icons.percent_rounded,
+            title: '${c.coupon.discountPct}% Flat Discount',
+            subtitle: 'Valid on bills above ₹${c.coupon.minSpend}',
+          ),
+        )).toList(),
       ],
     );
   }
@@ -335,7 +359,9 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
     );
   }
 
-  Widget _buildRedemptionDetails() {
+  Widget _buildRedemptionDetails(RedemptionUserEntity user) {
+    final maxCoins = (user.availableCoins > 10) ? 10 : user.availableCoins.toInt();
+    
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
@@ -447,13 +473,13 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Apply max 10 coins?',
+                        'Apply max $maxCoins coins?',
                         style: AppTextStyles.bodyMD.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       Text(
-                        'Save additional ₹100.00',
+                        'Save additional ₹${maxCoins.toStringAsFixed(2)}',
                         style: AppTextStyles.labelSM.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -480,7 +506,27 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
     );
   }
 
-  Widget _buildBillSummary() {
+  Widget _buildBillSummary(VerifyUserEntity entity) {
+    // Computations
+    double billAmount = double.tryParse(_amountController.text) ?? 0.0;
+    
+    // Find selected coupon
+    EligibleCouponEntity? selectedCoupon;
+    try {
+      selectedCoupon = entity.eligibleCoupons.firstWhere((c) => c.id == _selectedCouponId);
+    } catch (_) {}
+
+    double discountAmount = 0.0;
+    if (selectedCoupon != null && billAmount >= selectedCoupon.coupon.minSpend) {
+       discountAmount = billAmount * (selectedCoupon.coupon.discountPct / 100);
+    }
+
+    final maxCoins = (entity.user.availableCoins > 10) ? 10 : entity.user.availableCoins.toInt();
+    double coinDeduction = _applyCoins ? maxCoins.toDouble() : 0.0;
+    
+    double finalAmount = billAmount - discountAmount - coinDeduction;
+    if (finalAmount < 0) finalAmount = 0;
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xxxl),
       decoration: BoxDecoration(
@@ -503,11 +549,11 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
           ),
           const SizedBox(height: 24),
 
-          _buildSummaryRow('Gross Subtotal', '₹1,267.00'),
+          _buildSummaryRow('Gross Subtotal', '₹${billAmount.toStringAsFixed(2)}'),
           const SizedBox(height: 16),
           _buildSummaryRow(
             'Coupon Discount',
-            '-₹317.00',
+            '-₹${discountAmount.toStringAsFixed(2)}',
             isDiscount: true,
             badgeWidget: Container(
               margin: const EdgeInsets.only(left: 8),
@@ -517,7 +563,7 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                '25% OFF',
+                selectedCoupon != null ? '${selectedCoupon.coupon.discountPct}% OFF' : '0% OFF',
                 style: AppTextStyles.labelSM.copyWith(
                   fontSize: 8,
                   color: const Color(0xFF0F5132),
@@ -529,7 +575,7 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
           const SizedBox(height: 16),
           _buildSummaryRow(
             'Coin Deduction',
-            '-₹100.00',
+            '-₹${coinDeduction.toStringAsFixed(2)}',
             isDiscount: true,
             badgeWidget: const Padding(
               padding: EdgeInsets.only(left: 6),
@@ -582,7 +628,7 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '₹850.00',
+                '₹${finalAmount.toStringAsFixed(2)}',
                 style: AppTextStyles.headlineLG.copyWith(
                   fontSize: 36,
                   color: AppColors.primary,
@@ -683,9 +729,20 @@ class _RedemptionScreenState extends State<RedemptionScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: _paymentMethod == null ? null : () {},
-              icon: const Icon(Icons.check_circle_outline_rounded, size: 20),
-              label: const Text('Confirm Redemption'),
+              onPressed: _paymentMethod == null || _selectedCouponId == null || ref.watch(redemptionProvider).isLoading 
+                ? null 
+                : () {
+                    ref.read(redemptionProvider.notifier).confirmRedemption(
+                      userCouponId: _selectedCouponId!,
+                      billAmount: billAmount,
+                      discountAmount: discountAmount,
+                      coinsUsed: coinDeduction,
+                    );
+                  },
+              icon: ref.watch(redemptionProvider).isLoading
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.check_circle_outline_rounded, size: 20),
+              label: Text(ref.watch(redemptionProvider).isLoading ? 'Processing...' : 'Confirm Redemption'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,

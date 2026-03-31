@@ -1,17 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import { RedemptionsService } from './redemptions.service';
 import { sendSuccess, sendCreated } from '../../shared/utils/response';
-import type { ScanQrDto, ConfirmRedemptionDto, RedemptionHistoryQueryDto } from './redemptions.validator';
+import type { ConfirmRedemptionDto, RedemptionHistoryQueryDto } from './redemptions.validator';
 
 const redemptionsService = new RedemptionsService();
 
 export class RedemptionsController {
-  
+
   // ─── Seller Endpoints ─────────────────────────────────────────────────────────
 
-  scanQrToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  verifyUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const result = await redemptionsService.scanQrToken(req.user!.userId, req.body as ScanQrDto);
+      const userId = req.params.userId as string;
+      const result = await redemptionsService.verifyUser(req.user!.userId, userId);
       sendSuccess(res, result);
     } catch (err) {
       next(err);

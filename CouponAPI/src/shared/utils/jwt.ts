@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { env } from '../../config/env';
 import { UserRole } from '../types/roles';
 
@@ -51,15 +52,3 @@ export const verifyRegistrationToken = (token: string): { phone: string } => {
   }
   return { phone: payload.phone };
 };
-
-/**
- * Signs a short-lived QR identity token (5 min) for the user QR code screen.
- */
-export const signQrToken = (userId: string): string =>
-  jwt.sign({ userId, purpose: 'qr_scan' }, env.JWT_SECRET, { expiresIn: '5m' });
-
-/**
- * Verifies a QR token scanned by the seller app.
- */
-export const verifyQrToken = (token: string): { userId: string; purpose: string } =>
-  jwt.verify(token, env.JWT_SECRET) as { userId: string; purpose: string };

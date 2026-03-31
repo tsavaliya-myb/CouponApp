@@ -1,11 +1,10 @@
 import { prisma } from '../../config/db';
-import { verifyQrToken } from '../../shared/utils/jwt';
 import { NotFoundError, BadRequestError } from '../../shared/utils/AppError';
-import type { 
-  ScanQrDto, 
-  ConfirmRedemptionDto, 
+import type {
+
+  ConfirmRedemptionDto,
   RedemptionHistoryQueryDto,
-  ScanQrResponse,
+  VerifyUserResponse,
   ConfirmRedemptionResponse,
   CustomerRedemptionHistoryResponse,
   SellerRedemptionHistoryResponse,
@@ -16,17 +15,9 @@ import { redis } from '../../config/redis';
 import { REDIS_PREFIX, REDIS_KEYS } from '../../shared/constants';
 
 export class RedemptionsService {
-  
-  // ─── Seller: Scan QR Token ────────────────────────────────────────────────────
-  async scanQrToken(sellerId: string, dto: ScanQrDto): Promise<ScanQrResponse> {
-    let payload;
-    try {
-      payload = verifyQrToken(dto.qrToken);
-    } catch (err) {
-      throw BadRequestError('QR Code is invalid or has expired. Please refresh the QR code.');
-    }
 
-    const { userId } = payload;
+  // ─── Seller: Scan QR Token ────────────────────────────────────────────────────
+  async verifyUser(sellerId: string, userId: string): Promise<VerifyUserResponse> {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -36,7 +27,7 @@ export class RedemptionsService {
     });
 
     if (!user) throw NotFoundError('User not found');
-    if (user.status === 'BLOCKED') throw BadRequestError('User account is blocked');
+    if (user.status !== 'ACTIVE') throw BadRequestError('User account is not active');
 
     // User balance is directly available
     const availableCoins = user.coinBalance;
@@ -75,23 +66,17 @@ export class RedemptionsService {
 
   // ─── Seller: Confirm Redemption ($transaction) ────────────────────────────────
   async confirmRedemption(sellerId: string, dto: ConfirmRedemptionDto): Promise<ConfirmRedemptionResponse> {
-    let payload;
-    try {
-      // Re-verify the QR token so they can't confirm a 3-day old scan.
-      payload = verifyQrToken(dto.qrToken);
-    } catch (err) {
-      throw BadRequestError('QR session expired. Please scan again.');
-    }
-
-    const { userId } = payload;
     const { userCouponId, billAmount, discountAmount, coinsUsed } = dto;
 
     const userCoupon = await prisma.userCoupon.findFirst({
-      where: { id: userCouponId, couponBook: { userId } },
+      where: { id: userCouponId },
       include: { coupon: { include: { seller: true } }, couponBook: true }
     });
 
-    if (!userCoupon) throw NotFoundError('Coupon not found for this user');
+    if (!userCoupon) throw NotFoundError('Coupon not found');
+
+    const userId = userCoupon.couponBook.userId;
+
     if (userCoupon.coupon.sellerId !== sellerId) throw BadRequestError('Coupon belongs to a different seller');
     if (userCoupon.usesRemaining < 1 || userCoupon.status !== 'ACTIVE') throw BadRequestError('Coupon is exhausted or inactive');
     if (userCoupon.couponBook.validUntil < new Date()) throw BadRequestError('Subscription/CouponBook has expired');
@@ -125,7 +110,7 @@ export class RedemptionsService {
 
     // ─── EXECUTE ATOMIC TRANSACTION ───
     const redemption = await prisma.$transaction(async (tx) => {
-      
+
       // 1. Decrement UserCoupon uses and conditionally update status
       const userCouponUpdateData: Prisma.UserCouponUpdateInput = { usesRemaining: { decrement: 1 } };
       if (userCoupon.usesRemaining === 1) {
@@ -215,7 +200,7 @@ export class RedemptionsService {
       const pipeline = redis.pipeline();
       const redKey = REDIS_KEYS.SELLER_REDEMPTIONS_TODAY(sellerId);
       const comKey = REDIS_KEYS.SELLER_COMMISSION_TODAY(sellerId);
-      
+
       pipeline.incr(redKey);
       pipeline.incrbyfloat(comKey, commissionAmt);
       pipeline.expireat(redKey, endOfDayTimestamp);

@@ -45,6 +45,16 @@ import '../../features/location/data/repositories/location_repository_impl.dart'
     as _i115;
 import '../../features/location/domain/repositories/location_repository.dart'
     as _i332;
+import '../../features/redemption/data/datasources/redemption_remote_datasource.dart'
+    as _i733;
+import '../../features/redemption/data/repositories/redemption_repository_impl.dart'
+    as _i570;
+import '../../features/redemption/domain/repositories/redemption_repository.dart'
+    as _i955;
+import '../../features/redemption/domain/usecases/confirm_redemption_usecase.dart'
+    as _i1031;
+import '../../features/redemption/domain/usecases/verify_user_usecase.dart'
+    as _i854;
 import '../../features/settlement/data/datasources/settlement_remote_datasource.dart'
     as _i448;
 import '../../features/settlement/data/repositories/settlement_repository_impl.dart'
@@ -124,11 +134,19 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i700.LocationRemoteDatasource>(
       () => _i700.LocationRemoteDatasourceImpl(gh<_i557.ApiClient>()),
     );
+    gh.factory<_i733.RedemptionRemoteDatasource>(
+      () => _i733.RedemptionRemoteDatasourceImpl(gh<_i557.ApiClient>()),
+    );
     gh.factory<_i332.LocationRepository>(
       () => _i115.LocationRepositoryImpl(gh<_i700.LocationRemoteDatasource>()),
     );
     gh.factory<_i142.HistoryRepository>(
       () => _i751.HistoryRepositoryImpl(gh<_i1065.HistoryRemoteDatasource>()),
+    );
+    gh.factory<_i955.RedemptionRepository>(
+      () => _i570.RedemptionRepositoryImpl(
+        gh<_i733.RedemptionRemoteDatasource>(),
+      ),
     );
     gh.factory<_i814.GetDashboardUsecase>(
       () => _i814.GetDashboardUsecase(gh<_i386.DashboardRepository>()),
@@ -150,6 +168,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i154.RegisterSellerUsecase>(
       () => _i154.RegisterSellerUsecase(gh<_i787.AuthRepository>()),
+    );
+    gh.factory<_i854.VerifyUserUsecase>(
+      () => _i854.VerifyUserUsecase(gh<_i955.RedemptionRepository>()),
+    );
+    gh.factory<_i1031.ConfirmRedemptionUsecase>(
+      () => _i1031.ConfirmRedemptionUsecase(gh<_i955.RedemptionRepository>()),
     );
     return this;
   }

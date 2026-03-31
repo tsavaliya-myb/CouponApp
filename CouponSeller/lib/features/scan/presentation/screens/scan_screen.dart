@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/security/qr_token_service.dart';
+import '../providers/scan_provider.dart';
+import '../../../redemption/presentation/providers/current_redemption_provider.dart';
 
-class ScanScreen extends StatefulWidget {
+class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key});
 
   @override
-  State<ScanScreen> createState() => _ScanScreenState();
+  ConsumerState<ScanScreen> createState() => _ScanScreenState();
 }
 
-class _ScanScreenState extends State<ScanScreen>
+class _ScanScreenState extends ConsumerState<ScanScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   final MobileScannerController controller = MobileScannerController();
@@ -35,6 +40,35 @@ class _ScanScreenState extends State<ScanScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(scanProvider, (previous, next) {
+      next.when(
+        data: (entity) {
+          if (entity != null) {
+            if (!entity.user.hasActiveSubscription) {
+              _showError('User does not have an active subscription.');
+              _resumeScanningAfterDelay();
+              ref.read(scanProvider.notifier).reset();
+            } else {
+              ref.read(currentRedemptionProvider.notifier).state = entity;
+              context.push('/redemption').then((_) {
+                if (mounted) {
+                  setState(() => _isNavigating = false);
+                  ref.read(scanProvider.notifier).reset();
+                }
+              });
+            }
+          }
+        },
+        error: (error, _) {
+          _showError(error.toString());
+          _resumeScanningAfterDelay();
+        },
+        loading: () {},
+      );
+    });
+
+    final isLoading = ref.watch(scanProvider).isLoading;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -42,23 +76,52 @@ class _ScanScreenState extends State<ScanScreen>
           MobileScanner(
             controller: controller,
             onDetect: (capture) {
-              if (_isNavigating) return;
+              if (_isNavigating || isLoading) return;
 
               final List<Barcode> barcodes = capture.barcodes;
               for (final barcode in barcodes) {
                 if (barcode.rawValue != null) {
                   _isNavigating = true;
-                  debugPrint('Barcode detected: ${barcode.rawValue}');
+                  final rawValue = barcode.rawValue!;
+                  debugPrint('Barcode detected: $rawValue');
 
-                  context.push('/redemption', extra: barcode.rawValue).then((
-                    _,
-                  ) {
-                    if (mounted) {
-                      setState(() {
-                        _isNavigating = false;
-                      });
-                    }
-                  });
+                  final qrService = getIt<QrTokenService>();
+                  final payload = qrService.decryptQrPayload(rawValue);
+
+                  if (payload == null) {
+                    _showError('Invalid or corrupted QR Code');
+                    _resumeScanningAfterDelay();
+                    break;
+                  }
+
+                  if (payload['type'] != 'USER_PROFILE') {
+                    _showError('Invalid QR Type');
+                    _resumeScanningAfterDelay();
+                    break;
+                  }
+
+                  final iat = payload['iat'] as int?;
+                  if (iat == null) {
+                    _showError('Invalid QR Data');
+                    _resumeScanningAfterDelay();
+                    break;
+                  }
+
+                  final currentTime = DateTime.now().millisecondsSinceEpoch;
+                  if ((currentTime - iat) > 5 * 60 * 1000) { // 5 mins
+                    _showError('Expired QR');
+                    _resumeScanningAfterDelay();
+                    break;
+                  }
+
+                  final userId = payload['uid'] as String?;
+                  if (userId == null) {
+                    _showError('Invalid QR Data: Missing User ID');
+                    _resumeScanningAfterDelay();
+                    break;
+                  }
+
+                  ref.read(scanProvider.notifier).verifyUser(userId);
                   break; // Process one barcode per scan
                 }
               }
@@ -73,9 +136,42 @@ class _ScanScreenState extends State<ScanScreen>
 
           // UI Elements (Header, Title, Footer)
           _buildUI(context),
+
+          if (isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _resumeScanningAfterDelay() {
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _isNavigating = false;
+        });
+      }
+    });
   }
 
   Widget _buildScannerOverlay(BuildContext context) {
