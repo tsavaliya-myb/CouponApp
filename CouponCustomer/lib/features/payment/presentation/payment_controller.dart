@@ -14,7 +14,6 @@ class PaymentController extends AutoDisposeAsyncNotifier<void> {
   }
 
   Future<void> startPaymentFlow({
-    required num amount,
     required String contact,
     required String email,
   }) async {
@@ -25,26 +24,26 @@ class PaymentController extends AutoDisposeAsyncNotifier<void> {
 
       // 1. Create order
       final orderResult = await repository.createOrder();
-      final orderId = orderResult.fold(
+      final order = orderResult.fold(
         (failure) => throw failure,
-        (id) => id,
+        (o) => o,
       );
 
       // 2. Open Checkout
-      final int amountInPaise = (amount * 100).toInt();
       await razorpayService.openCheckout(
-        orderId: orderId,
-        amount: amountInPaise,
+        keyId: order.keyId,
+        orderId: order.orderId,
+        amount: order.amount,
         contact: contact,
         email: email,
       );
 
       // 3. Success -> Reload profile to get new subscription status
       ref.invalidate(profileProvider);
-      
+
       // We can also actively wait or refresh the provider to ensure we have the new status,
       // but invalidating makes it reload on the next read.
-      
+
       state = const AsyncData(null);
     } on Failure catch (f, stack) {
       state = AsyncError(f.message, stack);
@@ -54,6 +53,7 @@ class PaymentController extends AutoDisposeAsyncNotifier<void> {
   }
 }
 
-final paymentControllerProvider = AutoDisposeAsyncNotifierProvider<PaymentController, void>(
+final paymentControllerProvider =
+    AutoDisposeAsyncNotifierProvider<PaymentController, void>(
   PaymentController.new,
 );

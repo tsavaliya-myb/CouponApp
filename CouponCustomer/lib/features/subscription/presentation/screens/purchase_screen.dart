@@ -312,7 +312,6 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                         onTap: paymentState.isLoading ? null : () {
                           if (settingsAsync.value == null || userAsync.value == null) return;
                           ref.read(paymentControllerProvider.notifier).startPaymentFlow(
-                            amount: settingsAsync.value!.subscriptionPrice,
                             contact: userAsync.value!.phone,
                             email: userAsync.value!.email ?? 'user@couponapp.in',
                           );

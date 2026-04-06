@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:injectable/injectable.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
-import '../config/app_config.dart';
 
 @singleton
 class RazorpayService {
@@ -34,6 +33,7 @@ class RazorpayService {
   }
 
   Future<String> openCheckout({
+    required String keyId,
     required String orderId,
     required num amount,
     required String contact,
@@ -42,7 +42,7 @@ class RazorpayService {
     _paymentCompleter = Completer<String>();
     
     var options = {
-      'key': AppConfig.current.razorpayKey,
+      'key': keyId,
       'amount': amount,
       'name': 'CouponApp Premium',
       'order_id': orderId,

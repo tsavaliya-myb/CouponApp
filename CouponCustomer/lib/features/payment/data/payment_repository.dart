@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../../core/network/api_client.dart';
+import 'models/payment_order_model.dart';
 
 @injectable
 class PaymentRepository {
@@ -11,12 +12,12 @@ class PaymentRepository {
 
   PaymentRepository(this._apiClient);
 
-  Future<Either<Failure, String>> createOrder() async {
+  Future<Either<Failure, PaymentOrderModel>> createOrder() async {
     try {
       final response = await _apiClient.client.post('/payments/create-order');
       final data = response.data;
-      if (data != null && data['data'] != null && data['data']['order_id'] != null) {
-        return Right(data['data']['order_id']);
+      if (data != null && data['success'] == true && data['data'] != null) {
+        return Right(PaymentOrderModel.fromJson(data['data']));
       } else {
         return Left(const ServerFailure(message: 'Failed to parse order ID from response.'));
       }
