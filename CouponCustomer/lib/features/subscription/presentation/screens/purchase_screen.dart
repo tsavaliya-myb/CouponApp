@@ -5,24 +5,55 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/widgets/app_header.dart';
 
-class PurchaseScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../../../features/payment/presentation/payment_controller.dart';
+
+class PurchaseScreen extends ConsumerStatefulWidget {
   const PurchaseScreen({super.key});
 
   @override
-  State<PurchaseScreen> createState() => _PurchaseScreenState();
+  ConsumerState<PurchaseScreen> createState() => _PurchaseScreenState();
 }
 
-class _PurchaseScreenState extends State<PurchaseScreen> {
+class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
   @override
   Widget build(BuildContext context) {
+    final settingsAsync = ref.watch(userSettingsProvider);
+    final userAsync = ref.watch(profileProvider);
+    final paymentState = ref.watch(paymentControllerProvider);
+
+    ref.listen<AsyncValue<void>>(
+      paymentControllerProvider,
+      (_, next) {
+        next.whenOrNull(
+          error: (err, stack) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(err.toString()),
+                backgroundColor: Colors.red,
+              ),
+            );
+          },
+          data: (_) {
+            context.go('/subscription-success');
+          },
+        );
+      },
+    );
+
     return Scaffold(
       backgroundColor: AppColors.dsSurface,
       extendBody: true, // Needed for floating authentic glass bottom nav
-      body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
+      body: settingsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (settings) => SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
@@ -116,7 +147,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
 
                       // Price
                       Text(
-                        '₹1000',
+                        '₹${settings.subscriptionPrice}',
                         style: AppTextStyles.dsDisplayLg.copyWith(
                           fontSize: 64,
                           height: 1.0,
@@ -148,7 +179,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                                 color: AppColors.dsPrimary, size: 14),
                             const SizedBox(width: 8),
                             Text(
-                              'VALID FOR 50 DAYS',
+                              'VALID FOR ${settings.bookValidityDays} DAYS',
                               style: AppTextStyles.dsLabelMd.copyWith(
                                 color: AppColors.dsOnSurface.withOpacity(0.8),
                                 fontWeight: FontWeight.w700,
@@ -168,7 +199,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                               icon: Icons.confirmation_number_rounded,
                               iconBg: AppColors.dsPrimary.withOpacity(0.1),
                               iconColor: AppColors.dsPrimary,
-                              title: '100+',
+                              title: '${settings.totalActiveCoupons}',
                               subtitle: 'COUPONS',
                             ),
                           ),
@@ -244,7 +275,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Exclusive Welcome Gift',
+                                  Text('Save More Per Visit',
                                       style: AppTextStyles.dsTitleLg
                                           .copyWith(fontSize: 15)),
                                   const SizedBox(height: 4),
@@ -256,15 +287,15 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                                         fontSize: 10,
                                       ),
                                       children: [
-                                        const TextSpan(text: 'Earn '),
+                                        const TextSpan(text: 'Use up to '),
                                         TextSpan(
-                                          text: '50 Coins',
+                                          text: '${settings.maxCoinsPerTransaction} Coins',
                                           style: TextStyle(
                                               color: AppColors.dsPrimary,
                                               fontWeight: FontWeight.w700),
                                         ),
                                         const TextSpan(
-                                            text: ' (₹50 value) instantly.'),
+                                            text: ' on every transaction.'),
                                       ],
                                     ),
                                   ),
@@ -277,33 +308,48 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                       const SizedBox(height: 32),
 
                       // Activate Button
-                      Container(
-                        width: double.infinity,
-                        height: 64, // Large prominent button
-                        decoration: BoxDecoration(
-                          color: AppColors
-                              .dsOnSurface, // Very dark purple/black color
-                          borderRadius: BorderRadius.circular(100),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.dsOnSurface.withOpacity(0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Activate Now',
-                              style:
-                                  AppTextStyles.dsButton.copyWith(fontSize: 18),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward_rounded,
-                                color: Colors.white, size: 20),
-                          ],
+                      GestureDetector(
+                        onTap: paymentState.isLoading ? null : () {
+                          if (settingsAsync.value == null || userAsync.value == null) return;
+                          ref.read(paymentControllerProvider.notifier).startPaymentFlow(
+                            amount: settingsAsync.value!.subscriptionPrice,
+                            contact: userAsync.value!.phone,
+                            email: userAsync.value!.email ?? 'user@couponapp.in',
+                          );
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          height: 64, // Large prominent button
+                          decoration: BoxDecoration(
+                            color: paymentState.isLoading ? AppColors.dsOnSurface.withOpacity(0.5) : AppColors.dsOnSurface, // Very dark purple/black color
+                            borderRadius: BorderRadius.circular(100),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.dsOnSurface.withOpacity(0.2),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (paymentState.isLoading)
+                                const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                )
+                              else ...[
+                                Text(
+                                  'Activate Now',
+                                  style: AppTextStyles.dsButton.copyWith(fontSize: 18),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
+                              ],
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -344,10 +390,10 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
           ),
         ),
       ),
+      ),
     );
   }
 }
-
 class _FeatureBox extends StatelessWidget {
   final IconData icon;
   final Color iconBg;

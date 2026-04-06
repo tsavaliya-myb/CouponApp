@@ -16,7 +16,7 @@ class WalletRepositoryImpl implements WalletRepository {
       return Right(result);
     } catch (e) {
       if (e is ServerFailure) return Left(e);
-      return Left(ServerFailure(message: e.toString()));
+      return Left(const ServerFailure());
     }
   }
 }

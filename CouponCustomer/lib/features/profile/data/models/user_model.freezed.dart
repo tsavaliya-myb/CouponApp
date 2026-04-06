@@ -27,6 +27,7 @@ mixin _$UserModel {
   String? get cityId => throw _privateConstructorUsedError;
   String? get areaId => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+  String get subscriptionStatus => throw _privateConstructorUsedError;
   String? get onesignalPlayerId => throw _privateConstructorUsedError;
   int get coinBalance => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
@@ -57,6 +58,7 @@ abstract class $UserModelCopyWith<$Res> {
       String? cityId,
       String? areaId,
       String status,
+      String subscriptionStatus,
       String? onesignalPlayerId,
       int coinBalance,
       DateTime? createdAt,
@@ -90,6 +92,7 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? cityId = freezed,
     Object? areaId = freezed,
     Object? status = null,
+    Object? subscriptionStatus = null,
     Object? onesignalPlayerId = freezed,
     Object? coinBalance = null,
     Object? createdAt = freezed,
@@ -125,6 +128,10 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
       status: null == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      subscriptionStatus: null == subscriptionStatus
+          ? _value.subscriptionStatus
+          : subscriptionStatus // ignore: cast_nullable_to_non_nullable
               as String,
       onesignalPlayerId: freezed == onesignalPlayerId
           ? _value.onesignalPlayerId
@@ -198,6 +205,7 @@ abstract class _$$UserModelImplCopyWith<$Res>
       String? cityId,
       String? areaId,
       String status,
+      String subscriptionStatus,
       String? onesignalPlayerId,
       int coinBalance,
       DateTime? createdAt,
@@ -231,6 +239,7 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? cityId = freezed,
     Object? areaId = freezed,
     Object? status = null,
+    Object? subscriptionStatus = null,
     Object? onesignalPlayerId = freezed,
     Object? coinBalance = null,
     Object? createdAt = freezed,
@@ -266,6 +275,10 @@ class __$$UserModelImplCopyWithImpl<$Res>
       status: null == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      subscriptionStatus: null == subscriptionStatus
+          ? _value.subscriptionStatus
+          : subscriptionStatus // ignore: cast_nullable_to_non_nullable
               as String,
       onesignalPlayerId: freezed == onesignalPlayerId
           ? _value.onesignalPlayerId
@@ -306,6 +319,7 @@ class _$UserModelImpl implements _UserModel {
       this.cityId,
       this.areaId,
       this.status = 'ACTIVE',
+      this.subscriptionStatus = 'NONE',
       this.onesignalPlayerId,
       this.coinBalance = 0,
       this.createdAt,
@@ -333,6 +347,9 @@ class _$UserModelImpl implements _UserModel {
   @JsonKey()
   final String status;
   @override
+  @JsonKey()
+  final String subscriptionStatus;
+  @override
   final String? onesignalPlayerId;
   @override
   @JsonKey()
@@ -348,7 +365,7 @@ class _$UserModelImpl implements _UserModel {
 
   @override
   String toString() {
-    return 'UserModel(id: $id, phone: $phone, name: $name, email: $email, cityId: $cityId, areaId: $areaId, status: $status, onesignalPlayerId: $onesignalPlayerId, coinBalance: $coinBalance, createdAt: $createdAt, updatedAt: $updatedAt, city: $city, area: $area)';
+    return 'UserModel(id: $id, phone: $phone, name: $name, email: $email, cityId: $cityId, areaId: $areaId, status: $status, subscriptionStatus: $subscriptionStatus, onesignalPlayerId: $onesignalPlayerId, coinBalance: $coinBalance, createdAt: $createdAt, updatedAt: $updatedAt, city: $city, area: $area)';
   }
 
   @override
@@ -363,6 +380,8 @@ class _$UserModelImpl implements _UserModel {
             (identical(other.cityId, cityId) || other.cityId == cityId) &&
             (identical(other.areaId, areaId) || other.areaId == areaId) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.subscriptionStatus, subscriptionStatus) ||
+                other.subscriptionStatus == subscriptionStatus) &&
             (identical(other.onesignalPlayerId, onesignalPlayerId) ||
                 other.onesignalPlayerId == onesignalPlayerId) &&
             (identical(other.coinBalance, coinBalance) ||
@@ -386,6 +405,7 @@ class _$UserModelImpl implements _UserModel {
       cityId,
       areaId,
       status,
+      subscriptionStatus,
       onesignalPlayerId,
       coinBalance,
       createdAt,
@@ -418,6 +438,7 @@ abstract class _UserModel implements UserModel {
       final String? cityId,
       final String? areaId,
       final String status,
+      final String subscriptionStatus,
       final String? onesignalPlayerId,
       final int coinBalance,
       final DateTime? createdAt,
@@ -442,6 +463,8 @@ abstract class _UserModel implements UserModel {
   String? get areaId;
   @override
   String get status;
+  @override
+  String get subscriptionStatus;
   @override
   String? get onesignalPlayerId;
   @override

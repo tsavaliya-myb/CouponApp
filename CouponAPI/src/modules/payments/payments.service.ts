@@ -27,6 +27,9 @@ export class PaymentService {
 
   // ─── Create Razorpay Order ────────────────────────────────────────────────
   async createOrder(userId: string): Promise<CreateOrderResponse> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw ConflictError('User not found');
+
     // Check for existing active subscription
     const existingSub = await prisma.subscription.findUnique({
       where: { userId },
@@ -46,7 +49,7 @@ export class PaymentService {
     const order = await getRazorpay().orders.create({
       amount: amountInPaise,
       currency: 'INR',
-      receipt: `sub_${userId}_${Date.now()}`,
+      receipt: `sub_${user.phone}_${Date.now()}`,
       notes: { userId }, // embed userId so webhook can locate the user
     });
 

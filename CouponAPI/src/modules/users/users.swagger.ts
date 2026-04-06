@@ -1,7 +1,7 @@
 import { openApiRegistry } from '../../config/swagger';
 import { z } from 'zod';
-import { 
-  registerUserSchema, 
+import {
+  registerUserSchema,
   updateUserSchema,
   loginUserResponseSchema,
   profileResponseSchema,
@@ -107,5 +107,34 @@ openApiRegistry.registerPath({
         },
       },
     },
+  },
+});
+
+openApiRegistry.registerPath({
+  method: 'get',
+  path: '/users/settings',
+  summary: 'Get App Settings',
+  description:
+    'Returns public app-level configuration values.',
+  tags: ['Customer'],
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Success',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean().default(true),
+            data: z.object({
+              subscriptionPrice: z.number().describe('Subscription price in INR (e.g. 1000)'),
+              bookValidityDays: z.number().describe('Number of days a coupon book remains valid after purchase'),
+              maxCoinsPerTransaction: z.number().describe('Maximum coins a user can redeem in a single transaction'),
+              totalActiveCoupons: z.number().describe('Live count of all ACTIVE coupons across the system'),
+            }),
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized', content: { 'application/json': { schema: errorResponse } } },
   },
 });

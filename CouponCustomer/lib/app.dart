@@ -23,6 +23,7 @@ import 'features/home/domain/entities/home_coupon_entity.dart';
 import 'features/wallet/presentation/screens/wallet_ledger_screen.dart';
 import 'features/home/presentation/screens/search_screen.dart';
 import 'features/subscription/presentation/screens/purchase_screen.dart';
+import 'features/subscription/presentation/screens/subscription_success_screen.dart';
 import 'services/notification_service.dart';
 
 // ---------------------------------------------------------------------------
@@ -160,6 +161,11 @@ final _router = GoRouter(
       path: '/subscribe',
       name: 'subscribe',
       builder: (_, __) => const PurchaseScreen(),
+    ),
+    GoRoute(
+      path: '/subscription-success',
+      name: 'subscription-success',
+      builder: (_, __) => const SubscriptionSuccessScreen(),
     ),
   ],
 );

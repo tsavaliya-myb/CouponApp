@@ -549,6 +549,7 @@ mixin _$VerifyOtpDataModel {
   String get refreshToken => throw _privateConstructorUsedError;
   AuthUserModel? get user => throw _privateConstructorUsedError;
   bool get isNewUser => throw _privateConstructorUsedError;
+  String get subscriptionStatus => throw _privateConstructorUsedError;
 
   /// Serializes this VerifyOtpDataModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -570,7 +571,8 @@ abstract class $VerifyOtpDataModelCopyWith<$Res> {
       {String accessToken,
       String refreshToken,
       AuthUserModel? user,
-      bool isNewUser});
+      bool isNewUser,
+      String subscriptionStatus});
 
   $AuthUserModelCopyWith<$Res>? get user;
 }
@@ -594,6 +596,7 @@ class _$VerifyOtpDataModelCopyWithImpl<$Res, $Val extends VerifyOtpDataModel>
     Object? refreshToken = null,
     Object? user = freezed,
     Object? isNewUser = null,
+    Object? subscriptionStatus = null,
   }) {
     return _then(_value.copyWith(
       accessToken: null == accessToken
@@ -612,6 +615,10 @@ class _$VerifyOtpDataModelCopyWithImpl<$Res, $Val extends VerifyOtpDataModel>
           ? _value.isNewUser
           : isNewUser // ignore: cast_nullable_to_non_nullable
               as bool,
+      subscriptionStatus: null == subscriptionStatus
+          ? _value.subscriptionStatus
+          : subscriptionStatus // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 
@@ -642,7 +649,8 @@ abstract class _$$VerifyOtpDataModelImplCopyWith<$Res>
       {String accessToken,
       String refreshToken,
       AuthUserModel? user,
-      bool isNewUser});
+      bool isNewUser,
+      String subscriptionStatus});
 
   @override
   $AuthUserModelCopyWith<$Res>? get user;
@@ -665,6 +673,7 @@ class __$$VerifyOtpDataModelImplCopyWithImpl<$Res>
     Object? refreshToken = null,
     Object? user = freezed,
     Object? isNewUser = null,
+    Object? subscriptionStatus = null,
   }) {
     return _then(_$VerifyOtpDataModelImpl(
       accessToken: null == accessToken
@@ -683,6 +692,10 @@ class __$$VerifyOtpDataModelImplCopyWithImpl<$Res>
           ? _value.isNewUser
           : isNewUser // ignore: cast_nullable_to_non_nullable
               as bool,
+      subscriptionStatus: null == subscriptionStatus
+          ? _value.subscriptionStatus
+          : subscriptionStatus // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -694,7 +707,8 @@ class _$VerifyOtpDataModelImpl implements _VerifyOtpDataModel {
       {required this.accessToken,
       required this.refreshToken,
       this.user,
-      this.isNewUser = false});
+      this.isNewUser = false,
+      this.subscriptionStatus = 'NONE'});
 
   factory _$VerifyOtpDataModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$VerifyOtpDataModelImplFromJson(json);
@@ -708,10 +722,13 @@ class _$VerifyOtpDataModelImpl implements _VerifyOtpDataModel {
   @override
   @JsonKey()
   final bool isNewUser;
+  @override
+  @JsonKey()
+  final String subscriptionStatus;
 
   @override
   String toString() {
-    return 'VerifyOtpDataModel(accessToken: $accessToken, refreshToken: $refreshToken, user: $user, isNewUser: $isNewUser)';
+    return 'VerifyOtpDataModel(accessToken: $accessToken, refreshToken: $refreshToken, user: $user, isNewUser: $isNewUser, subscriptionStatus: $subscriptionStatus)';
   }
 
   @override
@@ -725,13 +742,15 @@ class _$VerifyOtpDataModelImpl implements _VerifyOtpDataModel {
                 other.refreshToken == refreshToken) &&
             (identical(other.user, user) || other.user == user) &&
             (identical(other.isNewUser, isNewUser) ||
-                other.isNewUser == isNewUser));
+                other.isNewUser == isNewUser) &&
+            (identical(other.subscriptionStatus, subscriptionStatus) ||
+                other.subscriptionStatus == subscriptionStatus));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, accessToken, refreshToken, user, isNewUser);
+  int get hashCode => Object.hash(runtimeType, accessToken, refreshToken, user,
+      isNewUser, subscriptionStatus);
 
   /// Create a copy of VerifyOtpDataModel
   /// with the given fields replaced by the non-null parameter values.
@@ -755,7 +774,8 @@ abstract class _VerifyOtpDataModel implements VerifyOtpDataModel {
       {required final String accessToken,
       required final String refreshToken,
       final AuthUserModel? user,
-      final bool isNewUser}) = _$VerifyOtpDataModelImpl;
+      final bool isNewUser,
+      final String subscriptionStatus}) = _$VerifyOtpDataModelImpl;
 
   factory _VerifyOtpDataModel.fromJson(Map<String, dynamic> json) =
       _$VerifyOtpDataModelImpl.fromJson;
@@ -768,6 +788,8 @@ abstract class _VerifyOtpDataModel implements VerifyOtpDataModel {
   AuthUserModel? get user;
   @override
   bool get isNewUser;
+  @override
+  String get subscriptionStatus;
 
   /// Create a copy of VerifyOtpDataModel
   /// with the given fields replaced by the non-null parameter values.

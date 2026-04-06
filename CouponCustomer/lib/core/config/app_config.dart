@@ -56,7 +56,7 @@ class AppConfig {
   factory AppConfig.dev() => const AppConfig(
         appName: 'CouponApp (Dev)',
         baseUrl: 'https://couponapp-r1vv.onrender.com/api/v1',
-        razorpayKey: 'rzp_test_placeholder',
+        razorpayKey: 'rzp_test_SaDWFQaPFr4e2G',
         qrSecretKey: 'dev_qr_secret_key_32chars_padded!',
         appVersion: '1.0.0-dev',
         enableAnalytics: false,

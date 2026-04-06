@@ -14,6 +14,7 @@ class UserModel with _$UserModel {
     String? cityId,
     String? areaId,
     @Default('ACTIVE') String status,
+    @Default('NONE') String subscriptionStatus,
     String? onesignalPlayerId,
     @Default(0) int coinBalance,
     DateTime? createdAt,

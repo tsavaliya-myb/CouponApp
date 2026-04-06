@@ -1,12 +1,14 @@
 import '../../../../core/network/api_client.dart';
 import '../models/user_model.dart';
 import '../models/area_model.dart';
+import '../models/user_settings_model.dart';
 
 abstract class ProfileRemoteDataSource {
   Future<UserModel> getUser();
   Future<UserModel> updateUser(Map<String, dynamic> data);
   Future<List<AreaModel>> getAreas(String cityId);
   Future<List<CityModel>> getCities();
+  Future<UserSettingsModel> getUserSettings();
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -38,5 +40,11 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     final response = await _apiClient.client.get('/admin/cities');
     final list = response.data['data'] as List;
     return list.map((e) => CityModel.fromJson(e)).toList();
+  }
+
+  @override
+  Future<UserSettingsModel> getUserSettings() async {
+    final response = await _apiClient.client.get('/users/settings');
+    return UserSettingsModel.fromJson(response.data['data']);
   }
 }

@@ -48,6 +48,7 @@ class AuthRepositoryImpl implements AuthRepository {
         cityId: userModel?.cityId,
         areaId: userModel?.areaId,
         status: userModel?.status ?? 'ACTIVE',
+        subscriptionStatus: result.data.subscriptionStatus,
         isNewUser: result.data.isNewUser,
       ));
     } on DioException catch (e) {

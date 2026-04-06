@@ -9,6 +9,7 @@ class UserEntity extends Equatable {
   final String? cityId;
   final String? areaId;
   final String status;
+  final String subscriptionStatus;
   final bool isNewUser;
 
   const UserEntity({
@@ -19,6 +20,7 @@ class UserEntity extends Equatable {
     this.cityId,
     this.areaId,
     this.status = 'ACTIVE',
+    this.subscriptionStatus = 'NONE',
     this.isNewUser = false,
   });
 

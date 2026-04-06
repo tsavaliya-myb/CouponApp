@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import '../../data/models/user_model.dart';
 import '../../data/models/area_model.dart';
+import '../../data/models/user_settings_model.dart';
 import '../../domain/repositories/profile_repository.dart';
 
 class ProfileNotifier extends AsyncNotifier<UserModel> {
@@ -41,5 +42,14 @@ final citiesProvider = FutureProvider<List<CityModel>>((ref) async {
   return result.fold(
     (f) => throw f.message,
     (cities) => cities.where((c) => c.status == 'ACTIVE').toList(),
+  );
+});
+
+final userSettingsProvider = FutureProvider<UserSettingsModel>((ref) async {
+  final repository = GetIt.I<ProfileRepository>();
+  final result = await repository.getUserSettings();
+  return result.fold(
+    (f) => throw f.message,
+    (settings) => settings,
   );
 });

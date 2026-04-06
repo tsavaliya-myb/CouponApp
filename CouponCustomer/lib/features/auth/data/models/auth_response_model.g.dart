@@ -55,6 +55,7 @@ _$VerifyOtpDataModelImpl _$$VerifyOtpDataModelImplFromJson(
           ? null
           : AuthUserModel.fromJson(json['user'] as Map<String, dynamic>),
       isNewUser: json['isNewUser'] as bool? ?? false,
+      subscriptionStatus: json['subscriptionStatus'] as String? ?? 'NONE',
     );
 
 Map<String, dynamic> _$$VerifyOtpDataModelImplToJson(
@@ -64,6 +65,7 @@ Map<String, dynamic> _$$VerifyOtpDataModelImplToJson(
       'refreshToken': instance.refreshToken,
       'user': instance.user,
       'isNewUser': instance.isNewUser,
+      'subscriptionStatus': instance.subscriptionStatus,
     };
 
 _$AuthUserModelImpl _$$AuthUserModelImplFromJson(Map<String, dynamic> json) =>

@@ -47,6 +47,7 @@ class VerifyOtpDataModel with _$VerifyOtpDataModel {
     required String refreshToken,
     AuthUserModel? user,
     @Default(false) bool isNewUser,
+    @Default('NONE') String subscriptionStatus,
   }) = _VerifyOtpDataModel;
 
   factory VerifyOtpDataModel.fromJson(Map<String, dynamic> json) =>

@@ -33,6 +33,9 @@ import '../../features/wallet/domain/usecases/get_wallet_usecase.dart';
 import '../../features/profile/data/datasources/profile_remote_datasource.dart';
 import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
+// Payment feature
+import '../../features/payment/data/payment_repository.dart';
+import '../services/razorpay_service.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -61,6 +64,7 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<NotificationService>(
     () => NotificationService(AppConfig.current.oneSignalAppId),
   );
+  getIt.registerLazySingleton<RazorpayService>(() => RazorpayService());
 
   // ---------------------------------------------------------------------------
   // Network
@@ -132,6 +136,13 @@ Future<void> configureDependencies() async {
   );
   getIt.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(getIt<ProfileRemoteDataSource>()),
+  );
+
+  // ---------------------------------------------------------------------------
+  // Payment feature
+  // ---------------------------------------------------------------------------
+  getIt.registerLazySingleton<PaymentRepository>(
+    () => PaymentRepository(getIt<ApiClient>()),
   );
 }
 

@@ -20,7 +20,7 @@ final isSubscribedProvider = Provider<bool>((ref) {
 
   final profileAsync = ref.watch(profileProvider);
   return profileAsync.when(
-    data: (user) => user.status == 'ACTIVE',
+    data: (user) => user.subscriptionStatus == 'ACTIVE',
     loading: () => false,
     error: (_, __) => false,
   );
