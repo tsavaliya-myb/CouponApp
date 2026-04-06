@@ -9,7 +9,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Single environment setup
-  AppConfig.setup(AppConfig.dev());
+  AppConfig.setup(AppConfig.prod());
 
   // Init DI
   configureDependencies();

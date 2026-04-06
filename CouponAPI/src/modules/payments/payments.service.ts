@@ -99,12 +99,12 @@ export class PaymentService {
     // ── Fetch base coupons for the user's city ────────────────────────────
     const baseCoupons = user.cityId
       ? await prisma.coupon.findMany({
-          where: {
-            isBaseCoupon: true,
-            status: 'ACTIVE',
-            seller: { cityId: user.cityId },
-          },
-        })
+        where: {
+          isBaseCoupon: true,
+          status: 'ACTIVE',
+          seller: { cityId: user.cityId },
+        },
+      })
       : [];
 
     const now = new Date();

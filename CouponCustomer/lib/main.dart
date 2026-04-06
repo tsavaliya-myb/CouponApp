@@ -15,22 +15,19 @@ import 'services/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Setup environment config — use dev() to point at localhost:3000
+  // 1. Setup environment config
   AppConfig.setup(AppConfig.dev());
 
-  // 2. Firebase removed
-
-  // 3. Initialize GetIt DI
+  // 2. Initialize GetIt DI
   await configureDependencies();
 
-  // 4. Initialize Hive offline cache
+  // 3. Initialize Hive offline cache
   await getIt<HiveService>().init();
 
-
-  // 6. Initialize Push Notifications
+  // 4. Initialize OneSignal push notifications (must be before runApp)
   await getIt<NotificationService>().init();
 
-  // 7. Initialize SharedPreferences
+  // 5. Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
 
   // 8. Launch app inside ProviderScope (Riverpod root)

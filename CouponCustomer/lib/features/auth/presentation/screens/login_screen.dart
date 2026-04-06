@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../features/auth/domain/usecases/send_otp_usecase.dart';
@@ -127,28 +128,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Icon
-                Container(
+                // App Logo
+                Image.asset(
+                  AppAssets.logo,
                   width: 64,
                   height: 64,
-                  decoration: BoxDecoration(
-                    color: AppColors.dsSurfaceContainerLowest,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.dsOnSurface.withOpacity(0.04),
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.celebration_rounded,
-                      color: AppColors.dsPrimary,
-                      size: 32,
-                    ),
-                  ),
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 32),
 

@@ -57,12 +57,18 @@ export class AuthService {
     // Find user by phone, or create if not exists
     let user = await prisma.user.findUnique({
       where: { phone: dto.phone },
+      include: {
+        subscription: { select: { status: true, endDate: true } },
+      },
     });
 
     let isNewUser = false;
     if (!user) {
       user = await prisma.user.create({
         data: { phone: dto.phone },
+        include: {
+          subscription: { select: { status: true, endDate: true } },
+        },
       });
       isNewUser = true;
     }
@@ -99,6 +105,10 @@ export class AuthService {
         cityId: user.cityId,
         areaId: user.areaId,
         status: user.status,
+        subscriptionStatus:
+          user.subscription?.status === 'ACTIVE' && user.subscription.endDate > new Date()
+            ? 'ACTIVE'
+            : 'NONE',
       },
       isNewUser,
     };

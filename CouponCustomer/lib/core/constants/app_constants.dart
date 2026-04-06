@@ -22,7 +22,7 @@ class AppConstants {
   static const int couponBookDays = 45;
 
   // QR
-  static const Duration qrRefreshInterval = Duration(minutes: 5);
+  static const Duration qrRefreshInterval = Duration(minutes: 10);
 
   // Cache TTL
   static const Duration couponCacheTTL  = Duration(hours: 1);

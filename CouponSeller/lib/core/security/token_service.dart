@@ -20,6 +20,12 @@ class TokenService {
   Future<String?> getAccessToken()  => _storage.read(key: _accessKey);
   Future<String?> getRefreshToken() => _storage.read(key: _refreshKey);
   Future<void>    clearTokens()     => _storage.deleteAll();
+
+  /// Returns true if a stored access token exists (user was previously logged in).
+  Future<bool> isLoggedIn() async {
+    final token = await getAccessToken();
+    return token != null && token.isNotEmpty;
+  }
   
   Future<String> refreshToken(Dio refreshDio) async {
     final refresh = await getRefreshToken();

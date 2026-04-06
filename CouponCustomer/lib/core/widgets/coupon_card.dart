@@ -1,4 +1,5 @@
 // lib/core/widgets/coupon_card.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../constants/app_colors.dart';
@@ -9,12 +10,14 @@ import '../../features/home/domain/entities/home_coupon_entity.dart';
 class CouponCard extends StatelessWidget {
   final HomeCouponEntity coupon;
   final bool showUsesLeft;
+  final bool isBlurred;
   final VoidCallback? onTap;
 
   const CouponCard({
     super.key,
     required this.coupon,
     this.showUsesLeft = false,
+    this.isBlurred = false,
     this.onTap,
   });
 
@@ -255,6 +258,52 @@ class CouponCard extends StatelessWidget {
               ),
             ),
           ),
+
+          // ── Blur Overlay (non-subscriber) ─────────────────────────────
+          if (isBlurred)
+            Positioned(
+              left: 100,   // starts after the brand left panel
+              top: 0,
+              right: 0,
+              bottom: 0,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.horizontal(
+                  right: Radius.circular(24),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.dsSurfaceContainerLowest.withOpacity(0.7),
+                      borderRadius: const BorderRadius.horizontal(
+                        right: Radius.circular(24),
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.lock_rounded,
+                          color: AppColors.dsPrimary,
+                          size: 20,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Subscribe to\nsee reward',
+                          style: AppTextStyles.dsLabelMd.copyWith(
+                            color: AppColors.dsPrimary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 10,
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),  // Stack
       ),  // Container

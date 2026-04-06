@@ -10,6 +10,7 @@ import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../features/auth/domain/usecases/send_otp_usecase.dart';
 import '../../../../features/auth/domain/usecases/verify_otp_usecase.dart';
+import '../../../../services/notification_service.dart';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -73,8 +74,7 @@ class _OtpNotifier extends StateNotifier<_OtpState> {
   }
 }
 
-final _otpProvider =
-    StateNotifierProvider.autoDispose<_OtpNotifier, _OtpState>(
+final _otpProvider = StateNotifierProvider.autoDispose<_OtpNotifier, _OtpState>(
   (_) => _OtpNotifier(),
 );
 
@@ -108,8 +108,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     _otpController.addListener(() {
       if (_otpController.text.length > _otpLength) {
         _otpController.text = _otpController.text.substring(0, _otpLength);
-        _otpController.selection =
-            TextSelection.collapsed(offset: _otpLength);
+        _otpController.selection = TextSelection.collapsed(offset: _otpLength);
       }
       setState(() {});
     });
@@ -139,10 +138,14 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     ref.read(_otpProvider.notifier).verifyOtp(
           phone: widget.phone,
           otp: _otpController.text,
-          onSuccess: () {
+          onSuccess: () async {
             // Update auth state so GoRouter guard lets user through
             ref.read(authProvider.notifier).onLoginSuccess(phone: widget.phone);
-            context.go('/home');
+            // Request push notification permission with rationale
+            if (context.mounted) {
+              await _requestNotificationPermission(context);
+            }
+            if (context.mounted) context.go('/home');
           },
           onError: (message) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -156,6 +159,27 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             );
           },
         );
+  }
+
+  /// Shows a branded rationale bottom sheet, then triggers the OS permission
+  /// prompt if the user accepts. Skips silently if already granted.
+  Future<void> _requestNotificationPermission(BuildContext ctx) async {
+    final notifService = GetIt.I<NotificationService>();
+
+    // Check current state without triggering any OS dialog
+    if (notifService.hasPermission) return;
+
+    if (!ctx.mounted) return;
+
+    final accepted = await showModalBottomSheet<bool>(
+      context: ctx,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _NotificationRationaleSheet(),
+    );
+
+    if (accepted == true && ctx.mounted) {
+      await notifService.requestPermission();
+    }
   }
 
   void _handleResend() {
@@ -321,8 +345,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           autofocus: true,
                           decoration: const InputDecoration(
                             counterText: '',
-                            border: OutlineInputBorder(
-                                borderSide: BorderSide.none),
+                            border:
+                                OutlineInputBorder(borderSide: BorderSide.none),
                           ),
                         ),
                       ),
@@ -439,6 +463,121 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─── Notification Rationale Bottom Sheet ─────────────────────────────────────
+
+class _NotificationRationaleSheet extends StatelessWidget {
+  const _NotificationRationaleSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.dsSurface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.dsOnSurface.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Bell icon
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.dsPrimary.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.notifications_rounded,
+              color: AppColors.dsPrimary,
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Title
+          Text(
+            'Stay in the loop',
+            style: AppTextStyles.dsTitleLg.copyWith(
+              color: AppColors.dsOnSurface,
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Body
+          Text(
+            'Get notified about coupon expirations, redemption\nconfirmations, and exclusive offers near you.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.dsBodyMd.copyWith(
+              color: AppColors.dsOnSurface.withOpacity(0.7),
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Allow button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.dsPrimary, AppColors.dsPrimaryContainer],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                ),
+                child: Text(
+                  'Allow Notifications',
+                  style: AppTextStyles.dsButton.copyWith(
+                    color: AppColors.dsSurfaceContainerLowest,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Skip
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(false),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Maybe later',
+                style: AppTextStyles.dsBodyMd.copyWith(
+                  color: AppColors.dsOnSurface.withOpacity(0.5),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,4 +1,4 @@
-name: coupon_customer
+name: couponcode
 description: "Customer App for the CouponApp platform — ₹1000 subscription, coupon book, QR redemption."
 publish_to: 'none'
 
@@ -37,6 +37,9 @@ dependencies:
 
   # Payments
   razorpay_flutter: ^1.3.6
+
+  # Push Notifications
+  onesignal_flutter: ^5.1.2
 
   # Firebase removed as per user request
 
@@ -78,6 +81,18 @@ dev_dependencies:
   riverpod_generator: ^2.4.0
   injectable_generator: ^2.4.1
   mockito: ^5.4.4
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/logo.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+  adaptive_icon_background: "#1C0A3E"
+  adaptive_icon_foreground: "assets/icons/logo.png"
+  web:
+    generate: false
 
 flutter:
   uses-material-design: true

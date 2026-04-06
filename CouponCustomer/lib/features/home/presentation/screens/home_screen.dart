@@ -8,11 +8,14 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/mock/mock_data.dart';
+import '../../../../core/providers/subscription_provider.dart';
 import '../../../../core/widgets/shimmer_loader.dart';
+import '../../../../core/widgets/subscribe_bottom_sheet.dart';
 import '../providers/home_provider.dart';
 import '../../../../core/widgets/coupon_card.dart';
 import '../../../../core/widgets/seller_card.dart';
-import 'package:coupon_customer/features/profile/presentation/providers/profile_provider.dart';
+import 'package:couponcode/features/profile/presentation/providers/profile_provider.dart';
 
 // ─── Home Screen ─────────────────────────────────────────────────────────────
 
@@ -52,14 +55,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final isSubscribed = ref.watch(isSubscribedProvider);
+
     return Scaffold(
-      backgroundColor: AppColors.dsSurface, // #FDF3FF
-      extendBody: true, // Needed for floating authentic glass bottom nav
+      backgroundColor: AppColors.dsSurface,
+      extendBody: true,
       body: RefreshIndicator(
         color: AppColors.dsPrimary,
         backgroundColor: AppColors.dsSurfaceContainerLowest,
         onRefresh: () async {
-          await ref.read(allCouponsProvider.notifier).refresh();
+          if (isSubscribed) {
+            await ref.read(allCouponsProvider.notifier).refresh();
+          }
         },
         child: CustomScrollView(
           controller: _scrollController,
@@ -73,7 +80,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             const SliverToBoxAdapter(child: _CategoryTabs()),
             const SliverToBoxAdapter(child: SizedBox(height: 10)),
             // ── Active Coupons (Ticket Cards) ──────────────────────────────
-            const SliverToBoxAdapter(child: _ActiveCouponsSection()),
+            SliverToBoxAdapter(
+              child: isSubscribed
+                  ? const _ActiveCouponsSection()
+                  : const _MockCouponsSection(),
+            ),
             const SliverToBoxAdapter(child: SizedBox(height: 10)),
             // ── Top Sellers in Adajan ─────────────────────────────────────
             SliverToBoxAdapter(
@@ -86,22 +97,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   children: [
                     Text('Top Sellers Near You',
                         style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20)),
-                    GestureDetector(
-                      onTap: () => context.go('/sellers'),
-                      child: Text(
-                        'View All',
-                        style: AppTextStyles.dsLabelMd.copyWith(
-                          color: AppColors.dsPrimary,
-                          fontWeight: FontWeight.w700,
+                    if (isSubscribed)
+                      GestureDetector(
+                        onTap: () => context.go('/sellers'),
+                        child: Text(
+                          'View All',
+                          style: AppTextStyles.dsLabelMd.copyWith(
+                            color: AppColors.dsPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
-            const _NearbySellersSection(),
+            if (isSubscribed)
+              const _NearbySellersSection()
+            else
+              const _MockSellersSection(),
             const SliverToBoxAdapter(
               child: SizedBox(height: 120), // Bottom nav buffer
             ),
@@ -119,7 +134,8 @@ class _HomeHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(profileProvider);
     final displayName = profileAsync.when(
-      data: (user) => (user.name != null && user.name!.isNotEmpty) ? user.name : 'Friend',
+      data: (user) =>
+          (user.name != null && user.name!.isNotEmpty) ? user.name : 'Friend',
       error: (_, __) => 'Friend',
       loading: () => '...',
     );
@@ -237,7 +253,7 @@ class _CategoryTabs extends ConsumerWidget {
   }
 }
 
-// ─── Active Coupons Section (Ticket Style) ────────────────────────────────────
+// ─── Active Coupons Section (Subscribed) ──────────────────────────────────────
 
 class _ActiveCouponsSection extends ConsumerWidget {
   const _ActiveCouponsSection();
@@ -349,7 +365,71 @@ class _ActiveCouponsSection extends ConsumerWidget {
   }
 }
 
-// ─── Nearby Sellers Section (Sliver) ─────────────────────────────────────────
+// ─── Mock Coupons Section (Non-Subscribed) ────────────────────────────────────
+
+class _MockCouponsSection extends StatelessWidget {
+  const _MockCouponsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final blurred = blurredCouponIndices.toSet();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: [
+              Text('Your Active Coupons',
+                  style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20)),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.dsPrimary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Text(
+                  'SUBSCRIBE TO UNLOCK',
+                  style: AppTextStyles.dsLabelMd.copyWith(
+                    color: AppColors.dsPrimary,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          itemCount: mockCoupons.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 16),
+          itemBuilder: (_, i) {
+            final isBlurred = blurred.contains(i);
+            return CouponCard(
+              coupon: mockCoupons[i],
+              showUsesLeft: false,
+              isBlurred: isBlurred,
+              onTap: () => showSubscribeBottomSheet(context),
+            )
+                .animate()
+                .fadeIn(
+                    duration: 350.ms, delay: Duration(milliseconds: 60 * i))
+                .slideY(begin: 0.05);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Nearby Sellers Section (Subscribed) ──────────────────────────────────────
 
 class _NearbySellersSection extends ConsumerWidget {
   const _NearbySellersSection();
@@ -422,6 +502,32 @@ class _NearbySellersSection extends ConsumerWidget {
               style: AppTextStyles.dsBodyMd
                   .copyWith(color: AppColors.dsOnSurface.withOpacity(0.3))),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Mock Sellers Section (Non-Subscribed) ────────────────────────────────────
+
+class _MockSellersSection extends StatelessWidget {
+  const _MockSellersSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (_, i) => Padding(
+          padding: const EdgeInsets.only(left: 24, right: 24, bottom: 20),
+          child: SellerCard(
+            seller: mockSellers[i],
+            onTap: () => showSubscribeBottomSheet(context),
+          )
+              .animate()
+              .fadeIn(
+                  duration: 300.ms, delay: Duration(milliseconds: 50 * i))
+              .slideY(begin: 0.05),
+        ),
+        childCount: mockSellers.length,
       ),
     );
   }

@@ -2,6 +2,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+import '../config/app_config.dart';
 import '../network/api_client.dart';
 import '../network/auth_interceptor.dart';
 import '../network/retry_interceptor.dart';
@@ -57,7 +58,9 @@ Future<void> configureDependencies() async {
   );
   getIt.registerLazySingleton<QrTokenService>(() => QrTokenService());
   getIt.registerLazySingleton<HiveService>(() => HiveService());
-  getIt.registerLazySingleton<NotificationService>(() => NotificationService());
+  getIt.registerLazySingleton<NotificationService>(
+    () => NotificationService(AppConfig.current.oneSignalAppId),
+  );
 
   // ---------------------------------------------------------------------------
   // Network

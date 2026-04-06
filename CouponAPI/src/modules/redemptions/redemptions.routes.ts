@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { RedemptionsController } from './redemptions.controller';
 import { validate } from '../../shared/middlewares/validate';
 import { authenticate, authorize } from '../../shared/middlewares/auth';
+import { requireSubscription } from '../../shared/middlewares/subscription';
 import { confirmRedemptionSchema, redemptionHistoryQuerySchema } from './redemptions.validator';
 
 import './redemptions.swagger';
@@ -14,6 +15,7 @@ router.get(
   '/history',
   authenticate,
   authorize('customer'),
+  requireSubscription,
   validate(redemptionHistoryQuerySchema, 'query'),
   controller.getUserHistory
 );

@@ -33,4 +33,13 @@ export class UsersController {
       next(err);
     }
   };
+
+  getAppSettings = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const settings = await usersService.getAppSettings();
+      sendSuccess(res, settings);
+    } catch (err) {
+      next(err);
+    }
+  };
 }

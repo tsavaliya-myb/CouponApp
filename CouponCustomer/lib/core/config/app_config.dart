@@ -11,6 +11,10 @@ class AppConfig {
   final bool enableAnalytics;
   final bool enablePerformance;
 
+  /// OneSignal App ID — same for dev and prod.
+  /// Environment separation is handled via OneSignal segments & tags.
+  final String oneSignalAppId;
+
   const AppConfig({
     required this.appName,
     required this.baseUrl,
@@ -19,6 +23,7 @@ class AppConfig {
     required this.appVersion,
     required this.enableAnalytics,
     required this.enablePerformance,
+    required this.oneSignalAppId,
   });
 
   static AppConfig? _instance;
@@ -43,6 +48,7 @@ class AppConfig {
         appVersion: '1.0.0',
         enableAnalytics: true,
         enablePerformance: true,
+        oneSignalAppId: 'c1aace53-f49e-4814-9292-9c23e92bbcbe',
       );
 
   /// Development flavor — points to local backend.
@@ -55,5 +61,6 @@ class AppConfig {
         appVersion: '1.0.0-dev',
         enableAnalytics: false,
         enablePerformance: false,
+        oneSignalAppId: 'c1aace53-f49e-4814-9292-9c23e92bbcbe',
       );
 }

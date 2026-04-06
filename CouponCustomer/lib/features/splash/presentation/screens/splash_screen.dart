@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/providers/auth_provider.dart';
@@ -49,20 +50,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
+            Image.asset(
+              AppAssets.logo,
               width: 120,
               height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.dsPrimary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.celebration_rounded,
-                  color: AppColors.dsPrimary,
-                  size: 64,
-                ),
-              ),
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 32),
             Text(

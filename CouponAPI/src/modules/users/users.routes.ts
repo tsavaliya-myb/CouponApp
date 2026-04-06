@@ -30,4 +30,10 @@ router.patch(
   controller.updateProfile
 );
 
+// ─── App Settings (any logged-in user) ───────────────────────────────────────
+router.get(
+  '/settings',
+  controller.getAppSettings
+);
+
 export { router as usersRouter };

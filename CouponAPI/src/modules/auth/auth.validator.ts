@@ -82,6 +82,7 @@ export const verifyOtpResponseSchema = z.object({
     cityId: z.string().nullable(),
     areaId: z.string().nullable(),
     status: z.string(),
+    subscriptionStatus: z.enum(['ACTIVE', 'NONE']),
   }),
   isNewUser: z.boolean(),
 });

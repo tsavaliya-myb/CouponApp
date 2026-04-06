@@ -2,12 +2,14 @@ class AppConfig {
   final String appName;
   final String baseUrl;
   final String razorpayKey;
+  final String qrSecretKey;
   final String appVersion;
 
   const AppConfig({
     required this.appName,
     required this.baseUrl,
     required this.razorpayKey,
+    required this.qrSecretKey,
     required this.appVersion,
   });
 
@@ -20,6 +22,8 @@ class AppConfig {
     appName: 'Coupon Seller',
     baseUrl: 'https://couponapp-r1vv.onrender.com/api/v1',
     razorpayKey: 'prod_key',
+    // qrSecretKey: String.fromEnvironment('QR_SECRET_KEY'),
+    qrSecretKey: 'dev_qr_secret_key_32chars_padded!',
     appVersion: '1.0.0',
   );
 
@@ -29,6 +33,7 @@ class AppConfig {
     appName: 'Coupon Seller (Dev)',
     baseUrl: 'http://192.168.1.9:3000/api/v1',
     razorpayKey: 'rzp_test_placeholder',
+    qrSecretKey: 'dev_qr_secret_key_32chars_padded!',
     appVersion: '1.0.0-dev',
   );
 }

@@ -8,6 +8,7 @@ import './jobs/export.worker';
 
 import { scheduleExpiryReminders } from './jobs/expiryReminder.job';
 import { scheduleDailyMotivation } from './jobs/dailyMotivation.job';
+import { scheduleSubscriptionExpiry } from './jobs/subscriptionExpiry.job';
 
 async function bootstrap() {
   // Verify DB connectivity before binding to port
@@ -15,8 +16,9 @@ async function bootstrap() {
   logger.info('Database connected');
 
   // Boot scheduled background cron integrations
-  await scheduleExpiryReminders();
-  await scheduleDailyMotivation();
+  await scheduleSubscriptionExpiry();   // 00:00 — expire stale subscriptions & user coupons
+  await scheduleExpiryReminders();      // 09:00 — warn users 7d / 2d before expiry
+  await scheduleDailyMotivation();      // 10:00 — daily engagement push
 
   const app = createApp();
 

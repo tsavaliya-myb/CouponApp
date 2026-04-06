@@ -8,8 +8,10 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/providers/subscription_provider.dart';
 import '../../../../core/security/qr_token_service.dart';
 import '../../../../core/security/token_service.dart';
+import '../../../../core/widgets/subscribe_gate_screen.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 
 class QrScreen extends ConsumerStatefulWidget {
@@ -59,7 +61,6 @@ class _QrScreenState extends ConsumerState<QrScreen> {
         userId: user.id,
         subscriptionToken: accessToken,
       );
-
       if (mounted) {
         setState(() {
           _qrPayloadBase64 = payload;
@@ -71,6 +72,12 @@ class _QrScreenState extends ConsumerState<QrScreen> {
   @override
   Widget build(BuildContext context) {
     final userState = ref.watch(profileProvider);
+
+    // ── Subscription gate ──────────────────────────────────────────────────
+    final isSubscribed = ref.watch(isSubscribedProvider);
+    if (!isSubscribed) {
+      return const SubscribeGateScreen(featureName: 'Identity QR');
+    }
 
     return Scaffold(
       backgroundColor: AppColors.dsSurface,

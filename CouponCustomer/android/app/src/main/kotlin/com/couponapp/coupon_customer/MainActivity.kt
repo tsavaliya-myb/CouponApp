@@ -1,4 +1,4 @@
-package com.couponapp.coupon_customer
+package com.couponcode.customer
 
 import io.flutter.embedding.android.FlutterActivity
 

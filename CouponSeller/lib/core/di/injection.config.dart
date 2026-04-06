@@ -45,6 +45,16 @@ import '../../features/location/data/repositories/location_repository_impl.dart'
     as _i115;
 import '../../features/location/domain/repositories/location_repository.dart'
     as _i332;
+import '../../features/profile/data/datasources/profile_remote_datasource.dart'
+    as _i327;
+import '../../features/profile/data/repositories/profile_repository_impl.dart'
+    as _i334;
+import '../../features/profile/domain/repositories/profile_repository.dart'
+    as _i894;
+import '../../features/profile/domain/usecases/get_seller_profile_usecase.dart'
+    as _i783;
+import '../../features/profile/domain/usecases/update_seller_profile_usecase.dart'
+    as _i434;
 import '../../features/redemption/data/datasources/redemption_remote_datasource.dart'
     as _i733;
 import '../../features/redemption/data/repositories/redemption_repository_impl.dart'
@@ -124,6 +134,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i610.GetSettlementsUsecase>(
       () => _i610.GetSettlementsUsecase(gh<_i586.SettlementRepository>()),
     );
+    gh.factory<_i327.ProfileRemoteDatasource>(
+      () => _i327.ProfileRemoteDatasourceImpl(gh<_i557.ApiClient>()),
+    );
     gh.factory<_i386.DashboardRepository>(
       () =>
           _i1057.DashboardRepositoryImpl(gh<_i840.DashboardRemoteDatasource>()),
@@ -139,6 +152,15 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i332.LocationRepository>(
       () => _i115.LocationRepositoryImpl(gh<_i700.LocationRemoteDatasource>()),
+    );
+    gh.factory<_i894.ProfileRepository>(
+      () => _i334.ProfileRepositoryImpl(gh<_i327.ProfileRemoteDatasource>()),
+    );
+    gh.factory<_i783.GetSellerProfileUsecase>(
+      () => _i783.GetSellerProfileUsecase(gh<_i894.ProfileRepository>()),
+    );
+    gh.factory<_i434.UpdateSellerProfileUsecase>(
+      () => _i434.UpdateSellerProfileUsecase(gh<_i894.ProfileRepository>()),
     );
     gh.factory<_i142.HistoryRepository>(
       () => _i751.HistoryRepositoryImpl(gh<_i1065.HistoryRemoteDatasource>()),

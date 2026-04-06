@@ -7,6 +7,8 @@ import '../../../../core/constants/app_text_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/providers/subscription_provider.dart';
+import '../../../../core/widgets/subscribe_gate_screen.dart';
 import '../providers/wallet_provider.dart';
 
 class WalletScreen extends ConsumerStatefulWidget {
@@ -19,6 +21,12 @@ class WalletScreen extends ConsumerStatefulWidget {
 class _WalletScreenState extends ConsumerState<WalletScreen> {
   @override
   Widget build(BuildContext context) {
+    // ── Subscription gate ───────────────────────────────────────────────
+    final isSubscribed = ref.watch(isSubscribedProvider);
+    if (!isSubscribed) {
+      return const SubscribeGateScreen(featureName: 'Wallet');
+    }
+
     final walletAsync = ref.watch(walletProvider);
 
     return Scaffold(

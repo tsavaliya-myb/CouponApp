@@ -22,12 +22,16 @@ import 'features/home/domain/entities/nearby_seller_entity.dart';
 import 'features/home/domain/entities/home_coupon_entity.dart';
 import 'features/wallet/presentation/screens/wallet_ledger_screen.dart';
 import 'features/home/presentation/screens/search_screen.dart';
+import 'features/subscription/presentation/screens/purchase_screen.dart';
+import 'services/notification_service.dart';
 
 // ---------------------------------------------------------------------------
 // Router
 // ---------------------------------------------------------------------------
 
 final _router = GoRouter(
+  // Wire the NotificationService navigator key so click handlers can navigate
+  navigatorKey: NotificationService.navigatorKey,
   initialLocation: '/splash',
   debugLogDiagnostics: true, // Disable in prod via --dart-define
   routes: [
@@ -150,6 +154,12 @@ final _router = GoRouter(
       path: '/search',
       name: 'search',
       builder: (_, __) => const SearchScreen(),
+    ),
+    // Subscription screen — outside shell, no app header or bottom nav
+    GoRoute(
+      path: '/subscribe',
+      name: 'subscribe',
+      builder: (_, __) => const PurchaseScreen(),
     ),
   ],
 );

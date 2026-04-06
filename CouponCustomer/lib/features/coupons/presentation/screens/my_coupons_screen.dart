@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/providers/subscription_provider.dart';
 import '../../../../core/widgets/shimmer_loader.dart';
+import '../../../../core/widgets/subscribe_gate_screen.dart';
 import '../../../home/domain/entities/home_coupon_entity.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 import '../../../../core/widgets/coupon_card.dart';
@@ -39,6 +41,13 @@ class _MyCouponsScreenState extends ConsumerState<MyCouponsScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
+    // ── Subscription gate ─────────────────────────────────────────────────
+    final isSubscribed = ref.watch(isSubscribedProvider);
+    if (!isSubscribed) {
+      return const SubscribeGateScreen(featureName: 'My Coupons');
+    }
+
     final couponsAsync = ref.watch(filteredCouponsProvider);
     final selectedCategory = ref.watch(selectedCategoryProvider);
 

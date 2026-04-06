@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "249370765004",
+    "project_id": "couponcode-41b9a",
+    "storage_bucket": "couponcode-41b9a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:249370765004:android:5119ec3150964a21b7c469",
+        "android_client_info": {
+          "package_name": "com.couponcode.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAX8BlJpsh8VT6avLvo40ohGqsUFEaxbzg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

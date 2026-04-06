@@ -3,7 +3,7 @@ import 'package:injectable/injectable.dart';
 import '../constants/app_constants.dart';
 import '../storage/secure_storage.dart';
 import 'package:dio/dio.dart';
-import 'package:coupon_customer/core/config/app_config.dart';
+import 'package:couponcode/core/config/app_config.dart';
 
 /// Manages JWT access/refresh tokens.
 /// Tokens always live in encrypted secure storage — never SharedPreferences.
@@ -45,7 +45,7 @@ class TokenService {
       data: {'refresh_token': refreshToken},
     );
 
-    final newAccess  = response.data['access_token']  as String;
+    final newAccess = response.data['access_token'] as String;
     final newRefresh = response.data['refresh_token'] as String;
     await saveTokens(access: newAccess, refresh: newRefresh);
     return newAccess;

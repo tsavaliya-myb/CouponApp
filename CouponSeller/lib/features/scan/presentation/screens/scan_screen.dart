@@ -86,6 +86,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
                   debugPrint('Barcode detected: $rawValue');
 
                   final qrService = getIt<QrTokenService>();
+                  // var raw = qrService.generateUserQrPayload(
+                  //   userId: 'userId',
+                  //   subscriptionToken: 'subscriptionToken',
+                  // );
+                  // final payload = qrService.decryptQrPayload(raw);
                   final payload = qrService.decryptQrPayload(rawValue);
 
                   if (payload == null) {
@@ -108,7 +113,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
                   }
 
                   final currentTime = DateTime.now().millisecondsSinceEpoch;
-                  if ((currentTime - iat) > 5 * 60 * 1000) { // 5 mins
+                  if ((currentTime - iat) > 5 * 60 * 1000) {
+                    // 5 mins
                     _showError('Expired QR');
                     _resumeScanningAfterDelay();
                     break;
@@ -140,9 +146,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
           if (isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
@@ -155,7 +159,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen>
       SnackBar(
         content: Text(
           message,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,

@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/security/token_service.dart';
 import '../../domain/entities/auth_result_entity.dart';
 import '../../domain/entities/seller_entity.dart';
 import '../../domain/usecases/send_otp_usecase.dart';
@@ -14,12 +15,14 @@ class AuthNotifier extends _$AuthNotifier {
   late final SendOtpUsecase _sendOtpUsecase;
   late final VerifyOtpUsecase _verifyOtpUsecase;
   late final RegisterSellerUsecase _registerSellerUsecase;
+  late final TokenService _tokenService;
 
   @override
   FutureOr<void> build() {
     _sendOtpUsecase = getIt<SendOtpUsecase>();
     _verifyOtpUsecase = getIt<VerifyOtpUsecase>();
     _registerSellerUsecase = getIt<RegisterSellerUsecase>();
+    _tokenService = getIt<TokenService>();
   }
 
   Future<bool> sendOtp(String phone) async {
@@ -72,4 +75,12 @@ class AuthNotifier extends _$AuthNotifier {
       },
     );
   }
+
+  /// Clears all stored tokens and resets provider state.
+  /// Call this on logout — the caller is responsible for navigation to /login.
+  Future<void> logout() async {
+    await _tokenService.clearTokens();
+    state = const AsyncData(null);
+  }
 }
+

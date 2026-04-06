@@ -116,4 +116,27 @@ export class UsersService {
       },
     });
   }
+
+  // ─── App Settings ─────────────────────────────────────────────────────────────
+
+  async getAppSettings() {
+    const [settings, totalActiveCoupons] = await Promise.all([
+      prisma.appSetting.findMany({
+        where: {
+          key: { in: ['subscription_price', 'book_validity_days', 'MAX_COINS_PER_TRANSACTION'] },
+        },
+        select: { key: true, value: true },
+      }),
+      prisma.coupon.count({ where: { status: 'ACTIVE' } }),
+    ]);
+
+    const map = Object.fromEntries(settings.map((s) => [s.key, s.value]));
+
+    return {
+      subscriptionPrice:      parseFloat(map['subscription_price']       ?? '1000'),
+      bookValidityDays:       parseInt(map['book_validity_days']          ?? '30', 10),
+      maxCoinsPerTransaction: parseInt(map['MAX_COINS_PER_TRANSACTION']   ?? '0',  10),
+      totalActiveCoupons,
+    };
+  }
 }

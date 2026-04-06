@@ -1,5 +1,6 @@
 // lib/core/security/qr_token_service.dart
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart';
 import 'package:injectable/injectable.dart';
 import '../config/app_config.dart';
@@ -17,7 +18,9 @@ class QrTokenService {
     // Key must be exactly 32 bytes for AES-256
     final keyBytes = secret.padRight(32, '0').substring(0, 32);
     _key = Key.fromUtf8(keyBytes);
-    _iv  = IV.fromLength(16); // Static IV for deterministic output; rotate per session if needed
+    _iv = IV(
+      Uint8List(16),
+    ); // Explicit all-zero IV — deterministic across both apps
     _encrypter = Encrypter(AES(_key, mode: AESMode.cbc));
   }
 
@@ -27,9 +30,9 @@ class QrTokenService {
     required String subscriptionToken,
   }) {
     final payload = jsonEncode({
-      'uid':  userId,
-      'tok':  subscriptionToken,
-      'iat':  DateTime.now().millisecondsSinceEpoch,
+      'uid': userId,
+      'tok': subscriptionToken,
+      'iat': DateTime.now().millisecondsSinceEpoch,
       'type': 'USER_PROFILE',
     });
     return _encrypter.encrypt(payload, iv: _iv).base64;

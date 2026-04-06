@@ -13,7 +13,6 @@ class PurchaseScreen extends StatefulWidget {
 }
 
 class _PurchaseScreenState extends State<PurchaseScreen> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,16 +27,16 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
             children: [
               const SizedBox(height: 16),
               AppHeader(
-                title: 'The Win',
-                showSearchBar: false, 
+                title: 'Coupon Code',
+                showSearchBar: false,
                 titleStyle: AppTextStyles.dsTitleLg.copyWith(
-                  color: AppColors.dsOnSurface, 
+                  color: AppColors.dsOnSurface,
                   fontWeight: FontWeight.w800,
                   fontSize: 22,
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               // ── Headline ──────────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -46,17 +45,18 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                   children: [
                     RichText(
                       text: TextSpan(
-                        style: AppTextStyles.dsDisplayLg.copyWith(color: AppColors.dsOnSurface, height: 1.1),
+                        style: AppTextStyles.dsDisplayLg.copyWith(
+                            color: AppColors.dsOnSurface, height: 1.1),
                         children: [
-                          const TextSpan(text: 'Get Your '),
+                          const TextSpan(text: 'Your '),
                           TextSpan(
-                            text: 'Surat\n',
+                            text: 'Savings\n',
                             style: TextStyle(
                               color: AppColors.dsPrimary,
                               fontStyle: FontStyle.italic,
                             ),
                           ),
-                          const TextSpan(text: 'Coupon Book'),
+                          const TextSpan(text: 'Starts Here'),
                         ],
                       ),
                     ),
@@ -96,7 +96,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                     children: [
                       // Limited Edition Tag
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: AppColors.dsPrimary.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(100),
@@ -134,7 +135,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
 
                       // Validity Pill
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: AppColors.dsPrimary.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(100),
@@ -142,7 +144,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.calendar_today_rounded, color: AppColors.dsPrimary, size: 14),
+                            const Icon(Icons.calendar_today_rounded,
+                                color: AppColors.dsPrimary, size: 14),
                             const SizedBox(width: 8),
                             Text(
                               'VALID FOR 50 DAYS',
@@ -173,7 +176,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                           Expanded(
                             child: _FeatureBox(
                               icon: Icons.payments_rounded,
-                              iconBg: AppColors.dsSecondaryMint.withOpacity(0.15),
+                              iconBg:
+                                  AppColors.dsSecondaryMint.withOpacity(0.15),
                               iconColor: AppColors.dsSecondaryMint,
                               title: '₹5000+',
                               subtitle: 'SAVINGS',
@@ -187,10 +191,15 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _CategoryIcon(icon: Icons.restaurant_rounded, label: 'FOOD'),
-                          _CategoryIcon(icon: Icons.content_cut_rounded, label: 'SALON'),
-                          _CategoryIcon(icon: Icons.shopping_bag_rounded, label: 'RETAIL'),
-                          _CategoryIcon(icon: Icons.local_activity_rounded, label: 'FUN'),
+                          _CategoryIcon(
+                              icon: Icons.restaurant_rounded, label: 'FOOD'),
+                          _CategoryIcon(
+                              icon: Icons.content_cut_rounded, label: 'SALON'),
+                          _CategoryIcon(
+                              icon: Icons.shopping_bag_rounded,
+                              label: 'RETAIL'),
+                          _CategoryIcon(
+                              icon: Icons.local_activity_rounded, label: 'FUN'),
                         ],
                       ),
                       const SizedBox(height: 32),
@@ -201,7 +210,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                         decoration: BoxDecoration(
                           color: AppColors.dsSurfaceContainerLowest,
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: AppColors.dsPrimary.withOpacity(0.1)),
+                          border: Border.all(
+                              color: AppColors.dsPrimary.withOpacity(0.1)),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.dsPrimary.withOpacity(0.03),
@@ -219,34 +229,42 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.dsOnSurface.withOpacity(0.08),
+                                    color:
+                                        AppColors.dsOnSurface.withOpacity(0.08),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
                                 ],
                               ),
-                              child: const Icon(Icons.stars_rounded, color: AppColors.dsPrimary, size: 24),
+                              child: const Icon(Icons.stars_rounded,
+                                  color: AppColors.dsPrimary, size: 24),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Exclusive Welcome Gift', style: AppTextStyles.dsTitleLg.copyWith(fontSize: 15)),
+                                  Text('Exclusive Welcome Gift',
+                                      style: AppTextStyles.dsTitleLg
+                                          .copyWith(fontSize: 15)),
                                   const SizedBox(height: 4),
                                   RichText(
                                     text: TextSpan(
                                       style: AppTextStyles.dsLabelMd.copyWith(
-                                        color: AppColors.dsOnSurface.withOpacity(0.6),
+                                        color: AppColors.dsOnSurface
+                                            .withOpacity(0.6),
                                         fontSize: 10,
                                       ),
                                       children: [
                                         const TextSpan(text: 'Earn '),
                                         TextSpan(
                                           text: '50 Coins',
-                                          style: TextStyle(color: AppColors.dsPrimary, fontWeight: FontWeight.w700),
+                                          style: TextStyle(
+                                              color: AppColors.dsPrimary,
+                                              fontWeight: FontWeight.w700),
                                         ),
-                                        const TextSpan(text: ' (₹50 value) instantly.'),
+                                        const TextSpan(
+                                            text: ' (₹50 value) instantly.'),
                                       ],
                                     ),
                                   ),
@@ -263,7 +281,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                         width: double.infinity,
                         height: 64, // Large prominent button
                         decoration: BoxDecoration(
-                          color: AppColors.dsOnSurface, // Very dark purple/black color
+                          color: AppColors
+                              .dsOnSurface, // Very dark purple/black color
                           borderRadius: BorderRadius.circular(100),
                           boxShadow: [
                             BoxShadow(
@@ -278,10 +297,12 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                           children: [
                             Text(
                               'Activate Now',
-                              style: AppTextStyles.dsButton.copyWith(fontSize: 18),
+                              style:
+                                  AppTextStyles.dsButton.copyWith(fontSize: 18),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
+                            const Icon(Icons.arrow_forward_rounded,
+                                color: Colors.white, size: 20),
                           ],
                         ),
                       ),
@@ -301,9 +322,15 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(width: 24, height: 16, color: AppColors.dsOnSurface.withOpacity(0.1)),
+                          Container(
+                              width: 24,
+                              height: 16,
+                              color: AppColors.dsOnSurface.withOpacity(0.1)),
                           const SizedBox(width: 8),
-                          Container(width: 24, height: 16, color: AppColors.dsOnSurface.withOpacity(0.1)),
+                          Container(
+                              width: 24,
+                              height: 16,
+                              color: AppColors.dsOnSurface.withOpacity(0.1)),
                         ],
                       )
                     ],
@@ -311,16 +338,15 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                 ),
               ),
 
-              const SizedBox(height: 140), // Buffer for the glassmorphic bottom nav
+              const SizedBox(
+                  height: 140), // Buffer for the glassmorphic bottom nav
             ],
           ),
         ),
       ),
-
     );
   }
 }
-
 
 class _FeatureBox extends StatelessWidget {
   final IconData icon;
@@ -366,7 +392,9 @@ class _FeatureBox extends StatelessWidget {
           const SizedBox(height: 16),
           Text(title, style: AppTextStyles.dsTitleLg.copyWith(fontSize: 22)),
           const SizedBox(height: 4),
-          Text(subtitle, style: AppTextStyles.dsLabelMd.copyWith(color: AppColors.dsOnSurface.withOpacity(0.5))),
+          Text(subtitle,
+              style: AppTextStyles.dsLabelMd
+                  .copyWith(color: AppColors.dsOnSurface.withOpacity(0.5))),
         ],
       ),
     );
@@ -385,10 +413,10 @@ class _CategoryIcon extends StatelessWidget {
       children: [
         Icon(icon, color: AppColors.dsOnSurface.withOpacity(0.5), size: 24),
         const SizedBox(height: 8),
-        Text(label, style: AppTextStyles.dsLabelMd.copyWith(color: AppColors.dsOnSurface.withOpacity(0.5), fontSize: 9)),
+        Text(label,
+            style: AppTextStyles.dsLabelMd.copyWith(
+                color: AppColors.dsOnSurface.withOpacity(0.5), fontSize: 9)),
       ],
     );
   }
 }
-
-

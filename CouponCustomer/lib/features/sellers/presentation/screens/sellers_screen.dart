@@ -5,9 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/providers/subscription_provider.dart';
 import '../../../../core/widgets/shimmer_loader.dart';
 import '../../../../core/widgets/seller_card.dart';
-
+import '../../../../core/widgets/subscribe_gate_screen.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 
 // ─── Categories ───────────────────────────────────────────────────────────────
@@ -60,6 +61,13 @@ class _SellersScreenState extends ConsumerState<SellersScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
+    // ── Subscription gate ────────────────────────────────────────────────
+    final isSubscribed = ref.watch(isSubscribedProvider);
+    if (!isSubscribed) {
+      return const SubscribeGateScreen(featureName: 'Sellers');
+    }
+
     final sellersAsync = ref.watch(filteredSellersProvider);
     final selectedCategory = ref.watch(selectedSellerCategoryProvider);
 
