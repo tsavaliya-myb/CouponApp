@@ -15,6 +15,7 @@ class NearbySellerModel with _$NearbySellerModel {
     required double lat,
     required double lng,
     double? distanceKm,
+    String? logoUrl,
   }) = _NearbySellerModel;
 
   factory NearbySellerModel.fromJson(Map<String, dynamic> json) =>
@@ -30,5 +31,6 @@ extension NearbySellerModelX on NearbySellerModel {
         distanceKm: distanceKm,
         lat: lat,
         lng: lng,
+        logoUrl: logoUrl,
       );
 }

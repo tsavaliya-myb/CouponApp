@@ -39,6 +39,9 @@ _$SellerProfileModelImpl _$$SellerProfileModelImplFromJson(
   updatedAt: json['updatedAt'] as String,
   city: SellerCityModel.fromJson(json['city'] as Map<String, dynamic>),
   area: SellerAreaModel.fromJson(json['area'] as Map<String, dynamic>),
+  media: json['media'] == null
+      ? null
+      : SellerMediaModel.fromJson(json['media'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$$SellerProfileModelImplToJson(
@@ -63,6 +66,7 @@ Map<String, dynamic> _$$SellerProfileModelImplToJson(
   'updatedAt': instance.updatedAt,
   'city': instance.city,
   'area': instance.area,
+  'media': instance.media,
 };
 
 _$SellerCityModelImpl _$$SellerCityModelImplFromJson(
@@ -86,3 +90,25 @@ _$SellerAreaModelImpl _$$SellerAreaModelImplFromJson(
 Map<String, dynamic> _$$SellerAreaModelImplToJson(
   _$SellerAreaModelImpl instance,
 ) => <String, dynamic>{'id': instance.id, 'name': instance.name};
+
+_$SellerMediaModelImpl _$$SellerMediaModelImplFromJson(
+  Map<String, dynamic> json,
+) => _$SellerMediaModelImpl(
+  id: json['id'] as String,
+  sellerId: json['sellerId'] as String,
+  logoUrl: json['logoUrl'] as String?,
+  photoUrl1: json['photoUrl1'] as String?,
+  photoUrl2: json['photoUrl2'] as String?,
+  videoUrl: json['videoUrl'] as String?,
+);
+
+Map<String, dynamic> _$$SellerMediaModelImplToJson(
+  _$SellerMediaModelImpl instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'sellerId': instance.sellerId,
+  'logoUrl': instance.logoUrl,
+  'photoUrl1': instance.photoUrl1,
+  'photoUrl2': instance.photoUrl2,
+  'videoUrl': instance.videoUrl,
+};

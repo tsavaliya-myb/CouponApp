@@ -244,6 +244,7 @@ mixin _$SellerProfileModel {
   String get updatedAt => throw _privateConstructorUsedError;
   SellerCityModel get city => throw _privateConstructorUsedError;
   SellerAreaModel get area => throw _privateConstructorUsedError;
+  SellerMediaModel? get media => throw _privateConstructorUsedError;
 
   /// Serializes this SellerProfileModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -282,10 +283,12 @@ abstract class $SellerProfileModelCopyWith<$Res> {
     String updatedAt,
     SellerCityModel city,
     SellerAreaModel area,
+    SellerMediaModel? media,
   });
 
   $SellerCityModelCopyWith<$Res> get city;
   $SellerAreaModelCopyWith<$Res> get area;
+  $SellerMediaModelCopyWith<$Res>? get media;
 }
 
 /// @nodoc
@@ -322,6 +325,7 @@ class _$SellerProfileModelCopyWithImpl<$Res, $Val extends SellerProfileModel>
     Object? updatedAt = null,
     Object? city = null,
     Object? area = null,
+    Object? media = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -401,6 +405,10 @@ class _$SellerProfileModelCopyWithImpl<$Res, $Val extends SellerProfileModel>
                 ? _value.area
                 : area // ignore: cast_nullable_to_non_nullable
                       as SellerAreaModel,
+            media: freezed == media
+                ? _value.media
+                : media // ignore: cast_nullable_to_non_nullable
+                      as SellerMediaModel?,
           )
           as $Val,
     );
@@ -423,6 +431,20 @@ class _$SellerProfileModelCopyWithImpl<$Res, $Val extends SellerProfileModel>
   $SellerAreaModelCopyWith<$Res> get area {
     return $SellerAreaModelCopyWith<$Res>(_value.area, (value) {
       return _then(_value.copyWith(area: value) as $Val);
+    });
+  }
+
+  /// Create a copy of SellerProfileModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SellerMediaModelCopyWith<$Res>? get media {
+    if (_value.media == null) {
+      return null;
+    }
+
+    return $SellerMediaModelCopyWith<$Res>(_value.media!, (value) {
+      return _then(_value.copyWith(media: value) as $Val);
     });
   }
 }
@@ -456,12 +478,15 @@ abstract class _$$SellerProfileModelImplCopyWith<$Res>
     String updatedAt,
     SellerCityModel city,
     SellerAreaModel area,
+    SellerMediaModel? media,
   });
 
   @override
   $SellerCityModelCopyWith<$Res> get city;
   @override
   $SellerAreaModelCopyWith<$Res> get area;
+  @override
+  $SellerMediaModelCopyWith<$Res>? get media;
 }
 
 /// @nodoc
@@ -497,6 +522,7 @@ class __$$SellerProfileModelImplCopyWithImpl<$Res>
     Object? updatedAt = null,
     Object? city = null,
     Object? area = null,
+    Object? media = freezed,
   }) {
     return _then(
       _$SellerProfileModelImpl(
@@ -576,6 +602,10 @@ class __$$SellerProfileModelImplCopyWithImpl<$Res>
             ? _value.area
             : area // ignore: cast_nullable_to_non_nullable
                   as SellerAreaModel,
+        media: freezed == media
+            ? _value.media
+            : media // ignore: cast_nullable_to_non_nullable
+                  as SellerMediaModel?,
       ),
     );
   }
@@ -604,6 +634,7 @@ class _$SellerProfileModelImpl implements _SellerProfileModel {
     required this.updatedAt,
     required this.city,
     required this.area,
+    this.media,
   });
 
   factory _$SellerProfileModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -647,10 +678,12 @@ class _$SellerProfileModelImpl implements _SellerProfileModel {
   final SellerCityModel city;
   @override
   final SellerAreaModel area;
+  @override
+  final SellerMediaModel? media;
 
   @override
   String toString() {
-    return 'SellerProfileModel(id: $id, businessName: $businessName, category: $category, cityId: $cityId, areaId: $areaId, address: $address, phone: $phone, email: $email, upiId: $upiId, latitude: $latitude, longitude: $longitude, operatingHours: $operatingHours, commissionPct: $commissionPct, status: $status, onesignalPlayerId: $onesignalPlayerId, createdAt: $createdAt, updatedAt: $updatedAt, city: $city, area: $area)';
+    return 'SellerProfileModel(id: $id, businessName: $businessName, category: $category, cityId: $cityId, areaId: $areaId, address: $address, phone: $phone, email: $email, upiId: $upiId, latitude: $latitude, longitude: $longitude, operatingHours: $operatingHours, commissionPct: $commissionPct, status: $status, onesignalPlayerId: $onesignalPlayerId, createdAt: $createdAt, updatedAt: $updatedAt, city: $city, area: $area, media: $media)';
   }
 
   @override
@@ -685,7 +718,8 @@ class _$SellerProfileModelImpl implements _SellerProfileModel {
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
             (identical(other.city, city) || other.city == city) &&
-            (identical(other.area, area) || other.area == area));
+            (identical(other.area, area) || other.area == area) &&
+            (identical(other.media, media) || other.media == media));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -711,6 +745,7 @@ class _$SellerProfileModelImpl implements _SellerProfileModel {
     updatedAt,
     city,
     area,
+    media,
   ]);
 
   /// Create a copy of SellerProfileModel
@@ -751,6 +786,7 @@ abstract class _SellerProfileModel implements SellerProfileModel {
     required final String updatedAt,
     required final SellerCityModel city,
     required final SellerAreaModel area,
+    final SellerMediaModel? media,
   }) = _$SellerProfileModelImpl;
 
   factory _SellerProfileModel.fromJson(Map<String, dynamic> json) =
@@ -794,6 +830,8 @@ abstract class _SellerProfileModel implements SellerProfileModel {
   SellerCityModel get city;
   @override
   SellerAreaModel get area;
+  @override
+  SellerMediaModel? get media;
 
   /// Create a copy of SellerProfileModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1142,5 +1180,283 @@ abstract class _SellerAreaModel implements SellerAreaModel {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SellerAreaModelImplCopyWith<_$SellerAreaModelImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+SellerMediaModel _$SellerMediaModelFromJson(Map<String, dynamic> json) {
+  return _SellerMediaModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SellerMediaModel {
+  String get id => throw _privateConstructorUsedError;
+  String get sellerId => throw _privateConstructorUsedError;
+  String? get logoUrl => throw _privateConstructorUsedError;
+  String? get photoUrl1 => throw _privateConstructorUsedError;
+  String? get photoUrl2 => throw _privateConstructorUsedError;
+  String? get videoUrl => throw _privateConstructorUsedError;
+
+  /// Serializes this SellerMediaModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of SellerMediaModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SellerMediaModelCopyWith<SellerMediaModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SellerMediaModelCopyWith<$Res> {
+  factory $SellerMediaModelCopyWith(
+    SellerMediaModel value,
+    $Res Function(SellerMediaModel) then,
+  ) = _$SellerMediaModelCopyWithImpl<$Res, SellerMediaModel>;
+  @useResult
+  $Res call({
+    String id,
+    String sellerId,
+    String? logoUrl,
+    String? photoUrl1,
+    String? photoUrl2,
+    String? videoUrl,
+  });
+}
+
+/// @nodoc
+class _$SellerMediaModelCopyWithImpl<$Res, $Val extends SellerMediaModel>
+    implements $SellerMediaModelCopyWith<$Res> {
+  _$SellerMediaModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SellerMediaModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? sellerId = null,
+    Object? logoUrl = freezed,
+    Object? photoUrl1 = freezed,
+    Object? photoUrl2 = freezed,
+    Object? videoUrl = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            sellerId: null == sellerId
+                ? _value.sellerId
+                : sellerId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            logoUrl: freezed == logoUrl
+                ? _value.logoUrl
+                : logoUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            photoUrl1: freezed == photoUrl1
+                ? _value.photoUrl1
+                : photoUrl1 // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            photoUrl2: freezed == photoUrl2
+                ? _value.photoUrl2
+                : photoUrl2 // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            videoUrl: freezed == videoUrl
+                ? _value.videoUrl
+                : videoUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$SellerMediaModelImplCopyWith<$Res>
+    implements $SellerMediaModelCopyWith<$Res> {
+  factory _$$SellerMediaModelImplCopyWith(
+    _$SellerMediaModelImpl value,
+    $Res Function(_$SellerMediaModelImpl) then,
+  ) = __$$SellerMediaModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String id,
+    String sellerId,
+    String? logoUrl,
+    String? photoUrl1,
+    String? photoUrl2,
+    String? videoUrl,
+  });
+}
+
+/// @nodoc
+class __$$SellerMediaModelImplCopyWithImpl<$Res>
+    extends _$SellerMediaModelCopyWithImpl<$Res, _$SellerMediaModelImpl>
+    implements _$$SellerMediaModelImplCopyWith<$Res> {
+  __$$SellerMediaModelImplCopyWithImpl(
+    _$SellerMediaModelImpl _value,
+    $Res Function(_$SellerMediaModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of SellerMediaModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? sellerId = null,
+    Object? logoUrl = freezed,
+    Object? photoUrl1 = freezed,
+    Object? photoUrl2 = freezed,
+    Object? videoUrl = freezed,
+  }) {
+    return _then(
+      _$SellerMediaModelImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        sellerId: null == sellerId
+            ? _value.sellerId
+            : sellerId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        logoUrl: freezed == logoUrl
+            ? _value.logoUrl
+            : logoUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        photoUrl1: freezed == photoUrl1
+            ? _value.photoUrl1
+            : photoUrl1 // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        photoUrl2: freezed == photoUrl2
+            ? _value.photoUrl2
+            : photoUrl2 // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        videoUrl: freezed == videoUrl
+            ? _value.videoUrl
+            : videoUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SellerMediaModelImpl implements _SellerMediaModel {
+  const _$SellerMediaModelImpl({
+    required this.id,
+    required this.sellerId,
+    this.logoUrl,
+    this.photoUrl1,
+    this.photoUrl2,
+    this.videoUrl,
+  });
+
+  factory _$SellerMediaModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SellerMediaModelImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String sellerId;
+  @override
+  final String? logoUrl;
+  @override
+  final String? photoUrl1;
+  @override
+  final String? photoUrl2;
+  @override
+  final String? videoUrl;
+
+  @override
+  String toString() {
+    return 'SellerMediaModel(id: $id, sellerId: $sellerId, logoUrl: $logoUrl, photoUrl1: $photoUrl1, photoUrl2: $photoUrl2, videoUrl: $videoUrl)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SellerMediaModelImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.sellerId, sellerId) ||
+                other.sellerId == sellerId) &&
+            (identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl) &&
+            (identical(other.photoUrl1, photoUrl1) ||
+                other.photoUrl1 == photoUrl1) &&
+            (identical(other.photoUrl2, photoUrl2) ||
+                other.photoUrl2 == photoUrl2) &&
+            (identical(other.videoUrl, videoUrl) ||
+                other.videoUrl == videoUrl));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    sellerId,
+    logoUrl,
+    photoUrl1,
+    photoUrl2,
+    videoUrl,
+  );
+
+  /// Create a copy of SellerMediaModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SellerMediaModelImplCopyWith<_$SellerMediaModelImpl> get copyWith =>
+      __$$SellerMediaModelImplCopyWithImpl<_$SellerMediaModelImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SellerMediaModelImplToJson(this);
+  }
+}
+
+abstract class _SellerMediaModel implements SellerMediaModel {
+  const factory _SellerMediaModel({
+    required final String id,
+    required final String sellerId,
+    final String? logoUrl,
+    final String? photoUrl1,
+    final String? photoUrl2,
+    final String? videoUrl,
+  }) = _$SellerMediaModelImpl;
+
+  factory _SellerMediaModel.fromJson(Map<String, dynamic> json) =
+      _$SellerMediaModelImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get sellerId;
+  @override
+  String? get logoUrl;
+  @override
+  String? get photoUrl1;
+  @override
+  String? get photoUrl2;
+  @override
+  String? get videoUrl;
+
+  /// Create a copy of SellerMediaModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SellerMediaModelImplCopyWith<_$SellerMediaModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

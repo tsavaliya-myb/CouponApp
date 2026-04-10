@@ -9,6 +9,7 @@ class NearbySellerEntity extends Equatable {
   final double lat;
   final double lng;
   final double? distanceKm;
+  final String? logoUrl;
 
   const NearbySellerEntity({
     required this.id,
@@ -18,6 +19,7 @@ class NearbySellerEntity extends Equatable {
     required this.lat,
     required this.lng,
     this.distanceKm,
+    this.logoUrl,
   });
 
   NearbySellerEntity copyWith({
@@ -28,6 +30,7 @@ class NearbySellerEntity extends Equatable {
     double? lat,
     double? lng,
     double? distanceKm,
+    String? logoUrl,
   }) {
     return NearbySellerEntity(
       id: id ?? this.id,
@@ -37,9 +40,10 @@ class NearbySellerEntity extends Equatable {
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
       distanceKm: distanceKm ?? this.distanceKm,
+      logoUrl: logoUrl ?? this.logoUrl,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, category, area, lat, lng, distanceKm];
+  List<Object?> get props => [id, name, category, area, lat, lng, distanceKm, logoUrl];
 }

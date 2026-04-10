@@ -52,8 +52,11 @@ class _SellersScreenState extends ConsumerState<SellersScreen>
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    
+    if (maxScroll > 0 && currentScroll >= maxScroll - 200) {
       ref.read(nearbySellersProvider.notifier).loadMore();
     }
   }

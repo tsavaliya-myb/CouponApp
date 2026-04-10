@@ -12,6 +12,10 @@ class SellerProfileEntity extends Equatable {
   final String? upiId;
   final double? latitude;
   final double? longitude;
+  final String? logoUrl;
+  final String? photoUrl1;
+  final String? photoUrl2;
+  final String? videoUrl;
   final double commissionPct;
   final String status;
   final String createdAt;
@@ -30,6 +34,10 @@ class SellerProfileEntity extends Equatable {
     this.upiId,
     this.latitude,
     this.longitude,
+    this.logoUrl,
+    this.photoUrl1,
+    this.photoUrl2,
+    this.videoUrl,
     required this.commissionPct,
     required this.status,
     required this.createdAt,
@@ -50,5 +58,14 @@ class SellerProfileEntity extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, businessName, phone, status];
+  List<Object?> get props => [
+        id,
+        businessName,
+        phone,
+        status,
+        logoUrl,
+        photoUrl1,
+        photoUrl2,
+        videoUrl,
+      ];
 }

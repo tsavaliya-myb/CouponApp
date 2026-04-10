@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import '../../../../core/network/api_client.dart';
 import '../../domain/repositories/profile_repository.dart';
@@ -8,6 +9,12 @@ abstract class ProfileRemoteDatasource {
   Future<SellerProfileModel> patchSellerProfile(
     UpdateSellerProfileParams params,
   );
+  Future<void> uploadSellerLogo(String imagePath);
+  Future<void> uploadSellerMedia({
+    String? photo1Path,
+    String? photo2Path,
+    String? videoPath,
+  });
 }
 
 @Injectable(as: ProfileRemoteDatasource)
@@ -40,5 +47,47 @@ class ProfileRemoteDatasourceImpl implements ProfileRemoteDatasource {
       Map<String, dynamic>.from(response.data as Map),
     );
     return responseModel.data;
+  }
+
+  @override
+  Future<void> uploadSellerLogo(String imagePath) async {
+    final fileName = imagePath.split('/').last;
+    final formData = FormData.fromMap({
+      'logo': await MultipartFile.fromFile(imagePath, filename: fileName),
+    });
+
+    await _apiClient.client.post(
+      '/sellers/me/logo',
+      data: formData,
+    );
+  }
+
+  @override
+  Future<void> uploadSellerMedia({
+    String? photo1Path,
+    String? photo2Path,
+    String? videoPath,
+  }) async {
+    final Map<String, dynamic> map = {};
+
+    if (photo1Path != null) {
+      map['photo1'] = await MultipartFile.fromFile(photo1Path,
+          filename: photo1Path.split('/').last);
+    }
+    if (photo2Path != null) {
+      map['photo2'] = await MultipartFile.fromFile(photo2Path,
+          filename: photo2Path.split('/').last);
+    }
+    if (videoPath != null) {
+      map['video'] = await MultipartFile.fromFile(videoPath,
+          filename: videoPath.split('/').last);
+    }
+
+    final formData = FormData.fromMap(map);
+
+    await _apiClient.client.post(
+      '/sellers/me/media',
+      data: formData,
+    );
   }
 }

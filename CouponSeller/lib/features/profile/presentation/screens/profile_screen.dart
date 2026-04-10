@@ -1,14 +1,18 @@
-// lib/features/profile/presentation/screens/profile_screen.dart
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/seller_profile_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../../domain/usecases/upload_seller_media_usecase.dart';
 import '../providers/profile_provider.dart';
 import 'location_picker_screen.dart';
 
@@ -193,6 +197,10 @@ class _ProfileContent extends ConsumerWidget {
           _LocationCard(profile: profile),
           const SizedBox(height: AppSpacing.xl),
 
+          // Content Media
+          _MediaCard(profile: profile),
+          const SizedBox(height: AppSpacing.xl),
+
           // Commission
           _CommissionCard(commissionPct: profile.commissionPct),
           const SizedBox(height: AppSpacing.xl),
@@ -234,39 +242,101 @@ class _ProfileContent extends ConsumerWidget {
 
 // ─── Profile header ───────────────────────────────────────────────────────────
 
-class _ProfileHeader extends StatelessWidget {
+class _ProfileHeader extends ConsumerWidget {
   const _ProfileHeader({required this.profile});
   final SellerProfileEntity profile;
 
+  Future<void> _pickAndUploadLogo(BuildContext context, WidgetRef ref) async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+    
+    final length = await image.length();
+    if (length > 2 * 1024 * 1024) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Logo must not be greater than 2 MB'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Uploading logo...'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+    
+    final error = await ref.read(profileNotifierProvider.notifier).uploadLogo(image.path);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Logo updated successfully'),
+            backgroundColor: Color(0xFF16A34A),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
-        Stack(
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: const Color(0xFF14291F),
-                borderRadius: BorderRadius.circular(30),
+        GestureDetector(
+          onTap: () => _pickAndUploadLogo(context, ref),
+          child: Stack(
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF14291F),
+                  borderRadius: BorderRadius.circular(30),
+                  image: profile.logoUrl != null
+                      ? DecorationImage(
+                          image: CachedNetworkImageProvider(profile.logoUrl!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: profile.logoUrl == null
+                    ? const Center(
+                        child: Icon(Icons.storefront_rounded,
+                            color: Color(0xFFFFA726), size: 40))
+                    : null,
               ),
-              padding: const EdgeInsets.all(24),
-              child: const Icon(Icons.storefront_rounded,
-                  color: Color(0xFFFFA726), size: 40),
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                    color: AppColors.primary, shape: BoxShape.circle),
-                child: const Icon(Icons.edit_rounded,
-                    color: Colors.white, size: 16),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                      color: AppColors.primary, shape: BoxShape.circle),
+                  child: const Icon(Icons.edit_rounded,
+                      color: Colors.white, size: 16),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 24),
         Text(
@@ -955,6 +1025,445 @@ class _SettingsItem extends StatelessWidget {
         trailing: const Icon(Icons.arrow_forward_ios_rounded,
             size: 14, color: AppColors.textSecondary),
         onTap: () {},
+      ),
+    );
+  }
+}
+
+// ─── Media card ──────────────────────────────────────────────────────────────
+
+class _MediaCard extends ConsumerStatefulWidget {
+  const _MediaCard({required this.profile});
+  final SellerProfileEntity profile;
+
+  @override
+  ConsumerState<_MediaCard> createState() => _MediaCardState();
+}
+
+class _MediaCardState extends ConsumerState<_MediaCard> {
+  Future<void> _pickAndUploadImage(int index) async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(source: ImageSource.gallery);
+    if (file == null) return;
+
+    final length = await file.length();
+    if (length > 3 * 1024 * 1024) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Photo must be less than 3 MB'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.error));
+      }
+      return;
+    }
+
+    final decoded = await decodeImageFromList(await file.readAsBytes());
+    if (decoded.width < decoded.height) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Photo must be horizontal (landscape)'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.error));
+      }
+      return;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Uploading photo...'), behavior: SnackBarBehavior.floating,));
+    }
+
+    final params = index == 1
+        ? UploadSellerMediaParams(photo1Path: file.path)
+        : UploadSellerMediaParams(photo2Path: file.path);
+
+    final error = await ref.read(profileNotifierProvider.notifier).uploadMedia(params);
+    if (mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(error), behavior: SnackBarBehavior.floating, backgroundColor: AppColors.error));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Photo updated successfully'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Color(0xFF16A34A)));
+      }
+    }
+  }
+
+  Future<void> _pickAndUploadVideo() async {
+    final picker = ImagePicker();
+    final file = await picker.pickVideo(
+        source: ImageSource.gallery, maxDuration: const Duration(seconds: 30));
+    if (file == null) return;
+
+    final length = await file.length();
+    if (length > 10 * 1024 * 1024) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Video must be less than 10 MB'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.error));
+      }
+      return;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Checking video format...'), behavior: SnackBarBehavior.floating,));
+    }
+
+    try {
+      final controller = VideoPlayerController.file(File(file.path));
+      await controller.initialize();
+      final size = controller.value.size;
+      final duration = controller.value.duration;
+      await controller.dispose();
+
+      if (duration.inSeconds > 30) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Video must be less than 30 seconds'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: AppColors.error));
+        }
+        return;
+      }
+      if (size.width < size.height) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Video must be horizontal (landscape)'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: AppColors.error));
+        }
+        return;
+      }
+    } catch (_) {
+      // Ignored if video player fails to load formatting
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Uploading video...'), behavior: SnackBarBehavior.floating,));
+    }
+
+    final params = UploadSellerMediaParams(videoPath: file.path);
+    final error = await ref.read(profileNotifierProvider.notifier).uploadMedia(params);
+    if (mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(error), behavior: SnackBarBehavior.floating, backgroundColor: AppColors.error));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Video updated successfully'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Color(0xFF16A34A)));
+      }
+    }
+  }
+
+  Widget _buildMediaItem(String label, String? url, IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+          image: url != null
+              ? DecorationImage(
+                  image: CachedNetworkImageProvider(url),
+                  fit: BoxFit.cover,
+                )
+              : null,
+        ),
+        child: url == null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: AppColors.textSecondary.withOpacity(0.5), size: 32),
+                    const SizedBox(height: 8),
+                    Text(label,
+                        style: AppTextStyles.labelSM
+                            .copyWith(color: AppColors.textSecondary)),
+                  ],
+                ),
+              )
+            : Align(
+                alignment: Alignment.bottomRight,
+                child: Container(
+                  margin: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(6),
+                  decoration: const BoxDecoration(
+                      color: AppColors.surface, shape: BoxShape.circle),
+                  child: const Icon(Icons.edit_rounded,
+                      color: AppColors.primary, size: 14),
+                ),
+              ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.xxxl),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.onSurface.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.perm_media_outlined,
+                  color: AppColors.primary, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                'Store & Content Media',
+                style: AppTextStyles.headlineSM.copyWith(fontSize: 18),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Upload horizontal format only. Max size: 3MB (Photo), 10MB (Video up to 30s).',
+            style: AppTextStyles.bodySM.copyWith(color: AppColors.textSecondary, height: 1.4),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMediaItem(
+                  'Photo 1',
+                  widget.profile.photoUrl1,
+                  Icons.add_photo_alternate_outlined,
+                  () => _pickAndUploadImage(1),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildMediaItem(
+                  'Photo 2',
+                  widget.profile.photoUrl2,
+                  Icons.add_photo_alternate_outlined,
+                  () => _pickAndUploadImage(2),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (widget.profile.videoUrl != null)
+            _VideoThumbnailWidget(
+              videoUrl: widget.profile.videoUrl!,
+              onEditTap: _pickAndUploadVideo,
+            )
+          else
+            _buildMediaItem(
+              'Video',
+              null,
+              Icons.video_call_outlined,
+              _pickAndUploadVideo,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VideoThumbnailWidget extends StatefulWidget {
+  final String videoUrl;
+  final VoidCallback onEditTap;
+
+  const _VideoThumbnailWidget({required this.videoUrl, required this.onEditTap});
+
+  @override
+  State<_VideoThumbnailWidget> createState() => _VideoThumbnailWidgetState();
+}
+
+class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _initialized = true;
+          });
+          // Ensuring the first frame is visible
+          _controller.seekTo(Duration.zero);
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 120, // Taller horizontally for video
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (_initialized)
+              FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(
+                  width: _controller.value.size.width,
+                  height: _controller.value.size.height,
+                  child: VideoPlayer(_controller),
+                ),
+              )
+            else
+              Center(
+                child: Icon(Icons.video_call_outlined, color: AppColors.textSecondary.withOpacity(0.5), size: 32),
+              ),
+            // Play Button Area (Full cover except the edit button)
+            if (_initialized)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => _VideoPlayerDialog(videoUrl: widget.videoUrl),
+                    );
+                  },
+                  child: Container(
+                    color: Colors.black.withOpacity(0.3), // Dark overlay
+                    child: const Center(
+                      child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 42),
+                    ),
+                  ),
+                ),
+              ),
+            // Edit Button Area
+            Align(
+              alignment: Alignment.bottomRight,
+              child: GestureDetector(
+                onTap: widget.onEditTap,
+                child: Container(
+                  margin: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                      color: AppColors.surface, shape: BoxShape.circle),
+                  child: const Icon(Icons.edit_rounded,
+                      color: AppColors.primary, size: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VideoPlayerDialog extends StatefulWidget {
+  final String videoUrl;
+  const _VideoPlayerDialog({required this.videoUrl});
+
+  @override
+  State<_VideoPlayerDialog> createState() => _VideoPlayerDialogState();
+}
+
+class _VideoPlayerDialogState extends State<_VideoPlayerDialog> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _initialized = true;
+          });
+          _controller.play();
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.all(16),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (_initialized)
+            AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _controller.value.isPlaying
+                        ? _controller.pause()
+                        : _controller.play();
+                  });
+                },
+                child: VideoPlayer(_controller),
+              ),
+            )
+          else
+            const CircularProgressIndicator(color: Colors.white),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white, size: 30),
+              style: IconButton.styleFrom(backgroundColor: Colors.black45),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          if (_initialized && !_controller.value.isPlaying)
+            IgnorePointer(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black45,
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(12),
+                child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 48),
+              ),
+            ),
+        ],
       ),
     );
   }

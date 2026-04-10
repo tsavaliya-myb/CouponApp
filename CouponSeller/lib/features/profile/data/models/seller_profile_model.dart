@@ -37,6 +37,7 @@ class SellerProfileModel with _$SellerProfileModel {
     required String updatedAt,
     required SellerCityModel city,
     required SellerAreaModel area,
+    SellerMediaModel? media,
   }) = _SellerProfileModel;
 
   factory SellerProfileModel.fromJson(Map<String, dynamic> json) =>
@@ -65,6 +66,21 @@ class SellerAreaModel with _$SellerAreaModel {
       _$SellerAreaModelFromJson(json);
 }
 
+@freezed
+class SellerMediaModel with _$SellerMediaModel {
+  const factory SellerMediaModel({
+    required String id,
+    required String sellerId,
+    String? logoUrl,
+    String? photoUrl1,
+    String? photoUrl2,
+    String? videoUrl,
+  }) = _SellerMediaModel;
+
+  factory SellerMediaModel.fromJson(Map<String, dynamic> json) =>
+      _$SellerMediaModelFromJson(json);
+}
+
 extension SellerProfileModelX on SellerProfileModel {
   SellerProfileEntity toEntity() => SellerProfileEntity(
         id: id,
@@ -83,5 +99,9 @@ extension SellerProfileModelX on SellerProfileModel {
         createdAt: createdAt,
         cityName: city.name,
         areaName: area.name,
+        logoUrl: media?.logoUrl,
+        photoUrl1: media?.photoUrl1,
+        photoUrl2: media?.photoUrl2,
+        videoUrl: media?.videoUrl,
       );
 }

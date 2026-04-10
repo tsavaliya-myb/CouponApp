@@ -39,4 +39,36 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return const Left(ServerFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, void>> uploadSellerLogo(String imagePath) async {
+    try {
+      await _datasource.uploadSellerLogo(imagePath);
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(mapDioExceptionToFailure(e));
+    } catch (_) {
+      return const Left(ServerFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> uploadSellerMedia({
+    String? photo1Path,
+    String? photo2Path,
+    String? videoPath,
+  }) async {
+    try {
+      await _datasource.uploadSellerMedia(
+        photo1Path: photo1Path,
+        photo2Path: photo2Path,
+        videoPath: videoPath,
+      );
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(mapDioExceptionToFailure(e));
+    } catch (_) {
+      return const Left(ServerFailure());
+    }
+  }
 }

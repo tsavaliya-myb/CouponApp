@@ -7,6 +7,12 @@ abstract class ProfileRepository {
   Future<Either<Failure, SellerProfileEntity>> updateSellerProfile(
     UpdateSellerProfileParams params,
   );
+  Future<Either<Failure, void>> uploadSellerLogo(String imagePath);
+  Future<Either<Failure, void>> uploadSellerMedia({
+    String? photo1Path,
+    String? photo2Path,
+    String? videoPath,
+  });
 }
 
 class UpdateSellerProfileParams {

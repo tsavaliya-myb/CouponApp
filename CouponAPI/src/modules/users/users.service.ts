@@ -91,11 +91,19 @@ export class UsersService {
       include: {
         city: { select: { id: true, name: true } },
         area: { select: { id: true, name: true } },
+        subscription: { select: { status: true, endDate: true } },
       },
     });
 
     if (!user) throw NotFoundError('User profile not found');
-    return user;
+    
+    return {
+      ...user,
+      subscriptionStatus:
+        user.subscription?.status === 'ACTIVE' && user.subscription.endDate > new Date()
+          ? 'ACTIVE'
+          : 'NONE',
+    };
   }
 
   async updateProfile(userId: string, dto: UpdateUserDto): Promise<ProfileResponse> {

@@ -35,6 +35,7 @@ export const baseUserResponseSchema = z.object({
 export const profileResponseSchema = baseUserResponseSchema.extend({
   city: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
   area: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
+  subscriptionStatus: z.enum(['ACTIVE', 'NONE']).optional(),
 });
 
 export const loginUserResponseSchema = z.object({

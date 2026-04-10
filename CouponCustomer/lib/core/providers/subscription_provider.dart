@@ -19,9 +19,10 @@ final isSubscribedProvider = Provider<bool>((ref) {
   if (kForceMockSubscription) return false;
 
   final profileAsync = ref.watch(profileProvider);
-  return profileAsync.when(
-    data: (user) => user.subscriptionStatus == 'ACTIVE',
-    loading: () => false,
-    error: (_, __) => false,
-  );
+  final user = profileAsync.valueOrNull;
+  if (user != null) {
+    return user.subscriptionStatus.trim().toUpperCase() == 'ACTIVE';
+  }
+  
+  return false;
 });

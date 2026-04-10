@@ -16,6 +16,7 @@ _$NearbySellerModelImpl _$$NearbySellerModelImplFromJson(
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
       distanceKm: (json['distanceKm'] as num?)?.toDouble(),
+      logoUrl: json['logoUrl'] as String?,
     );
 
 Map<String, dynamic> _$$NearbySellerModelImplToJson(
@@ -28,4 +29,5 @@ Map<String, dynamic> _$$NearbySellerModelImplToJson(
       'lat': instance.lat,
       'lng': instance.lng,
       'distanceKm': instance.distanceKm,
+      'logoUrl': instance.logoUrl,
     };

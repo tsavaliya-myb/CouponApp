@@ -27,6 +27,7 @@ mixin _$NearbySellerModel {
   double get lat => throw _privateConstructorUsedError;
   double get lng => throw _privateConstructorUsedError;
   double? get distanceKm => throw _privateConstructorUsedError;
+  String? get logoUrl => throw _privateConstructorUsedError;
 
   /// Serializes this NearbySellerModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,7 +52,8 @@ abstract class $NearbySellerModelCopyWith<$Res> {
       String area,
       double lat,
       double lng,
-      double? distanceKm});
+      double? distanceKm,
+      String? logoUrl});
 }
 
 /// @nodoc
@@ -76,6 +78,7 @@ class _$NearbySellerModelCopyWithImpl<$Res, $Val extends NearbySellerModel>
     Object? lat = null,
     Object? lng = null,
     Object? distanceKm = freezed,
+    Object? logoUrl = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -106,6 +109,10 @@ class _$NearbySellerModelCopyWithImpl<$Res, $Val extends NearbySellerModel>
           ? _value.distanceKm
           : distanceKm // ignore: cast_nullable_to_non_nullable
               as double?,
+      logoUrl: freezed == logoUrl
+          ? _value.logoUrl
+          : logoUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -125,7 +132,8 @@ abstract class _$$NearbySellerModelImplCopyWith<$Res>
       String area,
       double lat,
       double lng,
-      double? distanceKm});
+      double? distanceKm,
+      String? logoUrl});
 }
 
 /// @nodoc
@@ -148,6 +156,7 @@ class __$$NearbySellerModelImplCopyWithImpl<$Res>
     Object? lat = null,
     Object? lng = null,
     Object? distanceKm = freezed,
+    Object? logoUrl = freezed,
   }) {
     return _then(_$NearbySellerModelImpl(
       id: null == id
@@ -178,6 +187,10 @@ class __$$NearbySellerModelImplCopyWithImpl<$Res>
           ? _value.distanceKm
           : distanceKm // ignore: cast_nullable_to_non_nullable
               as double?,
+      logoUrl: freezed == logoUrl
+          ? _value.logoUrl
+          : logoUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -192,7 +205,8 @@ class _$NearbySellerModelImpl implements _NearbySellerModel {
       required this.area,
       required this.lat,
       required this.lng,
-      this.distanceKm});
+      this.distanceKm,
+      this.logoUrl});
 
   factory _$NearbySellerModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$NearbySellerModelImplFromJson(json);
@@ -211,10 +225,12 @@ class _$NearbySellerModelImpl implements _NearbySellerModel {
   final double lng;
   @override
   final double? distanceKm;
+  @override
+  final String? logoUrl;
 
   @override
   String toString() {
-    return 'NearbySellerModel(id: $id, businessName: $businessName, category: $category, area: $area, lat: $lat, lng: $lng, distanceKm: $distanceKm)';
+    return 'NearbySellerModel(id: $id, businessName: $businessName, category: $category, area: $area, lat: $lat, lng: $lng, distanceKm: $distanceKm, logoUrl: $logoUrl)';
   }
 
   @override
@@ -231,13 +247,14 @@ class _$NearbySellerModelImpl implements _NearbySellerModel {
             (identical(other.lat, lat) || other.lat == lat) &&
             (identical(other.lng, lng) || other.lng == lng) &&
             (identical(other.distanceKm, distanceKm) ||
-                other.distanceKm == distanceKm));
+                other.distanceKm == distanceKm) &&
+            (identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, businessName, category, area, lat, lng, distanceKm);
+  int get hashCode => Object.hash(runtimeType, id, businessName, category, area,
+      lat, lng, distanceKm, logoUrl);
 
   /// Create a copy of NearbySellerModel
   /// with the given fields replaced by the non-null parameter values.
@@ -264,7 +281,8 @@ abstract class _NearbySellerModel implements NearbySellerModel {
       required final String area,
       required final double lat,
       required final double lng,
-      final double? distanceKm}) = _$NearbySellerModelImpl;
+      final double? distanceKm,
+      final String? logoUrl}) = _$NearbySellerModelImpl;
 
   factory _NearbySellerModel.fromJson(Map<String, dynamic> json) =
       _$NearbySellerModelImpl.fromJson;
@@ -283,6 +301,8 @@ abstract class _NearbySellerModel implements NearbySellerModel {
   double get lng;
   @override
   double? get distanceKm;
+  @override
+  String? get logoUrl;
 
   /// Create a copy of NearbySellerModel
   /// with the given fields replaced by the non-null parameter values.

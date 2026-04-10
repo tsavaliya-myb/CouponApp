@@ -1,5 +1,6 @@
 // lib/core/widgets/seller_card.dart
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../features/home/domain/entities/nearby_seller_entity.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
@@ -41,7 +42,10 @@ class SellerCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // --- Brand/Category Imagery ---
-                    _SellerBrandArea(category: seller.category),
+                    _SellerBrandArea(
+                      category: seller.category,
+                      logoUrl: seller.logoUrl,
+                    ),
                     
                     const SizedBox(width: 16),
                     
@@ -116,11 +120,51 @@ class SellerCard extends StatelessWidget {
 
 class _SellerBrandArea extends StatelessWidget {
   final String category;
+  final String? logoUrl;
 
-  const _SellerBrandArea({required this.category});
+  const _SellerBrandArea({
+    required this.category,
+    this.logoUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (logoUrl != null && logoUrl!.isNotEmpty) {
+      return Container(
+        width: 90,
+        height: 90,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.dsOnSurface.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(19),
+          child: CachedNetworkImage(
+            imageUrl: logoUrl!,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => Container(
+              color: AppColors.dsSurfaceContainerLow,
+              child: const Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ),
+            errorWidget: (context, url, error) => _buildFallback(),
+          ),
+        ),
+      );
+    }
+
+    return _buildFallback();
+  }
+
+  Widget _buildFallback() {
     final color = CategoryUtils.getBaseColor(category);
     
     return Container(

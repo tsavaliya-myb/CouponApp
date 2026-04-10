@@ -78,17 +78,19 @@ class NearbySellersNotifier
   bool _hasMore = true;
   final List<NearbySellerEntity> _sellers = [];
 
+  bool _isFetchingMore = false;
+
   @override
   Future<List<NearbySellerEntity>> build() async {
+    final category = ref.watch(selectedSellerCategoryProvider);
     _page = 1;
     _hasMore = true;
     _sellers.clear();
-    return _fetch();
+    return _fetch(category);
   }
 
-  Future<List<NearbySellerEntity>> _fetch() async {
+  Future<List<NearbySellerEntity>> _fetch(String category) async {
     final usecase = GetIt.I<GetNearbySellersUsecase>();
-    final category = ref.read(selectedSellerCategoryProvider);
     // TODO: Get actual areaId from user profile provider once implemented
     const userAreaId = 'a331158a-24ed-47fc-8e3e-fa84e78cc4c4';
     
@@ -108,10 +110,20 @@ class NearbySellersNotifier
   }
 
   Future<void> loadMore() async {
-    if (!_hasMore || state.isLoading) return;
+    if (!_hasMore || state.isLoading || _isFetchingMore) return;
+    _isFetchingMore = true;
     _page++;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(_fetch);
+    
+    try {
+      final category = ref.read(selectedSellerCategoryProvider);
+      final newItems = await _fetch(category);
+      state = AsyncData(newItems);
+    } catch (e, st) {
+      _page--;
+      // Let existing items show, but log error internally.
+    } finally {
+      _isFetchingMore = false;
+    }
   }
 }
 
