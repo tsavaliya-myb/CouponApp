@@ -10,8 +10,8 @@ const createDir = (dirPath: string) => {
   }
 };
 
-const UPLOADS_DIR = path.join(__dirname, '../../../../public/uploads');
-// const UPLOADS_DIR = '/tmp/uploads';
+// const UPLOADS_DIR = path.join(__dirname, '../../../../public/uploads');
+const UPLOADS_DIR = '/tmp/uploads';
 const LOGOS_DIR = path.join(UPLOADS_DIR, 'sellers/logos');
 const MEDIA_DIR = path.join(UPLOADS_DIR, 'sellers/media');
 
