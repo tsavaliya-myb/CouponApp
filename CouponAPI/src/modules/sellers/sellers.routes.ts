@@ -2,12 +2,14 @@ import { Router } from 'express';
 import { SellersController } from './sellers.controller';
 import { validate } from '../../shared/middlewares/validate';
 import { authenticate, authorize } from '../../shared/middlewares/auth';
+import { requireSubscription } from '../../shared/middlewares/subscription';
 import { upload } from '../../shared/middlewares/upload';
 import {
   registerSellerSchema,
   updateSellerSchema,
   findSellersSchema,
   getSellersByAreaCategorySchema,
+  getSellerMediaSchema,
 } from './sellers.validator';
 
 import './sellers.swagger';
@@ -36,6 +38,14 @@ router.get(
   authenticate,
   validate(getSellersByAreaCategorySchema, 'query'),
   controller.getSellersByAreaCategory
+);
+
+router.post(
+  '/media',
+  authenticate,
+  requireSubscription,
+  validate(getSellerMediaSchema),
+  controller.getSellerMedia
 );
 
 // ─── Protected Routes (Sellers Only) ──────────────────────────────────────────

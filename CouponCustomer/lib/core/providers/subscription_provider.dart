@@ -13,16 +13,17 @@ import '../../features/profile/presentation/providers/profile_provider.dart';
 const bool kForceMockSubscription = false;
 
 /// Returns whether the current user has an active subscription.
-/// Reads from [profileProvider]; emits `false` while loading or on error
+/// Reads from [profileProvider]; emits `true` while loading or on error
 /// (so guards show the subscribe gate, not a crash).
 final isSubscribedProvider = Provider<bool>((ref) {
   if (kForceMockSubscription) return false;
 
   final profileAsync = ref.watch(profileProvider);
-  final user = profileAsync.valueOrNull;
-  if (user != null) {
-    return user.subscriptionStatus.trim().toUpperCase() == 'ACTIVE';
-  }
-  
-  return false;
+  return profileAsync.when(
+    data: (user) => user.status == 'ACTIVE',
+    loading: () => true,  // Optimistic: assume subscribed while profile loads.
+                          // Prevents mock screen flashing for subscribed users.
+                          // Real sections show their own shimmer loaders during fetch.
+    error: (_, __) => false,
+  );
 });

@@ -120,6 +120,19 @@ export class SellersService {
   }
 
   // ─── Media Management ─────────────────────────────────────────────────────────
+  async getSellerMedia(sellerId: string) {
+    const media = await prisma.sellerMedia.findUnique({
+      where: { sellerId },
+    });
+    // It's possible a seller doesn't have media yet, so we could just return null or empty object. 
+    // Let's return it directly. If they want an error when not found, we can throw one. 
+    // Let's return the media or an empty object.
+    if (!media) {
+       throw NotFoundError('Media not found for this seller');
+    }
+    return media;
+  }
+
   async updateSellerLogo(sellerId: string, logoUrl: string) {
     return prisma.sellerMedia.upsert({
       where: { sellerId },
@@ -253,6 +266,7 @@ export class SellersService {
         lat: seller.latitude,
         lng: seller.longitude,
         logoUrl: seller.media?.logoUrl ?? null,
+        media: seller.media ?? null,
         distanceKm,
       };
     });
@@ -314,6 +328,7 @@ export class SellersService {
       lat: seller.latitude ?? null,
       lng: seller.longitude ?? null,
       logoUrl: seller.media?.logoUrl ?? null,
+      media: seller.media ?? null,
       distanceKm: null,
     }));
 

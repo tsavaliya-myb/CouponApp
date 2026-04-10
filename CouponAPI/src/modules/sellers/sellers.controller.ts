@@ -156,4 +156,14 @@ export class SellersController {
       next(err);
     }
   };
+
+  getSellerMedia = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { sellerId } = req.body;
+      const media = await sellersService.getSellerMedia(sellerId);
+      sendSuccess(res, media);
+    } catch (err) {
+      next(err);
+    }
+  };
 }

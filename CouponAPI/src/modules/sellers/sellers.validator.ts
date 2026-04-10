@@ -43,11 +43,17 @@ export const getSellersByAreaCategorySchema = z.object({
   limit: z.coerce.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
 });
 
+export const getSellerMediaSchema = z.object({
+  sellerId: z.string().uuid('Invalid Seller ID'),
+});
+
+
 // ─── Inferred Types ───────────────────────────────────────────────────────────
 export type RegisterSellerDto = z.infer<typeof registerSellerSchema>;
 export type UpdateSellerDto = z.infer<typeof updateSellerSchema>;
 export type FindSellersDto = z.infer<typeof findSellersSchema>;
 export type GetSellersByAreaCategoryDto = z.infer<typeof getSellersByAreaCategorySchema>;
+export type GetSellerMediaDto = z.infer<typeof getSellerMediaSchema>;
 
 // ─── Response Schemas ─────────────────────────────────────────────────────────
 
@@ -85,6 +91,12 @@ export const distanceSellerResponseSchema = z.object({
   lat: z.number().nullable().optional(),
   lng: z.number().nullable().optional(),
   logoUrl: z.string().nullable().optional(),
+  media: z.object({
+    logoUrl: z.string().nullable().optional(),
+    photoUrl1: z.string().nullable().optional(),
+    photoUrl2: z.string().nullable().optional(),
+    videoUrl: z.string().nullable().optional(),
+  }).nullable().optional(),
   distanceKm: z.number().nullable().optional(),
 });
 
