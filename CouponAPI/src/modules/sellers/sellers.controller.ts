@@ -105,8 +105,7 @@ export class SellersController {
       const sellerId = req.user!.userId;
       const existingProfile = await sellersService.getProfile(sellerId);
 
-      // const serverUrl = env.isProduction ? 'https://your-production-url.com' : `http://localhost:${env.PORT}`;
-      const serverUrl = 'https://couponapp-r1vv.onrender.com/';
+      const serverUrl = 'https://couponapp-r1vv.onrender.com';
       const updateData: { photoUrl1?: string; photoUrl2?: string; videoUrl?: string } = {};
 
       if (files['photo1'] && files['photo1'][0]) {

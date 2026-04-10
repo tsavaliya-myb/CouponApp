@@ -47,8 +47,8 @@ export function createApp(): Express {
   });
 
   // Serve static uploads
-  // app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
-  app.use('/uploads', express.static('/tmp/uploads'));
+  app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+  // app.use('/uploads', express.static('/tmp/uploads'));
 
   // API routes (versioned)
   app.use('/api/v1', apiRouter);
