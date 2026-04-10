@@ -236,7 +236,7 @@ export class SellersService {
       where: whereClause,
       include: {
         area: { select: { name: true } },
-        media: { select: { logoUrl: true } },
+        media: { select: { logoUrl: true, photoUrl1: true, photoUrl2: true, videoUrl: true } },
       },
     });
 
@@ -299,7 +299,7 @@ export class SellersService {
       where: whereClause,
       include: {
         area: { select: { name: true } },
-        media: { select: { logoUrl: true } },
+        media: { select: { logoUrl: true, photoUrl1: true, photoUrl2: true, videoUrl: true } },
       },
       skip,
       take: limit,

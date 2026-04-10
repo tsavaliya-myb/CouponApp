@@ -80,7 +80,7 @@ export class SellersController {
       const existingProfile = await sellersService.getProfile(sellerId);
 
       const filePath = `/uploads/sellers/logos/${req.file.filename}`;
-      const serverUrl = 'https://couponapp-r1vv.onrender.com/';
+      const serverUrl = 'https://couponapp-r1vv.onrender.com';
       const logoUrl = `${serverUrl}${filePath}`;
 
       const media = await sellersService.updateSellerLogo(sellerId, logoUrl);
