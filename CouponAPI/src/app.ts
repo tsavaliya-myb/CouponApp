@@ -1,5 +1,6 @@
 import express, { Express } from 'express';
 import morgan from 'morgan';
+import path from 'path';
 import { applySecurityMiddleware } from './shared/middlewares/security';
 import { errorHandler, notFoundHandler } from './shared/middlewares/errorHandler';
 import { logger } from './config/logger';
@@ -16,7 +17,7 @@ export function createApp(): Express {
   applySecurityMiddleware(app);
 
   // Body parsing
-  app.use(express.json({ 
+  app.use(express.json({
     limit: '10mb',
     verify: (req: any, _res, buf) => {
       // Capture raw body for webhook signature verification
@@ -38,12 +39,16 @@ export function createApp(): Express {
   // Health check endpoint (no auth, no rate limit)
   app.get('/health', (_req, res) => {
     res.json({
-      status:      'ok',
-      timestamp:   new Date().toISOString(),
-      uptime:      process.uptime(),
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
       environment: env.NODE_ENV,
     });
   });
+
+  // Serve static uploads
+  // app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+  app.use('/uploads', express.static('/tmp/uploads'));
 
   // API routes (versioned)
   app.use('/api/v1', apiRouter);

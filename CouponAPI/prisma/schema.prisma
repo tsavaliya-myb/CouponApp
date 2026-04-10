@@ -209,8 +209,24 @@ model Seller {
   coupons     Coupon[]
   redemptions Redemption[]
   settlements Settlement[]
+  media       SellerMedia?
 
   @@map("sellers")
+}
+
+model SellerMedia {
+  id        String   @id @default(uuid())
+  sellerId  String   @unique
+  logoUrl   String?
+  photoUrl1 String?
+  photoUrl2 String?
+  videoUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  seller    Seller   @relation(fields: [sellerId], references: [id])
+
+  @@map("seller_media")
 }
 
 // ─────────────────────────────────────────

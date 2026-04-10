@@ -93,6 +93,58 @@ openApiRegistry.registerPath({
 });
 
 openApiRegistry.registerPath({
+  method: 'post',
+  path: '/sellers/me/logo',
+  summary: 'Upload Seller Logo',
+  tags: ['Sellers'],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'multipart/form-data': {
+          schema: z.object({
+            logo: z.any().openapi({ type: 'string', format: 'binary' }),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Success',
+      content: { 'application/json': { schema: z.object({ success: z.boolean(), data: z.any() }) } },
+    },
+  },
+});
+
+openApiRegistry.registerPath({
+  method: 'post',
+  path: '/sellers/me/media',
+  summary: 'Upload Seller Media (Photos & Video)',
+  tags: ['Sellers'],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'multipart/form-data': {
+          schema: z.object({
+            photo1: z.any().optional().openapi({ type: 'string', format: 'binary' }),
+            photo2: z.any().optional().openapi({ type: 'string', format: 'binary' }),
+            video: z.any().optional().openapi({ type: 'string', format: 'binary' }),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Success',
+      content: { 'application/json': { schema: z.object({ success: z.boolean(), data: z.any() }) } },
+    },
+  },
+});
+
+openApiRegistry.registerPath({
   method: 'get',
   path: '/sellers/me/dashboard',
   summary: 'Seller Dashboard Overview',

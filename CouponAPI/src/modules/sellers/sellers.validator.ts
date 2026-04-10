@@ -69,6 +69,12 @@ export const baseSellerResponseSchema = z.object({
 export const profileResponseSchema = baseSellerResponseSchema.extend({
   city: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
   area: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
+  media: z.object({
+    logoUrl: z.string().nullable().optional(),
+    photoUrl1: z.string().nullable().optional(),
+    photoUrl2: z.string().nullable().optional(),
+    videoUrl: z.string().nullable().optional(),
+  }).nullable().optional(),
 });
 
 export const distanceSellerResponseSchema = z.object({
@@ -78,6 +84,7 @@ export const distanceSellerResponseSchema = z.object({
   area: z.string().nullable().optional(),
   lat: z.number().nullable().optional(),
   lng: z.number().nullable().optional(),
+  logoUrl: z.string().nullable().optional(),
   distanceKm: z.number().nullable().optional(),
 });
 

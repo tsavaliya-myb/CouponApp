@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { SellersController } from './sellers.controller';
 import { validate } from '../../shared/middlewares/validate';
 import { authenticate, authorize } from '../../shared/middlewares/auth';
+import { upload } from '../../shared/middlewares/upload';
 import {
   registerSellerSchema,
   updateSellerSchema,
@@ -44,6 +45,17 @@ sellerOnlyRouter.use(authenticate, authorize('seller'));
 sellerOnlyRouter.get('/me', controller.getProfile);
 sellerOnlyRouter.patch('/me', validate(updateSellerSchema), controller.updateProfile);
 sellerOnlyRouter.get('/me/dashboard', controller.getDashboard);
+
+sellerOnlyRouter.post('/me/logo', upload.single('logo'), controller.uploadLogo);
+sellerOnlyRouter.post(
+  '/me/media', 
+  upload.fields([
+    { name: 'photo1', maxCount: 1 },
+    { name: 'photo2', maxCount: 1 },
+    { name: 'video', maxCount: 1 },
+  ]), 
+  controller.uploadMedia
+);
 
 router.use(sellerOnlyRouter);
 

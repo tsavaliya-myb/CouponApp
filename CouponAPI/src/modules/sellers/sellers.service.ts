@@ -97,6 +97,7 @@ export class SellersService {
       include: {
         city: { select: { id: true, name: true } },
         area: { select: { id: true, name: true } },
+        media: true,
       },
     });
 
@@ -118,6 +119,26 @@ export class SellersService {
     });
   }
 
+  // ─── Media Management ─────────────────────────────────────────────────────────
+  async updateSellerLogo(sellerId: string, logoUrl: string) {
+    return prisma.sellerMedia.upsert({
+      where: { sellerId },
+      update: { logoUrl },
+      create: { sellerId, logoUrl },
+    });
+  }
+
+  async updateSellerMediaFiles(
+    sellerId: string,
+    media: { photoUrl1?: string, photoUrl2?: string, videoUrl?: string }
+  ) {
+    return prisma.sellerMedia.upsert({
+      where: { sellerId },
+      update: media,
+      create: { sellerId, ...media },
+    });
+  }
+
   // ─── Dashboard ────────────────────────────────────────────────────────────────
   async getDashboard(sellerId: string): Promise<SellerDashboardResponse> {
     const seller = await prisma.seller.findUnique({ where: { id: sellerId } });
@@ -130,7 +151,7 @@ export class SellersService {
     // Date boundaries
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - 7);
     startOfWeek.setHours(0, 0, 0, 0);
@@ -215,6 +236,7 @@ export class SellersService {
       where: whereClause,
       include: {
         area: { select: { name: true } },
+        media: { select: { logoUrl: true } },
       },
     });
 
@@ -230,6 +252,7 @@ export class SellersService {
         area: seller.area?.name,
         lat: seller.latitude,
         lng: seller.longitude,
+        logoUrl: seller.media?.logoUrl ?? null,
         distanceKm,
       };
     });
@@ -260,11 +283,11 @@ export class SellersService {
   async getSellersByAreaCategory(dto: GetSellersByAreaCategoryDto): Promise<PaginatedDistanceSellersResponse> {
     const { areaId, categoryType, page, limit } = dto;
 
-    const whereClause: any = { 
-      status: 'ACTIVE', 
-      areaId, 
+    const whereClause: any = {
+      status: 'ACTIVE',
+      areaId,
     };
-    
+
     if (categoryType) {
       whereClause.category = categoryType;
     }
@@ -276,6 +299,7 @@ export class SellersService {
       where: whereClause,
       include: {
         area: { select: { name: true } },
+        media: { select: { logoUrl: true } },
       },
       skip,
       take: limit,
@@ -289,6 +313,7 @@ export class SellersService {
       area: seller.area?.name ?? null,
       lat: seller.latitude ?? null,
       lng: seller.longitude ?? null,
+      logoUrl: seller.media?.logoUrl ?? null,
       distanceKm: null,
     }));
 
