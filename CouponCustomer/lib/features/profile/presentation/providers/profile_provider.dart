@@ -8,6 +8,7 @@ import '../../domain/repositories/profile_repository.dart';
 class ProfileNotifier extends AsyncNotifier<UserModel> {
   @override
   Future<UserModel> build() async {
+    ref.keepAlive(); // Never dispose — avoids re-fetching on every tab switch
     final repository = GetIt.I<ProfileRepository>();
     final result = await repository.getUser();
     return result.fold((f) => throw f.message, (u) => u);

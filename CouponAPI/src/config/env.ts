@@ -42,4 +42,10 @@ export const env = cleanEnv(process.env, {
   // OneSignal
   ONESIGNAL_APP_ID:     str({ default: '' }),
   ONESIGNAL_REST_API_KEY: str({ default: '' }),
+
+  // iDrive E2 S3 Storage
+  IDRIVE_E2_ACCESS_KEY:  str({ default: '' }),
+  IDRIVE_E2_SECRET_KEY:  str({ default: '' }),
+  IDRIVE_E2_BUCKET_NAME: str({ default: 'seller-media' }),
+  IDRIVE_E2_REGION:      str({ default: '' }),
 });

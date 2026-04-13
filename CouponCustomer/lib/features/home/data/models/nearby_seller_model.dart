@@ -1,9 +1,36 @@
 // lib/features/home/data/models/nearby_seller_model.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/nearby_seller_entity.dart';
+import '../../domain/entities/seller_media_entity.dart';
 
 part 'nearby_seller_model.freezed.dart';
 part 'nearby_seller_model.g.dart';
+
+// ─── Media sub-model ─────────────────────────────────────────────────────────
+
+@freezed
+class SellerMediaModel with _$SellerMediaModel {
+  const factory SellerMediaModel({
+    String? logoUrl,
+    String? photoUrl1,
+    String? photoUrl2,
+    String? videoUrl,
+  }) = _SellerMediaModel;
+
+  factory SellerMediaModel.fromJson(Map<String, dynamic> json) =>
+      _$SellerMediaModelFromJson(json);
+}
+
+extension SellerMediaModelX on SellerMediaModel {
+  SellerMediaEntity toEntity() => SellerMediaEntity(
+        logoUrl: logoUrl,
+        photoUrl1: photoUrl1,
+        photoUrl2: photoUrl2,
+        videoUrl: videoUrl,
+      );
+}
+
+// ─── Primary seller model ────────────────────────────────────────────────────
 
 @freezed
 class NearbySellerModel with _$NearbySellerModel {
@@ -16,6 +43,7 @@ class NearbySellerModel with _$NearbySellerModel {
     required double lng,
     double? distanceKm,
     String? logoUrl,
+    SellerMediaModel? media,
   }) = _NearbySellerModel;
 
   factory NearbySellerModel.fromJson(Map<String, dynamic> json) =>
@@ -31,6 +59,7 @@ extension NearbySellerModelX on NearbySellerModel {
         distanceKm: distanceKm,
         lat: lat,
         lng: lng,
-        logoUrl: logoUrl,
+        logoUrl: logoUrl ?? media?.logoUrl,
+        media: media?.toEntity(),
       );
 }

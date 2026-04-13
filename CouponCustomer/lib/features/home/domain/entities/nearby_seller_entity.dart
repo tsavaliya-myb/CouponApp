@@ -1,5 +1,6 @@
 // lib/features/home/domain/entities/nearby_seller_entity.dart
 import 'package:equatable/equatable.dart';
+import 'seller_media_entity.dart';
 
 class NearbySellerEntity extends Equatable {
   final String id;
@@ -10,6 +11,7 @@ class NearbySellerEntity extends Equatable {
   final double lng;
   final double? distanceKm;
   final String? logoUrl;
+  final SellerMediaEntity? media;
 
   const NearbySellerEntity({
     required this.id,
@@ -20,6 +22,7 @@ class NearbySellerEntity extends Equatable {
     required this.lng,
     this.distanceKm,
     this.logoUrl,
+    this.media,
   });
 
   NearbySellerEntity copyWith({
@@ -31,6 +34,7 @@ class NearbySellerEntity extends Equatable {
     double? lng,
     double? distanceKm,
     String? logoUrl,
+    SellerMediaEntity? media,
   }) {
     return NearbySellerEntity(
       id: id ?? this.id,
@@ -41,9 +45,10 @@ class NearbySellerEntity extends Equatable {
       lng: lng ?? this.lng,
       distanceKm: distanceKm ?? this.distanceKm,
       logoUrl: logoUrl ?? this.logoUrl,
+      media: media ?? this.media,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, category, area, lat, lng, distanceKm, logoUrl];
+  List<Object?> get props => [id, name, category, area, lat, lng, distanceKm, logoUrl, media];
 }

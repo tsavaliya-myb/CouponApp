@@ -2,25 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { SellersService } from './sellers.service';
 import { sendSuccess, sendCreated } from '../../shared/utils/response';
 import { verifyRegistrationToken } from '../../shared/utils/jwt';
-import { UnauthorizedError, BadRequestError } from '../../shared/utils/AppError';
-import { env } from '../../config/env';
+import { UnauthorizedError } from '../../shared/utils/AppError';
 import type { FindSellersDto, GetSellersByAreaCategoryDto } from './sellers.validator';
-import fs from 'fs/promises';
-import path from 'path';
-
-const deleteOldMediaFile = async (oldUrl: string) => {
-  try {
-    const urlObj = new URL(oldUrl);
-    // In dev: e.g. /uploads/sellers/logos/filename.jpg
-    const publicPath = path.join(__dirname, '../../../../public');
-    const filePath = path.join(publicPath, urlObj.pathname);
-    await fs.unlink(filePath);
-  } catch (err: any) {
-    if (err.code !== 'ENOENT') {
-      console.error('Failed to delete old media file:', err.message);
-    }
-  }
-};
 
 const sellersService = new SellersService();
 
@@ -32,10 +15,8 @@ export class SellersController {
       if (!authHeader?.startsWith('Bearer ')) {
         throw UnauthorizedError('No registration token provided');
       }
-
       const token = authHeader.split(' ')[1];
       const { phone } = verifyRegistrationToken(token);
-
       const result = await sellersService.register(phone, req.body);
       sendCreated(res, result);
     } catch (err) {
@@ -70,23 +51,31 @@ export class SellersController {
     }
   };
 
-  uploadLogo = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  // ─── Logo: Presign ────────────────────────────────────────────────────────────
+  presignLogo = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      if (!req.file) {
-        throw BadRequestError('Logo file is required');
-      }
+      const { mimeType } = req.body as { mimeType: string };
+      const result = await sellersService.generatePresignedUploadUrl('logos', mimeType);
+      sendSuccess(res, result);
+    } catch (err) {
+      next(err);
+    }
+  };
 
+  // ─── Logo: Confirm ────────────────────────────────────────────────────────────
+  confirmLogo = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
       const sellerId = req.user!.userId;
-      const existingProfile = await sellersService.getProfile(sellerId);
+      const { fileKey } = req.body as { fileKey: string };
 
-      const filePath = `/uploads/sellers/logos/${req.file.filename}`;
-      const serverUrl = 'https://couponapp-r1vv.onrender.com';
-      const logoUrl = `${serverUrl}${filePath}`;
+      const existingProfile = await sellersService.getProfile(sellerId);
+      const logoUrl = (await import('../../config/s3')).getPublicUrl(fileKey);
 
       const media = await sellersService.updateSellerLogo(sellerId, logoUrl);
 
+      // Delete old logo from S3 if exists
       if (existingProfile.media?.logoUrl) {
-        deleteOldMediaFile(existingProfile.media.logoUrl);
+        sellersService.deleteS3Object(existingProfile.media.logoUrl);
       }
 
       sendSuccess(res, media);
@@ -95,39 +84,63 @@ export class SellersController {
     }
   };
 
-  uploadMedia = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  // ─── Media: Presign ───────────────────────────────────────────────────────────
+  presignMedia = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-      if (!files) {
-        throw BadRequestError('At least one media file is required (photo1, photo2, or video)');
+      const { photo1MimeType, photo2MimeType, videoMimeType } = req.body as {
+        photo1MimeType?: string;
+        photo2MimeType?: string;
+        videoMimeType?: string;
+      };
+
+      const result: Record<string, { uploadUrl: string; fileKey: string; publicUrl: string }> = {};
+
+      if (photo1MimeType) {
+        result.photo1 = await sellersService.generatePresignedUploadUrl('photos', photo1MimeType);
+      }
+      if (photo2MimeType) {
+        result.photo2 = await sellersService.generatePresignedUploadUrl('photos', photo2MimeType);
+      }
+      if (videoMimeType) {
+        result.video = await sellersService.generatePresignedUploadUrl('videos', videoMimeType);
       }
 
+      sendSuccess(res, result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // ─── Media: Confirm ───────────────────────────────────────────────────────────
+  confirmMedia = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
       const sellerId = req.user!.userId;
+      const { photo1Key, photo2Key, videoKey } = req.body as {
+        photo1Key?: string;
+        photo2Key?: string;
+        videoKey?: string;
+      };
+
+      const { getPublicUrl } = await import('../../config/s3');
       const existingProfile = await sellersService.getProfile(sellerId);
 
-      const serverUrl = 'https://couponapp-r1vv.onrender.com';
       const updateData: { photoUrl1?: string; photoUrl2?: string; videoUrl?: string } = {};
 
-      if (files['photo1'] && files['photo1'][0]) {
-        updateData.photoUrl1 = `${serverUrl}/uploads/sellers/media/${files['photo1'][0].filename}`;
-      }
-      if (files['photo2'] && files['photo2'][0]) {
-        updateData.photoUrl2 = `${serverUrl}/uploads/sellers/media/${files['photo2'][0].filename}`;
-      }
-      if (files['video'] && files['video'][0]) {
-        updateData.videoUrl = `${serverUrl}/uploads/sellers/media/${files['video'][0].filename}`;
-      }
+      if (photo1Key) updateData.photoUrl1 = getPublicUrl(photo1Key);
+      if (photo2Key) updateData.photoUrl2 = getPublicUrl(photo2Key);
+      if (videoKey) updateData.videoUrl = getPublicUrl(videoKey);
 
       const media = await sellersService.updateSellerMediaFiles(sellerId, updateData);
 
-      if (updateData.photoUrl1 && existingProfile.media?.photoUrl1) {
-        deleteOldMediaFile(existingProfile.media.photoUrl1);
+      // Delete old files from S3
+      if (photo1Key && existingProfile.media?.photoUrl1) {
+        sellersService.deleteS3Object(existingProfile.media.photoUrl1);
       }
-      if (updateData.photoUrl2 && existingProfile.media?.photoUrl2) {
-        deleteOldMediaFile(existingProfile.media.photoUrl2);
+      if (photo2Key && existingProfile.media?.photoUrl2) {
+        sellersService.deleteS3Object(existingProfile.media.photoUrl2);
       }
-      if (updateData.videoUrl && existingProfile.media?.videoUrl) {
-        deleteOldMediaFile(existingProfile.media.videoUrl);
+      if (videoKey && existingProfile.media?.videoUrl) {
+        sellersService.deleteS3Object(existingProfile.media.videoUrl);
       }
 
       sendSuccess(res, media);
@@ -136,7 +149,7 @@ export class SellersController {
     }
   };
 
-  // ─── Customer-facing endpoint ───────────────────────────────────────────────
+  // ─── Customer-facing endpoints ────────────────────────────────────────────────
   findSellers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const query = req.query as unknown as FindSellersDto;

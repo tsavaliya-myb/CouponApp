@@ -1,9 +1,12 @@
 import { prisma } from '../../config/db';
 import { signAccessToken, signRefreshToken } from '../../shared/utils/jwt';
-import { ConflictError, NotFoundError, BadRequestError } from '../../shared/utils/AppError';
+import { ConflictError, NotFoundError } from '../../shared/utils/AppError';
 import { REDIS_PREFIX, TTL } from '../../shared/constants';
 import { redis } from '../../config/redis';
 import crypto from 'crypto';
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { s3Client, BUCKET_NAME, getPublicUrl } from '../../config/s3';
 import type {
   RegisterSellerDto,
   UpdateSellerDto,
@@ -150,6 +153,33 @@ export class SellersService {
       update: media,
       create: { sellerId, ...media },
     });
+  }
+
+  // ─── Presigned URL Generation ────────────────────────────────────────────────────
+  async generatePresignedUploadUrl(
+    folder: 'logos' | 'photos' | 'videos',
+    mimeType: string,
+  ): Promise<{ uploadUrl: string; fileKey: string; publicUrl: string }> {
+    const ext = mimeType.split('/')[1].replace('quicktime', 'mov');
+    const fileKey = `${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    const command = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: fileKey,
+      ContentType: mimeType,
+    });
+    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+    return { uploadUrl, fileKey, publicUrl: getPublicUrl(fileKey) };
+  }
+
+  async deleteS3Object(fileUrl: string): Promise<void> {
+    try {
+      const url = new URL(fileUrl);
+      // path-style: /bucket-name/key
+      const key = url.pathname.replace(`/${BUCKET_NAME}/`, '');
+      await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: key }));
+    } catch (err: any) {
+      console.error('Failed to delete S3 object:', err.message);
+    }
   }
 
   // ─── Dashboard ────────────────────────────────────────────────────────────────

@@ -6,6 +6,24 @@ part of 'nearby_seller_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_$SellerMediaModelImpl _$$SellerMediaModelImplFromJson(
+        Map<String, dynamic> json) =>
+    _$SellerMediaModelImpl(
+      logoUrl: json['logoUrl'] as String?,
+      photoUrl1: json['photoUrl1'] as String?,
+      photoUrl2: json['photoUrl2'] as String?,
+      videoUrl: json['videoUrl'] as String?,
+    );
+
+Map<String, dynamic> _$$SellerMediaModelImplToJson(
+        _$SellerMediaModelImpl instance) =>
+    <String, dynamic>{
+      'logoUrl': instance.logoUrl,
+      'photoUrl1': instance.photoUrl1,
+      'photoUrl2': instance.photoUrl2,
+      'videoUrl': instance.videoUrl,
+    };
+
 _$NearbySellerModelImpl _$$NearbySellerModelImplFromJson(
         Map<String, dynamic> json) =>
     _$NearbySellerModelImpl(
@@ -17,6 +35,9 @@ _$NearbySellerModelImpl _$$NearbySellerModelImplFromJson(
       lng: (json['lng'] as num).toDouble(),
       distanceKm: (json['distanceKm'] as num?)?.toDouble(),
       logoUrl: json['logoUrl'] as String?,
+      media: json['media'] == null
+          ? null
+          : SellerMediaModel.fromJson(json['media'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$NearbySellerModelImplToJson(
@@ -30,4 +51,5 @@ Map<String, dynamic> _$$NearbySellerModelImplToJson(
       'lng': instance.lng,
       'distanceKm': instance.distanceKm,
       'logoUrl': instance.logoUrl,
+      'media': instance.media,
     };

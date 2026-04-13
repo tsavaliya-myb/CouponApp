@@ -47,6 +47,35 @@ export const getSellerMediaSchema = z.object({
   sellerId: z.string().uuid('Invalid Seller ID'),
 });
 
+// ─── Presign / Confirm Schemas ────────────────────────────────────────────────
+const IMAGE_MIME = z.enum(['image/jpeg', 'image/jpg', 'image/png']);
+const VIDEO_MIME = z.enum(['video/mp4', 'video/quicktime']);
+
+export const presignLogoSchema = z.object({
+  mimeType: IMAGE_MIME,
+});
+
+export const confirmLogoSchema = z.object({
+  fileKey: z.string().min(1),
+});
+
+export const presignMediaSchema = z.object({
+  photo1MimeType: IMAGE_MIME.optional(),
+  photo2MimeType: IMAGE_MIME.optional(),
+  videoMimeType: VIDEO_MIME.optional(),
+}).refine(
+  (d) => d.photo1MimeType || d.photo2MimeType || d.videoMimeType,
+  { message: 'At least one of photo1MimeType, photo2MimeType, or videoMimeType is required' },
+);
+
+export const confirmMediaSchema = z.object({
+  photo1Key: z.string().optional(),
+  photo2Key: z.string().optional(),
+  videoKey: z.string().optional(),
+}).refine(
+  (d) => d.photo1Key || d.photo2Key || d.videoKey,
+  { message: 'At least one of photo1Key, photo2Key, or videoKey is required' },
+);
 
 // ─── Inferred Types ───────────────────────────────────────────────────────────
 export type RegisterSellerDto = z.infer<typeof registerSellerSchema>;
@@ -54,6 +83,10 @@ export type UpdateSellerDto = z.infer<typeof updateSellerSchema>;
 export type FindSellersDto = z.infer<typeof findSellersSchema>;
 export type GetSellersByAreaCategoryDto = z.infer<typeof getSellersByAreaCategorySchema>;
 export type GetSellerMediaDto = z.infer<typeof getSellerMediaSchema>;
+export type PresignLogoDto = z.infer<typeof presignLogoSchema>;
+export type ConfirmLogoDto = z.infer<typeof confirmLogoSchema>;
+export type PresignMediaDto = z.infer<typeof presignMediaSchema>;
+export type ConfirmMediaDto = z.infer<typeof confirmMediaSchema>;
 
 // ─── Response Schemas ─────────────────────────────────────────────────────────
 

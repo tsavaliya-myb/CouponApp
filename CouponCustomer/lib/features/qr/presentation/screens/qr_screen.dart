@@ -21,28 +21,41 @@ class QrScreen extends ConsumerStatefulWidget {
   ConsumerState<QrScreen> createState() => _QrScreenState();
 }
 
-class _QrScreenState extends ConsumerState<QrScreen> {
+class _QrScreenState extends ConsumerState<QrScreen>
+    with SingleTickerProviderStateMixin {
   Timer? _refreshTimer;
   String? _qrPayloadBase64;
+  late AnimationController _spinCtrl;
 
   @override
   void initState() {
     super.initState();
+    _spinCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
     _startTimers();
     _generateQrPayload();
   }
 
   @override
   void dispose() {
+    _spinCtrl.dispose();
     _refreshTimer?.cancel();
     super.dispose();
   }
 
   void _startTimers() {
-    // Timer to trigger the actual payload refresh
+    _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(AppConstants.qrRefreshInterval, (_) {
       _generateQrPayload();
     });
+  }
+
+  Future<void> _refreshManually() async {
+    _spinCtrl.forward(from: 0);
+    _startTimers(); // reset countdown
+    await _generateQrPayload();
   }
 
   Future<void> _generateQrPayload() async {
@@ -216,7 +229,7 @@ class _QrScreenState extends ConsumerState<QrScreen> {
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: AppColors.dsOnSurface.withOpacity(0.04), // Ambient shadow
+              color: AppColors.dsOnSurface.withOpacity(0.04),
               blurRadius: 24,
               offset: const Offset(0, 8),
             ),
@@ -264,7 +277,45 @@ class _QrScreenState extends ConsumerState<QrScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+
+            // Refresh button
+            GestureDetector(
+              onTap: _refreshManually,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.dsPrimary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RotationTransition(
+                      turns: CurvedAnimation(
+                        parent: _spinCtrl,
+                        curve: Curves.easeOut,
+                      ),
+                      child: Icon(
+                        Icons.refresh_rounded,
+                        size: 16,
+                        color: AppColors.dsPrimary,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Refresh QR',
+                      style: AppTextStyles.dsLabelMd.copyWith(
+                        color: AppColors.dsPrimary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
 
             Text(
               'Show this to the seller for\nredemption',
