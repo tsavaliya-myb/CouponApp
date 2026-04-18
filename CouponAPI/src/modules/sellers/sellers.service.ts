@@ -48,7 +48,7 @@ export class SellersService {
       data: {
         phone,
         businessName: dto.businessName,
-        category: dto.category,
+        categoryId: dto.categoryId,
         cityId: dto.cityId,
         areaId: dto.areaId,
         address: dto.address,
@@ -57,6 +57,7 @@ export class SellersService {
         latitude: dto.lat,
         longitude: dto.lng,
       },
+      include: { category: true },
     });
 
     const payload = {
@@ -79,7 +80,8 @@ export class SellersService {
         id: seller.id,
         phone: seller.phone,
         businessName: seller.businessName,
-        category: seller.category,
+        categoryId: (seller as any).categoryId,
+        category: (seller as any).category,
         cityId: seller.cityId,
         areaId: seller.areaId,
         address: seller.address,
@@ -98,6 +100,7 @@ export class SellersService {
     const seller = await prisma.seller.findUnique({
       where: { id: sellerId },
       include: {
+        category: true,
         city: { select: { id: true, name: true } },
         area: { select: { id: true, name: true } },
         media: true,
@@ -105,7 +108,7 @@ export class SellersService {
     });
 
     if (!seller) throw NotFoundError('Seller profile not found');
-    return seller;
+    return seller as any;
   }
 
   async updateProfile(sellerId: string, dto: UpdateSellerDto): Promise<ProfileResponse> {
@@ -114,12 +117,13 @@ export class SellersService {
 
     return prisma.seller.update({
       where: { id: sellerId },
-      data: dto,
+      data: dto as any,
       include: {
+        category: true,
         city: { select: { id: true, name: true } },
         area: { select: { id: true, name: true } },
       },
-    });
+    }) as any;
   }
 
   // ─── Media Management ─────────────────────────────────────────────────────────
@@ -278,12 +282,13 @@ export class SellersService {
     const sellers = await prisma.seller.findMany({
       where: whereClause,
       include: {
+        category: true,
         area: { select: { name: true } },
         media: { select: { logoUrl: true, photoUrl1: true, photoUrl2: true, videoUrl: true } },
       },
     });
 
-    const sellersWithDistance = sellers.map(seller => {
+    const sellersWithDistance = (sellers as any[]).map(seller => {
       let distanceKm = null;
       if (seller.latitude !== null && seller.longitude !== null) {
         distanceKm = getDistanceFromLatLonInKm(lat, lng, seller.latitude, seller.longitude);
@@ -325,15 +330,15 @@ export class SellersService {
 
   // ─── Customer View: Get Sellers by Area and Category ──────────────────────────
   async getSellersByAreaCategory(dto: GetSellersByAreaCategoryDto): Promise<PaginatedDistanceSellersResponse> {
-    const { areaId, categoryType, page, limit } = dto;
+    const { areaId, categoryId, page, limit } = dto;
 
     const whereClause: any = {
       status: 'ACTIVE',
       areaId,
     };
 
-    if (categoryType) {
-      whereClause.category = categoryType;
+    if (categoryId) {
+      whereClause.categoryId = categoryId;
     }
 
     const total = await prisma.seller.count({ where: whereClause });
@@ -342,15 +347,16 @@ export class SellersService {
     const sellers = await prisma.seller.findMany({
       where: whereClause,
       include: {
+        category: true,
         area: { select: { name: true } },
         media: { select: { logoUrl: true, photoUrl1: true, photoUrl2: true, videoUrl: true } },
       },
       skip,
       take: limit,
-      orderBy: { businessName: 'asc' }, // Order by name ascending
+      orderBy: { businessName: 'asc' },
     });
 
-    const paginatedData = sellers.map(seller => ({
+    const paginatedData = (sellers as any[]).map(seller => ({
       id: seller.id,
       businessName: seller.businessName,
       category: seller.category,

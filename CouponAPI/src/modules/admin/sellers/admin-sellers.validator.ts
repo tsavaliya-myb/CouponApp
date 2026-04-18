@@ -1,6 +1,8 @@
 import { z } from 'zod';
-import { SellerCategory, SellerStatus } from '@prisma/client';
+import { SellerStatus } from '@prisma/client';
 import { PAGINATION } from '../../../shared/constants';
+
+const categoryShapeSchema = z.object({ id: z.string().uuid(), name: z.string(), slug: z.string(), iconName: z.string().nullable() });
 
 // ─── Query Params Validation for Admin Sellers List ───────────────────────────
 export const adminSellersQuerySchema = z.object({
@@ -8,7 +10,7 @@ export const adminSellersQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
   cityId: z.string().uuid().optional(),
   areaId: z.string().uuid().optional(),
-  category: z.nativeEnum(SellerCategory).optional(),
+  categoryId: z.string().uuid().optional(),
   status: z.nativeEnum(SellerStatus).optional(),
   search: z.string().optional(),
 });
@@ -16,13 +18,13 @@ export const adminSellersQuerySchema = z.object({
 // ─── Body Validation for Admin Seller Edit ────────────────────────────────────
 export const adminUpdateSellerSchema = z.object({
   businessName: z.string().min(2).max(150).optional(),
-  category: z.nativeEnum(SellerCategory).optional(),
+  categoryId: z.string().uuid('Invalid Category ID').optional(),
   cityId: z.string().uuid().optional(),
   areaId: z.string().uuid().optional(),
   upiId: z.string().max(100).optional(),
   lat: z.number().min(-90).max(90).optional(),
   lng: z.number().min(-180).max(180).optional(),
-  commissionPct: z.number().min(0).max(100).optional(), // Admin specific override
+  commissionPct: z.number().min(0).max(100).optional(),
 });
 
 // ─── Response Schemas ─────────────────────────────────────────────────────────
@@ -32,7 +34,8 @@ export const baseSellerResponseSchema = z.object({
   businessName: z.string(),
   phone: z.string(),
   email: z.string().nullable(),
-  category: z.nativeEnum(SellerCategory),
+  categoryId: z.string().uuid(),
+  category: categoryShapeSchema.optional(),
   cityId: z.string().uuid(),
   areaId: z.string().uuid(),
   address: z.string().nullable(),

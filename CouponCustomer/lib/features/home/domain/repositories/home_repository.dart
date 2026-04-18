@@ -9,7 +9,7 @@ abstract class HomeRepository {
 
   Future<Either<Failure, List<NearbySellerEntity>>> getNearbySellers({
     required String areaId,
-    String? categoryType,
+    String? categoryId,
     required int page,
   });
 }

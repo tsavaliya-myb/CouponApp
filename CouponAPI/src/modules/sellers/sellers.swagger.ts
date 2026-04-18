@@ -1,6 +1,5 @@
 import { openApiRegistry } from '../../config/swagger';
 import { z } from 'zod';
-import { SellerCategory } from '@prisma/client';
 import {
   registerSellerSchema,
   updateSellerSchema,
@@ -205,7 +204,7 @@ openApiRegistry.registerPath({
   request: {
     query: z.object({
       areaId: z.string().uuid().openapi({ description: 'Area ID' }),
-      categoryType: z.nativeEnum(SellerCategory).optional().openapi({ description: 'Seller Category' }),
+      categoryId: z.string().uuid().optional().openapi({ description: 'Category ID to filter by' }),
       page: z.coerce.number().default(1),
       limit: z.coerce.number().default(20),
     }),

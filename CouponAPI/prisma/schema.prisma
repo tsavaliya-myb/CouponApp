@@ -32,15 +32,6 @@ enum SellerStatus {
   REJECTED
 }
 
-enum SellerCategory {
-  FOOD
-  SALON
-  THEATER
-  SPA
-  CAFE
-  OTHER
-}
-
 enum CouponType {
   STANDARD
   BOGO // Buy One Get One
@@ -178,13 +169,31 @@ model WalletTransaction {
 }
 
 // ─────────────────────────────────────────
+// CATEGORIES
+// ─────────────────────────────────────────
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  iconName  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sellers Seller[]
+
+  @@map("categories")
+}
+
+// ─────────────────────────────────────────
 // SELLERS (Business Partners)
 // ─────────────────────────────────────────
 
 model Seller {
   id             String         @id @default(uuid())
   businessName   String
-  category       SellerCategory @default(OTHER)
+  categoryId     String
   cityId         String
   areaId         String
   address        String?
@@ -204,6 +213,7 @@ model Seller {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
+  category    Category     @relation(fields: [categoryId], references: [id])
   city        City         @relation(fields: [cityId], references: [id])
   area        Area         @relation(fields: [areaId], references: [id])
   coupons     Coupon[]

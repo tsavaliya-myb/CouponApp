@@ -63,16 +63,36 @@ async function main() {
   }
   console.log(`✅ App settings seeded.`);
 
-  // ── 5. Sellers ─────────────────────────────────────────────────────────────
+  // ── 5. Categories ──────────────────────────────────────────────────────────
+  const categoryDefs = [
+    { name: 'Food',    slug: 'food'    },
+    { name: 'Salon',   slug: 'salon'   },
+    { name: 'Theater', slug: 'theater' },
+    { name: 'Spa',     slug: 'spa'     },
+    { name: 'Cafe',    slug: 'cafe'    },
+    { name: 'Other',   slug: 'other'   },
+  ];
+  const dbCategories: Record<string, string> = {};
+  for (const cat of categoryDefs) {
+    const c = await (prisma as any).category.upsert({
+      where: { slug: cat.slug },
+      update: {},
+      create: cat,
+    });
+    dbCategories[cat.slug] = c.id;
+  }
+  console.log('✅ Categories seeded.');
+
+  // ── 6. Sellers ─────────────────────────────────────────────────────────────
   console.log('⏳ Seeding Sellers...');
-  const srCafe = await prisma.seller.upsert({
+  const srCafe = await (prisma as any).seller.upsert({
     where: { phone: '9876543210' },
     update: {},
     create: {
       businessName: 'SR Cafe',
-      category: 'CAFE',
+      categoryId: dbCategories['cafe'],
       cityId: surat.id,
-      areaId: dbAreas[0].id, // Adajan
+      areaId: dbAreas[0].id,
       phone: '9876543210',
       commissionPct: 5,
       status: 'ACTIVE',
@@ -81,35 +101,35 @@ async function main() {
     }
   });
 
-  const fancySalon = await prisma.seller.upsert({
+  const fancySalon = await (prisma as any).seller.upsert({
     where: { phone: '9876543211' },
     update: {},
     create: {
       businessName: 'Fancy Salon & Spa',
-      category: 'SALON',
+      categoryId: dbCategories['salon'],
       cityId: surat.id,
-      areaId: dbAreas[3].id, // Vesu
+      areaId: dbAreas[3].id,
       phone: '9876543211',
       commissionPct: 10,
       status: 'ACTIVE',
     }
   });
 
-  const testTheater = await prisma.seller.upsert({
+  const testTheater = await (prisma as any).seller.upsert({
     where: { phone: '9876543212' },
     update: {},
     create: {
       businessName: 'Grand Cinemas',
-      category: 'THEATER',
+      categoryId: dbCategories['theater'],
       cityId: surat.id,
-      areaId: dbAreas[2].id, // Varachha
+      areaId: dbAreas[2].id,
       phone: '9876543212',
       commissionPct: 8,
       status: 'ACTIVE',
     }
   });
 
-  // ── 6. Coupons ─────────────────────────────────────────────────────────────
+  // ── 7. Coupons ─────────────────────────────────────────────────────────────
   console.log('⏳ Seeding Coupons...');
   const coupon1 = await prisma.coupon.create({
     data: {

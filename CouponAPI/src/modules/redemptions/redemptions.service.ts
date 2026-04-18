@@ -1,5 +1,6 @@
 import { prisma } from '../../config/db';
 import { NotFoundError, BadRequestError } from '../../shared/utils/AppError';
+import { oneSignal } from '../notifications/onesignal.service';
 import type {
 
   ConfirmRedemptionDto,
@@ -191,8 +192,15 @@ export class RedemptionsService {
       return red;
     });
 
-    // 5. Fire Push Notification (Phase 11 stub) - Could use an EventEmitter event
-    // e.g. eventEmitter.emit('redemption.confirmed', redemption.id);
+    // 5. Push notification to user (fire-and-forget)
+    const sellerName = userCoupon.coupon.seller.businessName;
+    const coinsMsg = coinsUsed > 0 ? ` ${coinsUsed} coins applied.` : '';
+    oneSignal.sendToUser(
+      userId,
+      'Coupon Redeemed!',
+      `You saved ₹${discountAmount} at ${sellerName}.${coinsMsg} Final bill: ₹${finalAmount}.`,
+      'redemption_confirmed',
+    ).catch(() => {});
 
     // 6. Update Seller Dashboard Redis Counters
     try {

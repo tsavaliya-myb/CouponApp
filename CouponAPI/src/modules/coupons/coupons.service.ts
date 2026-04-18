@@ -12,7 +12,7 @@ export class CouponsService {
   
   // ─── Customer: Get My Instantiated Coupons ────────────────────────────────────
   async getMyCoupons(userId: string, query: MyCouponsQueryDto): Promise<PaginatedUserCouponsResponse> {
-    const { page, limit, category, sellerId, search } = query;
+    const { page, limit, categoryId, sellerId, search } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.UserCouponWhereInput = {
@@ -33,8 +33,8 @@ export class CouponsService {
       where.coupon!.sellerId = sellerId;
     }
     
-    const sellerWhere: Prisma.SellerWhereInput = {};
-    if (category) sellerWhere.category = category;
+    const sellerWhere: any = {};
+    if (categoryId) sellerWhere.categoryId = categoryId;
     if (search) sellerWhere.businessName = { contains: search, mode: 'insensitive' };
     
     if (Object.keys(sellerWhere).length > 0) {
@@ -54,6 +54,7 @@ export class CouponsService {
                 select: {
                   id: true,
                   businessName: true,
+                  categoryId: true,
                   category: true,
                   area: { select: { name: true } }
                 }

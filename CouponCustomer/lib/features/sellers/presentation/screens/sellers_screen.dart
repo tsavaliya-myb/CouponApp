@@ -6,22 +6,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/providers/subscription_provider.dart';
+import '../../../../core/providers/categories_provider.dart';
+import '../../../../core/models/category_item.dart';
 import '../../../../core/widgets/shimmer_loader.dart';
 import '../../../../core/widgets/seller_card.dart';
 import '../../../../core/widgets/subscribe_gate_screen.dart';
 import '../../../home/presentation/providers/home_provider.dart';
-
-// ─── Categories ───────────────────────────────────────────────────────────────
-
-const _kSellerCategories = [
-  ('ALL', 'All'),
-  ('FOOD', 'Food'),
-  ('CAFE', 'Cafe'),
-  ('SALON', 'Salon'),
-  ('THEATER', 'Theater'),
-  ('SPA', 'Spa'),
-  ('OTHER', 'Other'),
-];
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
@@ -73,6 +63,8 @@ class _SellersScreenState extends ConsumerState<SellersScreen>
 
     final sellersAsync = ref.watch(filteredSellersProvider);
     final selectedCategory = ref.watch(selectedSellerCategoryProvider);
+    final categoriesAsync = ref.watch(categoriesProvider);
+    final categories = categoriesAsync.valueOrNull ?? [];
 
     return Scaffold(
       backgroundColor: AppColors.dsSurface,
@@ -109,15 +101,19 @@ class _SellersScreenState extends ConsumerState<SellersScreen>
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                itemCount: _kSellerCategories.length,
+                itemCount: categories.length + 1,
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (_, i) {
-                  final (key, label) = _kSellerCategories[i];
-                  final isSelected = selectedCategory == key;
+                  final isAll = i == 0;
+                  final CategoryItem? item =
+                      isAll ? null : categories[i - 1];
+                  final isSelected = selectedCategory == item;
+                  final label = isAll ? 'All' : item!.name;
                   return GestureDetector(
                     onTap: () {
-                      ref.read(selectedSellerCategoryProvider.notifier).state =
-                          key;
+                      ref
+                          .read(selectedSellerCategoryProvider.notifier)
+                          .state = item;
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),

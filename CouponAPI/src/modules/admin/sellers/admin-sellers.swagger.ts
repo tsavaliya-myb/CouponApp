@@ -8,7 +8,6 @@ import {
   paginatedSellersResponseSchema,
 } from './admin-sellers.validator';
 import { PAGINATION } from '../../../shared/constants';
-import { SellerCategory } from '@prisma/client';
 
 const errorResponse = z.object({
   success: z.boolean().default(false),
@@ -29,7 +28,7 @@ openApiRegistry.registerPath({
       limit: z.number().optional().openapi({ description: `Default: ${PAGINATION.DEFAULT_LIMIT}` }),
       cityId: z.string().uuid().optional(),
       areaId: z.string().uuid().optional(),
-      category: z.nativeEnum(SellerCategory).optional(),
+      categoryId: z.string().uuid().optional().openapi({ description: 'Category ID to filter by' }),
       status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED']).optional(),
       search: z.string().optional(),
     }),

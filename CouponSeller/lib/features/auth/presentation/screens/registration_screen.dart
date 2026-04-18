@@ -7,6 +7,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/map_picker.dart';
+import '../../../../core/models/category_item.dart';
+import '../../../../core/providers/categories_provider.dart';
 import '../../domain/entities/seller_entity.dart';
 import '../providers/auth_provider.dart';
 import '../../../location/presentation/providers/location_provider.dart';
@@ -25,10 +27,7 @@ class RegistrationScreen extends ConsumerStatefulWidget {
 }
 
 class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
-  // Mock data for dropdowns
-  final List<String> _categories = ['FOOD', 'SALON', 'THEATER', 'SPA'];
-
-  String? _selectedCategory;
+  CategoryItem? _selectedCategoryItem;
   String? _selectedCity;
   String? _selectedArea;
   LatLng? _selectedLocation;
@@ -102,20 +101,40 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                         controller: _businessNameController,
                       ),
                       const SizedBox(height: 16),
-                      _buildDropdownField(
-                        label: 'Business Category',
-                        hint: 'Select Category',
-                        value: _selectedCategory,
-                        items: _categories
-                            .map(
-                              (c) => DropdownMenuItem(
-                                value: c,
-                                child: Text(c, style: AppTextStyles.bodyMD),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => _selectedCategory = val),
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final categoriesAsync =
+                              ref.watch(categoriesProvider);
+                          return categoriesAsync.when(
+                            data: (categories) => _buildDropdownField(
+                              label: 'Business Category',
+                              hint: 'Select Category',
+                              value: _selectedCategoryItem?.id,
+                              items: categories
+                                  .map(
+                                    (c) => DropdownMenuItem(
+                                      value: c.id,
+                                      child: Text(
+                                        c.name,
+                                        style: AppTextStyles.bodyMD,
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (val) => setState(() {
+                                _selectedCategoryItem = val == null
+                                    ? null
+                                    : categories.firstWhere(
+                                        (c) => c.id == val);
+                              }),
+                            ),
+                            loading: () => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            error: (e, _) =>
+                                const Text('Error loading categories'),
+                          );
+                        },
                       ),
                       const SizedBox(height: 40),
 
@@ -327,7 +346,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         phone.isEmpty ||
         email.isEmpty ||
         upiId.isEmpty ||
-        _selectedCategory == null ||
+        _selectedCategoryItem == null ||
         _selectedCity == null ||
         _selectedArea == null ||
         _selectedLocation == null) {
@@ -349,7 +368,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     final params = RegisterSellerParams(
       registrationToken: widget.registrationToken,
       businessName: businessName,
-      category: _selectedCategory!.toUpperCase(),
+      categoryId: _selectedCategoryItem!.id,
       cityId: _selectedCity!,
       areaId: _selectedArea!,
       address: address,

@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { SellerCategory, SellerStatus } from '@prisma/client';
+import { SellerStatus } from '@prisma/client';
 import { PAGINATION } from '../../shared/constants';
 
 // ─── Seller Registration ──────────────────────────────────────────────────────
 export const registerSellerSchema = z.object({
   businessName: z.string().min(2, 'Business name is required').max(150),
-  category: z.nativeEnum(SellerCategory),
+  categoryId: z.string().uuid('Invalid Category ID'),
   cityId: z.string().uuid('Invalid City ID'),
   areaId: z.string().uuid('Invalid Area ID'),
   address: z.string().min(5, 'Address is required'),
@@ -18,7 +18,7 @@ export const registerSellerSchema = z.object({
 // ─── Seller Profile Update ────────────────────────────────────────────────────
 export const updateSellerSchema = z.object({
   businessName: z.string().min(2).max(150).optional(),
-  category: z.nativeEnum(SellerCategory).optional(),
+  categoryId: z.string().uuid('Invalid Category ID').optional(),
   cityId: z.string().uuid().optional(),
   areaId: z.string().uuid().optional(),
   upiId: z.string().max(100).optional(),
@@ -38,7 +38,7 @@ export const findSellersSchema = z.object({
 
 export const getSellersByAreaCategorySchema = z.object({
   areaId: z.string().uuid(),
-  categoryType: z.nativeEnum(SellerCategory).optional(),
+  categoryId: z.string().uuid().optional(),
   page: z.coerce.number().min(1).default(PAGINATION.DEFAULT_PAGE),
   limit: z.coerce.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
 });
@@ -82,6 +82,7 @@ export type RegisterSellerDto = z.infer<typeof registerSellerSchema>;
 export type UpdateSellerDto = z.infer<typeof updateSellerSchema>;
 export type FindSellersDto = z.infer<typeof findSellersSchema>;
 export type GetSellersByAreaCategoryDto = z.infer<typeof getSellersByAreaCategorySchema>;
+
 export type GetSellerMediaDto = z.infer<typeof getSellerMediaSchema>;
 export type PresignLogoDto = z.infer<typeof presignLogoSchema>;
 export type ConfirmLogoDto = z.infer<typeof confirmLogoSchema>;
@@ -90,11 +91,14 @@ export type ConfirmMediaDto = z.infer<typeof confirmMediaSchema>;
 
 // ─── Response Schemas ─────────────────────────────────────────────────────────
 
+const categoryShapeSchema = z.object({ id: z.string().uuid(), name: z.string(), slug: z.string(), iconName: z.string().nullable() });
+
 export const baseSellerResponseSchema = z.object({
   id: z.string().uuid(),
   phone: z.string(),
   businessName: z.string(),
-  category: z.nativeEnum(SellerCategory),
+  categoryId: z.string().uuid(),
+  category: categoryShapeSchema.optional(),
   cityId: z.string().uuid(),
   areaId: z.string().uuid(),
   status: z.nativeEnum(SellerStatus),
@@ -119,7 +123,7 @@ export const profileResponseSchema = baseSellerResponseSchema.extend({
 export const distanceSellerResponseSchema = z.object({
   id: z.string().uuid(),
   businessName: z.string(),
-  category: z.nativeEnum(SellerCategory),
+  category: categoryShapeSchema.nullable().optional(),
   area: z.string().nullable().optional(),
   lat: z.number().nullable().optional(),
   lng: z.number().nullable().optional(),

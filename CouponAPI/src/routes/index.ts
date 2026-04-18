@@ -18,6 +18,11 @@ import { citiesRouter, areasRouter } from '../modules/admin/cities/cities.routes
 apiRouter.use('/admin/cities', citiesRouter);
 apiRouter.use('/admin/areas', areasRouter);
 
+// Categories (public GET + admin CRUD)
+import { categoriesRouter, adminCategoriesRouter } from '../modules/admin/categories/admin-categories.routes';
+apiRouter.use('/categories', categoriesRouter);
+apiRouter.use('/admin/categories', adminCategoriesRouter);
+
 // Phase 3: Users
 import { usersRouter } from '../modules/users/users.routes';
 import { adminUsersRouter } from '../modules/admin/users/admin-users.routes';

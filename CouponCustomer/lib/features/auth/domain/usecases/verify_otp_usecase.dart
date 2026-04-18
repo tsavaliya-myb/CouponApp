@@ -39,6 +39,7 @@ class VerifyOtpUsecase {
           'subscription_status': user.subscriptionStatus.toLowerCase(),
           'has_redeemed': 'false',
           'env': 'dev', // switch to 'prod' via dart-define if needed
+          if (user.cityId != null) 'cityId': user.cityId!,
           if (user.areaId != null) 'area': user.areaId!,
         });
       },

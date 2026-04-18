@@ -54,7 +54,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       '/sellers/register',
       data: {
         "businessName": params.businessName,
-        "category": params.category,
+        "categoryId": params.categoryId,
         "cityId": params.cityId,
         "areaId": params.areaId,
         "address": params.address,

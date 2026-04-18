@@ -59,22 +59,33 @@ export class OneSignalService {
     }
   }
 
-  // Target a single specific user via tags (assumes mobile app tags user by 'userId' upon login)
+  // Target a single user via OneSignal external_id (set via OneSignal.login(userId) in Flutter)
   async sendToUser(userId: string, title: string, body: string, logType: string = 'direct') {
     return this.dispatch({
       headings: { en: title },
       contents: { en: body },
-      filters: [{ field: 'tag', key: 'userId', relation: '=', value: userId }],
+      include_aliases: { external_id: [userId] },
+      target_channel: 'push',
     }, logType, 'USER', userId);
   }
 
-  // Target users matching a city
+  // Target users in a city via cityId tag (set via OneSignal.User.addTags in Flutter)
   async sendToCity(cityId: string, title: string, body: string, logType: string = 'city_broadcast') {
     return this.dispatch({
       headings: { en: title },
       contents: { en: body },
       filters: [{ field: 'tag', key: 'cityId', relation: '=', value: cityId }],
     }, logType, 'CITY', cityId);
+  }
+
+  // Target a seller via external_id (seller Flutter app must call OneSignal.login(sellerId))
+  async sendToSeller(sellerId: string, title: string, body: string, logType: string = 'seller_direct') {
+    return this.dispatch({
+      headings: { en: title },
+      contents: { en: body },
+      include_aliases: { external_id: [sellerId] },
+      target_channel: 'push',
+    }, logType, 'USER', sellerId);
   }
 
   // Global broadcast

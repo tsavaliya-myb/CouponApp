@@ -11,18 +11,8 @@ import '../../../../core/widgets/subscribe_gate_screen.dart';
 import '../../../home/domain/entities/home_coupon_entity.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 import '../../../../core/widgets/coupon_card.dart';
-
-// ─── Category filter for the coupons screen ───────────────────────────────────
-
-const _kCouponCategories = [
-  ('ALL', 'All'),
-  ('FOOD', 'Food'),
-  ('CAFE', 'Cafe'),
-  ('SALON', 'Salon'),
-  ('THEATER', 'Theater'),
-  ('SPA', 'Spa'),
-  ('OTHER', 'Other'),
-];
+import '../../../../core/providers/categories_provider.dart';
+import '../../../../core/models/category_item.dart';
 
 class MyCouponsScreen extends ConsumerStatefulWidget {
   const MyCouponsScreen({super.key});
@@ -50,6 +40,8 @@ class _MyCouponsScreenState extends ConsumerState<MyCouponsScreen>
 
     final couponsAsync = ref.watch(filteredCouponsProvider);
     final selectedCategory = ref.watch(selectedCategoryProvider);
+    final categoriesAsync = ref.watch(categoriesProvider);
+    final categories = categoriesAsync.valueOrNull ?? [];
 
     return Scaffold(
       backgroundColor: AppColors.dsSurface,
@@ -85,14 +77,18 @@ class _MyCouponsScreenState extends ConsumerState<MyCouponsScreen>
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                itemCount: _kCouponCategories.length,
+                itemCount: categories.length + 1,
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (_, i) {
-                  final (key, label) = _kCouponCategories[i];
-                  final isSelected = selectedCategory == key;
+                  final isAll = i == 0;
+                  final CategoryItem? item =
+                      isAll ? null : categories[i - 1];
+                  final isSelected = selectedCategory == item;
+                  final label = isAll ? 'All' : item!.name;
                   return GestureDetector(
                     onTap: () =>
-                        ref.read(selectedCategoryProvider.notifier).state = key,
+                        ref.read(selectedCategoryProvider.notifier).state =
+                            item,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 14),

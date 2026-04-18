@@ -86,7 +86,9 @@ _$SellerModelImpl _$$SellerModelImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       phone: json['phone'] as String,
       businessName: json['businessName'] as String,
-      category: json['category'] as String,
+      category: json['category'] is Map
+          ? (json['category'] as Map<String, dynamic>)['name'] as String? ?? ''
+          : json['category'] as String? ?? '',
       cityId: json['cityId'] as String,
       areaId: json['areaId'] as String,
       status: json['status'] as String,

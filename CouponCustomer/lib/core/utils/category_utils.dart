@@ -5,9 +5,8 @@ import '../constants/app_colors.dart';
 class CategoryUtils {
   CategoryUtils._();
 
-  /// Returns the base color for a category
-  static Color getBaseColor(String category) {
-    return switch (category.toLowerCase()) {
+  static Color getBaseColor(String? slug) {
+    return switch (slug?.toLowerCase()) {
       'food' => AppColors.catFood,
       'cafe' => AppColors.catCafe,
       'salon' => AppColors.catSalon,
@@ -17,15 +16,13 @@ class CategoryUtils {
     };
   }
 
-  /// Returns a tuple of (backgroundColor, onBackgroundColor)
-  static (Color, Color) getCategoryColors(String category) {
-    final baseColor = getBaseColor(category);
+  static (Color, Color) getCategoryColors(String? slug) {
+    final baseColor = getBaseColor(slug);
     return (baseColor.withOpacity(0.15), baseColor);
   }
 
-  /// Returns the icon for a category
-  static IconData getIcon(String category) {
-    return switch (category.toLowerCase()) {
+  static IconData getIcon(String? slug) {
+    return switch (slug?.toLowerCase()) {
       'food' => Icons.restaurant_rounded,
       'cafe' => Icons.coffee_rounded,
       'salon' => Icons.content_cut_rounded,
@@ -35,9 +32,8 @@ class CategoryUtils {
     };
   }
 
-  /// Returns the emoji for a category
-  static String getEmoji(String category) {
-    return switch (category.toLowerCase()) {
+  static String getEmoji(String? slug) {
+    return switch (slug?.toLowerCase()) {
       'food' => '🍔',
       'cafe' => '☕',
       'salon' => '💈',

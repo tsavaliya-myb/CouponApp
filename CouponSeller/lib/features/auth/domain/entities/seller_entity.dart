@@ -49,7 +49,7 @@ class SellerEntity extends Equatable {
 class RegisterSellerParams extends Equatable {
   final String registrationToken;
   final String businessName;
-  final String category;
+  final String categoryId;
   final String cityId;
   final String areaId;
   final String address;
@@ -61,7 +61,7 @@ class RegisterSellerParams extends Equatable {
   const RegisterSellerParams({
     required this.registrationToken,
     required this.businessName,
-    required this.category,
+    required this.categoryId,
     required this.cityId,
     required this.areaId,
     required this.address,
@@ -75,7 +75,7 @@ class RegisterSellerParams extends Equatable {
   List<Object?> get props => [
         registrationToken,
         businessName,
-        category,
+        categoryId,
         cityId,
         areaId,
         address,

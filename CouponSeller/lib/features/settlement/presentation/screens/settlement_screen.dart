@@ -24,15 +24,21 @@ class _SettlementScreenState extends ConsumerState<SettlementScreen> {
       backgroundColor: AppColors.surface,
       body: settlementAsync.when(
         data: (data) => _buildBody(data),
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
         error: (e, st) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Failed to load settlements\n$e', textAlign: TextAlign.center),
+              Text(
+                'Failed to load settlements\n$e',
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.read(settlementNotifierProvider.notifier).refresh(),
+                onPressed: () =>
+                    ref.read(settlementNotifierProvider.notifier).refresh(),
                 child: const Text('Retry'),
               ),
             ],
@@ -82,7 +88,9 @@ class _SettlementScreenState extends ConsumerState<SettlementScreen> {
                 child: Center(
                   child: Text(
                     'No statements found.',
-                    style: AppTextStyles.bodyMD.copyWith(color: AppColors.textSecondary),
+                    style: AppTextStyles.bodyMD.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
               ),
@@ -91,11 +99,11 @@ class _SettlementScreenState extends ConsumerState<SettlementScreen> {
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: _buildStatementCard(
-                  period: '${_formatDateStr(item.weekStart)} - ${_formatDateStr(item.weekEnd)}',
+                  period:
+                      '${_formatDateStr(item.weekStart)} - ${_formatDateStr(item.weekEnd)}',
                   isPending: isCommissionPending, // Primary status mapping
                   commission: '₹${item.commissionTotal.toStringAsFixed(2)}',
                   coins: '₹${item.coinCompensationTotal.toStringAsFixed(2)}',
-                  isExpanded: false,
                 ),
               );
             }),
@@ -103,7 +111,7 @@ class _SettlementScreenState extends ConsumerState<SettlementScreen> {
             const SizedBox(height: 48),
 
             // Analytics Section
-            _buildSectionTitle('Settlement Analytics'),
+            /*_buildSectionTitle('Settlement Analytics'),
             const SizedBox(height: AppSpacing.md),
             _buildAnalyticsCard(
               icon: Icons.trending_up_rounded,
@@ -127,8 +135,7 @@ class _SettlementScreenState extends ConsumerState<SettlementScreen> {
               value: 'Instant',
               color: const Color(0xFFA6EFA6),
               textColor: const Color(0xFF1B5E20),
-            ),
-
+            ),*/
             const SizedBox(height: 120), // Bottom Nav Space
           ],
         ),
@@ -209,7 +216,6 @@ class _SettlementScreenState extends ConsumerState<SettlementScreen> {
     required bool isPending,
     required String commission,
     required String coins,
-    bool isExpanded = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xxl),
@@ -251,22 +257,9 @@ class _SettlementScreenState extends ConsumerState<SettlementScreen> {
             ],
           ),
           const SizedBox(height: 32),
-          Row(
-            children: [
-              _buildStatDetail('Commission Owed', commission),
-            ],
-          ),
+          Row(children: [_buildStatDetail('Commission Owed', commission)]),
           const SizedBox(height: 24),
           _buildCoinStat(coins),
-          const SizedBox(height: 32),
-          Center(
-            child: Icon(
-              isExpanded
-                  ? Icons.keyboard_arrow_up_rounded
-                  : Icons.keyboard_arrow_down_rounded,
-              color: AppColors.primary.withOpacity(0.4),
-            ),
-          ),
         ],
       ),
     );
@@ -364,7 +357,20 @@ class _SettlementScreenState extends ConsumerState<SettlementScreen> {
   }
 
   String _formatDateStr(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${months[date.month - 1]} ${date.day.toString().padLeft(2, '0')}, ${date.year}';
   }
 }

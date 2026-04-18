@@ -10,7 +10,7 @@ abstract class HomeRemoteDatasource {
 
   Future<List<NearbySellerModel>> getNearbySellers({
     required String areaId,
-    String? categoryType,
+    String? categoryId,
     required int page,
   });
 }
@@ -36,7 +36,7 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
   @override
   Future<List<NearbySellerModel>> getNearbySellers({
     required String areaId,
-    String? categoryType,
+    String? categoryId,
     required int page,
   }) async {
     final queryParams = <String, dynamic>{
@@ -44,8 +44,8 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
       'page': page,
       'limit': 20,
     };
-    if (categoryType != null && categoryType != 'ALL') {
-      queryParams['categoryType'] = categoryType;
+    if (categoryId != null) {
+      queryParams['categoryId'] = categoryId;
     }
 
     final response = await _apiClient.client.get(

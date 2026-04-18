@@ -11,12 +11,12 @@ class GetNearbySellersUsecase {
 
   Future<Either<Failure, List<NearbySellerEntity>>> call({
     required String areaId,
-    String? categoryType,
+    String? categoryId,
     required int page,
   }) {
     return _repository.getNearbySellers(
       areaId: areaId,
-      categoryType: categoryType,
+      categoryId: categoryId,
       page: page,
     );
   }

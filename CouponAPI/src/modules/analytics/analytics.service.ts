@@ -251,23 +251,24 @@ export class AnalyticsService {
 
       const sellers = await prisma.seller.findMany({
         select: {
-          category: true,
+          category: { select: { name: true } },
           _count: {
             select: {
               redemptions: Object.keys(redemptionCondition).length > 0 ? { where: redemptionCondition } : true
             }
           }
         }
-      });
+      }) as any[];
 
       const categoryCounts: Record<string, number> = {};
       for (const seller of sellers) {
-        categoryCounts[seller.category] = (categoryCounts[seller.category] || 0) + seller._count.redemptions;
+        const catName = seller.category?.name ?? 'Other';
+        categoryCounts[catName] = (categoryCounts[catName] || 0) + seller._count.redemptions;
       }
 
       return Object.entries(categoryCounts)
         .map(([category, redemptions]) => ({ category, redemptions }))
-        .sort((a, b) => b.redemptions - a.redemptions);
+        .sort((a, b) => (b.redemptions as number) - (a.redemptions as number));
     });
   }
 }

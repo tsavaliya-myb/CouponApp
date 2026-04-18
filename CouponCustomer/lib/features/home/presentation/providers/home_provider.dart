@@ -3,28 +3,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../../services/location_service.dart';
+import '../../../../core/models/category_item.dart';
 import '../../domain/entities/home_coupon_entity.dart';
 import '../../domain/entities/nearby_seller_entity.dart';
 import '../../domain/usecases/get_featured_coupons_usecase.dart';
 import '../../domain/usecases/get_nearby_sellers_usecase.dart';
 
-// ─── Selected category ───────────────────────────────────────────────────────
-// 'ALL' means no filter. API enums: FOOD, SALON, THEATER, SPA, CAFE, OTHER
+// ─── Selected category ────────────────────────────────────────────────────────
+// null means "ALL". Non-null is the selected CategoryItem.
 
-final selectedCategoryProvider = StateProvider<String>((ref) => 'ALL');
+final selectedCategoryProvider = StateProvider<CategoryItem?>((ref) => null);
 
 // Separate category state for the Sellers screen
-final selectedSellerCategoryProvider = StateProvider<String>((ref) => 'ALL');
+final selectedSellerCategoryProvider =
+    StateProvider<CategoryItem?>((ref) => null);
 
 // ─── User Location ────────────────────────────────────────────────────────────
-// Fetched once when first read (usually on Home screen)
 
 final userLocationProvider = FutureProvider.autoDispose<Position?>((ref) async {
   return await LocationService.getUserLocation();
 });
 
-// ─── All Coupons (single fetch) ────────────────────────────────────────────────
-// Fetched ONCE. Category filtering is done client-side via filteredCouponsProvider.
+// ─── All Coupons (single fetch) ───────────────────────────────────────────────
 
 class AllCouponsNotifier
     extends AutoDisposeAsyncNotifier<List<HomeCouponEntity>> {
@@ -57,8 +57,8 @@ final filteredCouponsProvider =
   final category = ref.watch(selectedCategoryProvider);
 
   return allAsync.whenData((all) {
-    if (category == 'ALL') return all;
-    return all.where((c) => c.category == category).toList();
+    if (category == null) return all;
+    return all.where((c) => c.category == category.slug).toList();
   });
 });
 
@@ -66,8 +66,8 @@ final filteredCouponsProvider =
 final featuredCouponsProvider =
     Provider.autoDispose<AsyncValue<List<HomeCouponEntity>>>((ref) {
   final filteredAsync = ref.watch(filteredCouponsProvider);
-  return filteredAsync.whenData((list) =>
-      list.where((c) => c.status != 'USED').toList());
+  return filteredAsync.whenData(
+      (list) => list.where((c) => c.status != 'USED').toList());
 });
 
 // ─── Nearby Sellers (paginated) ───────────────────────────────────────────────
@@ -77,7 +77,6 @@ class NearbySellersNotifier
   int _page = 1;
   bool _hasMore = true;
   final List<NearbySellerEntity> _sellers = [];
-
   bool _isFetchingMore = false;
 
   @override
@@ -89,14 +88,14 @@ class NearbySellersNotifier
     return _fetch(category);
   }
 
-  Future<List<NearbySellerEntity>> _fetch(String category) async {
+  Future<List<NearbySellerEntity>> _fetch(CategoryItem? category) async {
     final usecase = GetIt.I<GetNearbySellersUsecase>();
     // TODO: Get actual areaId from user profile provider once implemented
     const userAreaId = 'a331158a-24ed-47fc-8e3e-fa84e78cc4c4';
-    
+
     final result = await usecase(
       areaId: userAreaId,
-      categoryType: category,
+      categoryId: category?.id,
       page: _page,
     );
     return result.fold(
@@ -113,14 +112,13 @@ class NearbySellersNotifier
     if (!_hasMore || state.isLoading || _isFetchingMore) return;
     _isFetchingMore = true;
     _page++;
-    
+
     try {
       final category = ref.read(selectedSellerCategoryProvider);
       final newItems = await _fetch(category);
       state = AsyncData(newItems);
     } catch (e, st) {
       _page--;
-      // Let existing items show, but log error internally.
     } finally {
       _isFetchingMore = false;
     }
@@ -131,21 +129,23 @@ final nearbySellersProvider =
     AutoDisposeAsyncNotifierProvider<NearbySellersNotifier,
         List<NearbySellerEntity>>(NearbySellersNotifier.new);
 
-// ─── Filtered sellers (client-side, no extra request) ─────────────────────────
+// ─── Filtered sellers (client-side) ──────────────────────────────────────────
 
-List<NearbySellerEntity> _filterAndMapDistance(
-    List<NearbySellerEntity> all, String category, AsyncValue<Position?> locationAsync) {
+List<NearbySellerEntity> _filterAndMapDistance(List<NearbySellerEntity> all,
+    CategoryItem? category, AsyncValue<Position?> locationAsync) {
   var filtered = all;
-  if (category != 'ALL') {
-    filtered = filtered.where((s) => s.category == category).toList();
+  if (category != null) {
+    filtered = filtered.where((s) => s.category == category.slug).toList();
   }
 
   if (locationAsync is AsyncData && locationAsync.value != null) {
     final pos = locationAsync.value!;
     filtered = filtered.map((seller) {
       final distanceMeters = Geolocator.distanceBetween(
-        pos.latitude, pos.longitude,
-        seller.lat, seller.lng,
+        pos.latitude,
+        pos.longitude,
+        seller.lat,
+        seller.lng,
       );
       return seller.copyWith(distanceKm: distanceMeters / 1000);
     }).toList();
@@ -160,7 +160,8 @@ final filteredSellersProvider =
   final category = ref.watch(selectedSellerCategoryProvider);
   final locationAsync = ref.watch(userLocationProvider);
 
-  return allAsync.whenData((all) => _filterAndMapDistance(all, category, locationAsync));
+  return allAsync
+      .whenData((all) => _filterAndMapDistance(all, category, locationAsync));
 });
 
 final homeFilteredSellersProvider =
@@ -169,6 +170,6 @@ final homeFilteredSellersProvider =
   final category = ref.watch(selectedCategoryProvider);
   final locationAsync = ref.watch(userLocationProvider);
 
-  return allAsync.whenData((all) => _filterAndMapDistance(all, category, locationAsync));
+  return allAsync
+      .whenData((all) => _filterAndMapDistance(all, category, locationAsync));
 });
-

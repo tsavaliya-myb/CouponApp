@@ -3,6 +3,7 @@ import { prisma } from '../../config/db';
 import { redis } from '../../config/redis';
 import { env } from '../../config/env';
 import { ConflictError } from '../../shared/utils/AppError';
+import { oneSignal } from '../notifications/onesignal.service';
 import type { CreateOrderResponse } from './payments.validator';
 
 // ─── Razorpay Webhook Event Shape (simplified) ────────────────────────────────
@@ -174,6 +175,10 @@ export class PaymentService {
 
     // ── Mark as processed in Redis for 48h (idempotency window) ──────────
     await redis.set(idempotencyKey, '1', 'EX', 48 * 60 * 60);
+
+    // ── Push notifications (fire-and-forget) ──────────────────────────────
+    oneSignal.sendToUser(userId, '🎉 Subscription Activated!', `Your coupon book is now active. Enjoy your discounts!`, 'subscription_success').catch(() => {});
+    oneSignal.sendToUser(userId, '🪙 Coins Credited!', `${coinsToAward} coins have been added to your wallet.`, 'coins_credited').catch(() => {});
 
     console.log(`[Webhook] Subscription fulfilled for user ${userId}, payment ${razorpayPaymentId}`);
   }

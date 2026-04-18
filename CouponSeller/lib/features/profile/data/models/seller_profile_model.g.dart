@@ -22,7 +22,9 @@ _$SellerProfileModelImpl _$$SellerProfileModelImplFromJson(
 ) => _$SellerProfileModelImpl(
   id: json['id'] as String,
   businessName: json['businessName'] as String,
-  category: json['category'] as String,
+  category: json['category'] is Map
+      ? (json['category'] as Map<String, dynamic>)['name'] as String? ?? ''
+      : json['category'] as String? ?? '',
   cityId: json['cityId'] as String,
   areaId: json['areaId'] as String,
   address: json['address'] as String?,

@@ -15,6 +15,9 @@ import '../../../../core/widgets/subscribe_bottom_sheet.dart';
 import '../providers/home_provider.dart';
 import '../../../../core/widgets/coupon_card.dart';
 import '../../../../core/widgets/seller_card.dart';
+import '../../../../core/providers/categories_provider.dart';
+import '../../../../core/models/category_item.dart';
+import '../../../../core/utils/category_utils.dart';
 import 'package:couponcode/features/profile/presentation/providers/profile_provider.dart';
 
 // ─── Home Screen ─────────────────────────────────────────────────────────────
@@ -168,21 +171,15 @@ class _HomeHeader extends ConsumerWidget {
 
 // ─── Category Tabs ────────────────────────────────────────────────────────────
 
-const _kCategories = [
-  ('ALL', 'All', Icons.grid_view_rounded),
-  ('FOOD', 'Food', Icons.restaurant_rounded),
-  ('CAFE', 'Cafe', Icons.coffee_rounded),
-  ('SALON', 'Salon', Icons.content_cut_rounded),
-  ('THEATER', 'Theater', Icons.movie_rounded),
-  ('SPA', 'Spa', Icons.spa_rounded),
-];
-
 class _CategoryTabs extends ConsumerWidget {
   const _CategoryTabs();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(selectedCategoryProvider);
+    final categoriesAsync = ref.watch(categoriesProvider);
+
+    final categories = categoriesAsync.valueOrNull ?? [];
 
     return Column(
       children: [
@@ -202,15 +199,21 @@ class _CategoryTabs extends ConsumerWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 24),
-            itemCount: _kCategories.length,
+            // "All" chip + one chip per category
+            itemCount: categories.length + 1,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (_, i) {
-              final (key, label, icon) = _kCategories[i];
-              final isSelected = selected == key;
+              final isAll = i == 0;
+              final CategoryItem? item = isAll ? null : categories[i - 1];
+              final isSelected = selected == item;
+              final label = isAll ? 'All' : item!.name;
+              final icon = isAll
+                  ? Icons.grid_view_rounded
+                  : CategoryUtils.getIcon(item!.slug);
 
               return GestureDetector(
                 onTap: () {
-                  ref.read(selectedCategoryProvider.notifier).state = key;
+                  ref.read(selectedCategoryProvider.notifier).state = item;
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),

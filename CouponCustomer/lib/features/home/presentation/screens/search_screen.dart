@@ -7,6 +7,8 @@ import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/widgets/coupon_card.dart';
 import '../../../../core/widgets/seller_card.dart';
 import '../providers/home_provider.dart';
+import '../../../../core/providers/categories_provider.dart';
+import '../../../../core/utils/category_utils.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -19,13 +21,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _searchController = TextEditingController();
   String _query = '';
 
-  final _kCategories = [
-    ('FOOD', 'Food', Icons.restaurant_rounded),
-    ('CAFE', 'Cafe', Icons.coffee_rounded),
-    ('SALON', 'Salon', Icons.content_cut_rounded),
-    ('THEATER', 'Theater', Icons.movie_rounded),
-    ('SPA', 'Spa', Icons.spa_rounded),
-  ];
 
   @override
   void dispose() {
@@ -47,6 +42,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
     final String queryLower = _query.trim().toLowerCase();
 
+    final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
     final sellers = sellersAsync.valueOrNull ?? [];
     final matchingSellers = queryLower.isEmpty
         ? []
@@ -115,7 +111,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ),
       ),
       body: queryLower.isEmpty
-          ? _buildEmptyState(sellers)
+          ? _buildEmptyState(sellers, categories)
           : (!hasResults)
               ? Center(
                   child: Text(
@@ -159,7 +155,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  Widget _buildEmptyState(List sellers) {
+  Widget _buildEmptyState(List sellers, List categories) {
     final recommendedSellers = sellers.take(5).toList();
 
     return ListView(
@@ -174,10 +170,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: _kCategories.map((cat) {
-            final (_, label, icon) = cat;
+          children: categories.map((cat) {
             return GestureDetector(
-              onTap: () => _onCategoryTap(label),
+              onTap: () => _onCategoryTap(cat.name),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -190,10 +185,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(icon, size: 18, color: AppColors.dsPrimary),
+                    Icon(CategoryUtils.getIcon(cat.slug),
+                        size: 18, color: AppColors.dsPrimary),
                     const SizedBox(width: 8),
                     Text(
-                      label,
+                      cat.name,
                       style: AppTextStyles.dsLabelMd.copyWith(
                         fontWeight: FontWeight.w600,
                         color: AppColors.dsOnSurface,

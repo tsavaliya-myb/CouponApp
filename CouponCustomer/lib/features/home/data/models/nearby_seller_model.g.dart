@@ -29,8 +29,10 @@ _$NearbySellerModelImpl _$$NearbySellerModelImplFromJson(
     _$NearbySellerModelImpl(
       id: json['id'] as String,
       businessName: json['businessName'] as String,
-      category: json['category'] as String,
-      area: json['area'] as String,
+      category: json['category'] is Map
+          ? (json['category'] as Map<String, dynamic>)['slug'] as String? ?? ''
+          : json['category'] as String? ?? '',
+      area: json['area'] as String? ?? '',
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
       distanceKm: (json['distanceKm'] as num?)?.toDouble(),

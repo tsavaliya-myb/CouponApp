@@ -1,5 +1,6 @@
 import { prisma } from '../../../config/db';
 import { NotFoundError } from '../../../shared/utils/AppError';
+import { oneSignal } from '../../notifications/onesignal.service';
 import type { 
   AdminUsersQueryDto, 
   AwardCoinsDto,
@@ -101,7 +102,7 @@ export class AdminUsersService {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw NotFoundError('User');
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       await tx.user.update({
         where: { id: userId },
         data: { coinBalance: { increment: dto.amount } }
@@ -116,5 +117,14 @@ export class AdminUsersService {
         },
       });
     });
+
+    oneSignal.sendToUser(
+      userId,
+      '🪙 Coins Credited!',
+      `${dto.amount} coins have been added to your wallet${dto.note ? ` — ${dto.note}` : ''}.`,
+      'coins_credited',
+    ).catch(() => {});
+
+    return result;
   }
 }

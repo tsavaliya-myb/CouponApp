@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { env } from '../../config/env';
 import { prisma } from '../../config/db';
 import { redis } from '../../config/redis';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../shared/utils/jwt';
@@ -22,6 +23,7 @@ import type {
   SellerVerifyOtpResponse,
 } from './auth.validator';
 import { signRegistrationToken } from '../../shared/utils/jwt';
+import { sendOtpViaMSG91 } from '../../shared/utils/msg91';
 
 
 export class AuthService {
@@ -35,8 +37,11 @@ export class AuthService {
     const otpKey = `${REDIS_PREFIX.OTP}${dto.phone}`;
     await redis.set(otpKey, otp, 'EX', TTL.OTP_SEC);
 
-    // Skip MSG91 for now as per user request
-    console.log(`[DEV] OTP for ${dto.phone} is ${otp}`);
+    if (env.MSG91_AUTH_KEY && env.MSG91_TEMPLATE_ID) {
+      await sendOtpViaMSG91(dto.phone, otp);
+    } else {
+      console.log(`[DEV] OTP for ${dto.phone} is ${otp}`);
+    }
 
     return { message: 'OTP sent successfully' };
   }
@@ -44,8 +49,7 @@ export class AuthService {
   // ─── Verify OTP ────────────────────────────────────────────────────────────
   async verifyOtp(dto: VerifyOtpDto): Promise<VerifyOtpResponse> {
     const otpKey = `${REDIS_PREFIX.OTP}${dto.phone}`;
-    let storedOtp = await redis.get(otpKey);
-    storedOtp = '123456'; // For testing purposes, you can hardcode an OTP here
+    const storedOtp = await redis.get(otpKey);
 
     if (!storedOtp || storedOtp !== dto.otp) {
       throw UnauthorizedError('Invalid or expired OTP');
@@ -120,14 +124,17 @@ export class AuthService {
     const otpKey = `${REDIS_PREFIX.OTP}seller:${dto.phone}`;
     await redis.set(otpKey, otp, 'EX', TTL.OTP_SEC);
 
-    console.log(`[DEV] Seller OTP for ${dto.phone} is ${otp}`);
+    if (env.MSG91_AUTH_KEY && env.MSG91_TEMPLATE_ID) {
+      await sendOtpViaMSG91(dto.phone, otp);
+    } else {
+      console.log(`[DEV] Seller OTP for ${dto.phone} is ${otp}`);
+    }
     return { message: 'OTP sent successfully' };
   }
 
   async sellerVerifyOtp(dto: SellerVerifyOtpDto): Promise<SellerVerifyOtpResponse> {
     const otpKey = `${REDIS_PREFIX.OTP}seller:${dto.phone}`;
-    let storedOtp = await redis.get(otpKey);
-    storedOtp = '123456'; // Testing
+    const storedOtp = await redis.get(otpKey);
 
     if (!storedOtp || storedOtp !== dto.otp) {
       throw UnauthorizedError('Invalid or expired OTP');

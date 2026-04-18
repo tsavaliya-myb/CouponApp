@@ -13,6 +13,7 @@ export const REDIS_PREFIX = {
 export const REDIS_KEYS = {
   APP_SETTINGS: `$cache:app_settings`,
   CITIES_ALL: `$cache:cities:all`,
+  CATEGORIES_ALL: `$cache:categories:all`,
   CITY_AREAS: (cityId: string) => `$cache:city:${cityId}:areas`,
   CITY_BASE_COUPONS: (cityId: string) => `$cache:city:${cityId}:base_coupons`,
   ANALYTICS: (paramKey: string) => `$cache:analytics:${paramKey}`,

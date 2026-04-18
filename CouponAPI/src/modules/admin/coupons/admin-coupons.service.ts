@@ -1,5 +1,6 @@
 import { prisma } from '../../../config/db';
 import { NotFoundError, BadRequestError } from '../../../shared/utils/AppError';
+import { oneSignal } from '../../notifications/onesignal.service';
 import { RedisCacheService } from '../../../shared/services/redisCache.service';
 import { REDIS_KEYS } from '../../../shared/constants';
 import type { 
@@ -92,6 +93,13 @@ export class AdminCouponsService {
     if (dto.isBaseCoupon) {
       await RedisCacheService.delCache(REDIS_KEYS.CITY_BASE_COUPONS(seller.cityId));
     }
+
+    oneSignal.sendToCity(
+      seller.cityId,
+      '🎟️ New Coupon Available!',
+      `A new deal at ${coupon.seller.businessName} is now in your coupon book. Check it out!`,
+      'new_coupon_added',
+    ).catch(() => {});
 
     return coupon;
   }

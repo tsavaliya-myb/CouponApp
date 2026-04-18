@@ -7,7 +7,6 @@ import {
   paginatedSellerCouponsResponseSchema,
 } from './coupons.validator';
 import { PAGINATION } from '../../shared/constants';
-import { SellerCategory } from '@prisma/client';
 
 const errorResponse = z.object({
   success: z.boolean().default(false),
@@ -28,7 +27,7 @@ openApiRegistry.registerPath({
     query: z.object({
       page: z.number().optional().openapi({ description: `Default: ${PAGINATION.DEFAULT_PAGE}` }),
       limit: z.number().optional().openapi({ description: `Default: ${PAGINATION.DEFAULT_LIMIT}` }),
-      category: z.nativeEnum(SellerCategory).optional(),
+      categoryId: z.string().uuid().optional().openapi({ description: 'Category ID to filter by' }),
       sellerId: z.string().uuid().optional(),
     }),
   },

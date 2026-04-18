@@ -1,5 +1,6 @@
 import { prisma } from '../../../config/db';
 import { NotFoundError } from '../../../shared/utils/AppError';
+import { oneSignal } from '../../notifications/onesignal.service';
 import type { 
   AdminSellersQueryDto, 
   AdminUpdateSellerDto,
@@ -13,14 +14,14 @@ export class AdminSellersService {
   
   // ─── List Sellers ─────────────────────────────────────────────────────────────
   async listSellers(query: AdminSellersQueryDto): Promise<PaginatedSellersResponse> {
-    const { page, limit, cityId, areaId, category, status, search } = query;
+    const { page, limit, cityId, areaId, categoryId, status, search } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.SellerWhereInput = {};
 
     if (cityId) where.cityId = cityId;
     if (areaId) where.areaId = areaId;
-    if (category) where.category = category;
+    if (categoryId) (where as any).categoryId = categoryId;
     if (status) where.status = status;
     if (search) {
       where.OR = [
@@ -36,10 +37,11 @@ export class AdminSellersService {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
+          category: true,
           city: { select: { name: true } },
           area: { select: { name: true } },
         },
-      }),
+      }) as any,
       prisma.seller.count({ where }),
     ]);
 
@@ -59,10 +61,19 @@ export class AdminSellersService {
     const seller = await prisma.seller.findUnique({ where: { id } });
     if (!seller) throw NotFoundError('Seller');
 
-    return prisma.seller.update({
+    const updated = await prisma.seller.update({
       where: { id },
       data: { status: 'ACTIVE' },
     });
+
+    oneSignal.sendToSeller(
+      id,
+      '✅ Account Approved!',
+      `Your business "${seller.businessName}" has been approved. You can now receive coupon redemptions.`,
+      'seller_approved',
+    ).catch(() => {});
+
+    return updated;
   }
 
   // ─── Suspend Seller ───────────────────────────────────────────────────────────
@@ -94,11 +105,12 @@ export class AdminSellersService {
 
     return prisma.seller.update({
       where: { id },
-      data: dto,
+      data: dto as any,
       include: {
+        category: true,
         city: { select: { name: true } },
         area: { select: { name: true } },
       },
-    });
+    }) as any;
   }
 }
