@@ -35,7 +35,6 @@ class QrTokenService {
       'iat': DateTime.now().millisecondsSinceEpoch,
       'type': 'USER_PROFILE',
     });
-    print(payload);
     return _encrypter.encrypt(payload, iv: _iv).base64;
   }
 
@@ -45,7 +44,6 @@ class QrTokenService {
       final decrypted = _encrypter.decrypt64(encrypted, iv: _iv);
       return jsonDecode(decrypted) as Map<String, dynamic>;
     } catch (e, stack) {
-      print('[QrTokenService][SELLER] ERROR: $e\n$stack');
       return null;
     }
   }

@@ -27,7 +27,7 @@ export class AdminCategoriesController {
 
   updateCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const category = await service.updateCategory(req.params.id, req.body);
+      const category = await service.updateCategory(req.params.id as string, req.body);
       sendSuccess(res, category);
     } catch (err) {
       next(err);
