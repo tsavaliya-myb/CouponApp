@@ -1,6 +1,5 @@
 import {
   PrismaClient,
-  SellerCategory,
   CityStatus,
   UserStatus,
   SellerStatus,
@@ -77,11 +76,26 @@ async function main() {
   });
   console.log('✅ Areas Created');
 
-  // 5. Sellers with varying statuses
+  // 5. Categories (dynamic)
+  const categoriesData = [
+    { name: 'Cafe', slug: 'cafe', iconName: 'coffee' },
+    { name: 'Food', slug: 'food', iconName: 'restaurant' },
+    { name: 'Spa', slug: 'spa', iconName: 'spa' },
+    { name: 'Salon', slug: 'salon', iconName: 'content_cut' },
+    { name: 'Theater', slug: 'theater', iconName: 'theaters' },
+    { name: 'Other', slug: 'other', iconName: 'category' },
+  ];
+  const categories = await Promise.all(
+    categoriesData.map(c => prisma.category.create({ data: c }))
+  );
+  const catMap = Object.fromEntries(categories.map(c => [c.slug, c.id]));
+  console.log('✅ Categories Created');
+
+  // 6. Sellers with varying statuses
   const sellerCafe = await prisma.seller.create({
     data: {
       businessName: 'The Great Cafe',
-      category: SellerCategory.CAFE,
+      categoryId: catMap['cafe'],
       cityId: citySurat.id,
       areaId: areaVesu.id,
       address: '101, VIP Road, Vesu',
@@ -107,7 +121,7 @@ async function main() {
   const sellerFood = await prisma.seller.create({
     data: {
       businessName: 'Gourmet Kitchen',
-      category: SellerCategory.FOOD,
+      categoryId: catMap['food'],
       cityId: citySurat.id,
       areaId: areaVesu.id,
       address: 'Near VR Mall',
@@ -128,7 +142,7 @@ async function main() {
   const sellerSpa = await prisma.seller.create({
     data: {
       businessName: 'Relax Spa',
-      category: SellerCategory.SPA,
+      categoryId: catMap['spa'],
       cityId: citySurat.id,
       areaId: areaAdajan.id,
       address: '202, Green Avenue, Adajan',
@@ -150,7 +164,7 @@ async function main() {
   const sellerPending = await prisma.seller.create({
     data: {
       businessName: 'Pending Salon',
-      category: SellerCategory.SALON,
+      categoryId: catMap['salon'],
       cityId: citySurat.id,
       areaId: areaVesu.id,
       address: '303, Someshwar Square',
@@ -162,7 +176,7 @@ async function main() {
   const sellerSuspended = await prisma.seller.create({
     data: {
       businessName: 'Suspended Gym',
-      category: SellerCategory.OTHER,
+      categoryId: catMap['other'],
       cityId: citySurat.id,
       areaId: areaVesu.id,
       phone: '9876543213',
@@ -173,7 +187,7 @@ async function main() {
   const sellerRejected = await prisma.seller.create({
     data: {
       businessName: 'Rejected Shop',
-      category: SellerCategory.OTHER,
+      categoryId: catMap['other'],
       cityId: citySurat.id,
       areaId: areaAdajan.id,
       phone: '9876543214',
@@ -183,7 +197,7 @@ async function main() {
 
   console.log('✅ Sellers Created across configurations');
 
-  // 6. Base Coupons (1 per active Seller to make a standard City Base Set)
+  // 7. Base Coupons (1 per active Seller to make a standard City Base Set)
   const couponCafe = await prisma.coupon.create({
     data: {
       sellerId: sellerCafe.id,
@@ -259,7 +273,7 @@ async function main() {
   });
   console.log('✅ Coupons Created');
 
-  // 7. Users
+  // 8. Users
   const userValid = await prisma.user.create({
     data: {
       phone: '9999999991',
@@ -293,7 +307,7 @@ async function main() {
   });
   console.log('✅ Users Created');
 
-  // 8. Subscriptions & Coupon Books
+  // 9. Subscriptions & Coupon Books
   const now = new Date();
   const nextYear = new Date();
   nextYear.setFullYear(now.getFullYear() + 1);
@@ -354,7 +368,7 @@ async function main() {
   });
   console.log(`✅ Expired Subscription created for ${userExpired.name}`);
 
-  // 9. Redemptions & Settlements (User redeemed a standard cafe coupon)
+  // 10. Redemptions & Settlements (User redeemed a standard cafe coupon)
   const validCouponBook = await prisma.couponBook.findFirst({ where: { userId: userValid.id }, include: { userCoupons: true } });
 
   if (validCouponBook && validCouponBook.userCoupons.length > 0) {
@@ -432,7 +446,7 @@ async function main() {
     console.log('✅ Settlement and Redemption accurately mapped and triggered');
   }
 
-  // 10. Notification Logs
+  // 11. Notification Logs
   await prisma.notificationLog.create({
     data: {
       type: 'welcome_notification',
