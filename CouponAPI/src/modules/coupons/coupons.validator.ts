@@ -6,7 +6,7 @@ const categoryShapeSchema = z.object({ id: z.string().uuid(), name: z.string(), 
 // ─── Query for My Active Coupons (UserCoupons) ────────────────────────────────
 export const myCouponsQuerySchema = z.object({
   page: z.coerce.number().min(1).default(PAGINATION.DEFAULT_PAGE),
-  limit: z.coerce.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
+  limit: z.coerce.number().min(1).max(500).default(PAGINATION.DEFAULT_LIMIT),
   categoryId: z.string().uuid().optional(), // Filter by seller category
   sellerId: z.string().uuid().optional(),   // Filter by specific seller
   search: z.string().optional(),

@@ -23,7 +23,7 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
   Future<List<HomeCouponModel>> getAllCoupons() async {
     final response = await _apiClient.client.get(
       '/coupons',
-      queryParameters: {'page': 1, 'limit': 1000},
+      queryParameters: {'page': 1, 'limit': 499},
     );
     final List data = response.data['data'] as List;
     return data
@@ -37,7 +37,7 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
   }) async {
     final response = await _apiClient.client.get(
       '/sellers/by-city-category',
-      queryParameters: {'cityId': cityId, 'page': 1, 'limit': 1000},
+      queryParameters: {'cityId': cityId, 'page': 1, 'limit': 499},
     );
     final List data = response.data['data'] as List;
     return data

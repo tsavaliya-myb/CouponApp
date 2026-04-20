@@ -40,7 +40,7 @@ export const getSellersByCityCategorySchema = z.object({
   cityId: z.string().uuid(),
   categoryId: z.string().uuid().optional(),
   page: z.coerce.number().min(1).default(PAGINATION.DEFAULT_PAGE),
-  limit: z.coerce.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
+  limit: z.coerce.number().min(1).max(500).default(PAGINATION.DEFAULT_LIMIT),
 });
 
 export const getSellerMediaSchema = z.object({
