@@ -30,25 +30,9 @@ class _SellersScreenState extends ConsumerState<SellersScreen>
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.position.pixels;
-    
-    if (maxScroll > 0 && currentScroll >= maxScroll - 200) {
-      ref.read(nearbySellersProvider.notifier).loadMore();
-    }
   }
 
   @override
@@ -162,7 +146,7 @@ class _SellersScreenState extends ConsumerState<SellersScreen>
                               color: AppColors.dsOnSurface.withOpacity(0.4))),
                       const SizedBox(height: 20),
                       GestureDetector(
-                        onTap: () => ref.invalidate(nearbySellersProvider),
+                        onTap: () => ref.invalidate(allSellersProvider),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 10),

@@ -59,6 +59,7 @@ final _router = GoRouter(
         return MainShellScaffold(navigationShell: navigationShell);
       },
       branches: [
+        // 0 – Home
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -68,6 +69,7 @@ final _router = GoRouter(
             ),
           ],
         ),
+        // 1 – Coupons (tab hidden from nav bar but route still active)
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -77,15 +79,7 @@ final _router = GoRouter(
             ),
           ],
         ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/qr',
-              name: 'qr',
-              builder: (_, __) => const QrScreen(),
-            ),
-          ],
-        ),
+        // 2 – Sellers
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -95,6 +89,7 @@ final _router = GoRouter(
             ),
           ],
         ),
+        // 3 – Wallet
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -104,6 +99,17 @@ final _router = GoRouter(
             ),
           ],
         ),
+        // 4 – QR (last position)
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/qr',
+              name: 'qr',
+              builder: (_, __) => const QrScreen(),
+            ),
+          ],
+        ),
+        // 5 – Profile
         StatefulShellBranch(
           routes: [
             GoRoute(

@@ -10,14 +10,8 @@ class GetNearbySellersUsecase {
   GetNearbySellersUsecase(this._repository);
 
   Future<Either<Failure, List<NearbySellerEntity>>> call({
-    required String areaId,
-    String? categoryId,
-    required int page,
+    required String cityId,
   }) {
-    return _repository.getNearbySellers(
-      areaId: areaId,
-      categoryId: categoryId,
-      page: page,
-    );
+    return _repository.getNearbySellers(cityId: cityId);
   }
 }

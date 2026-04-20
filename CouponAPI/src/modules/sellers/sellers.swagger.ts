@@ -4,7 +4,7 @@ import {
   registerSellerSchema,
   updateSellerSchema,
   findSellersSchema,
-  getSellersByAreaCategorySchema,
+  getSellersByCityCategorySchema,
   loginSellerResponseSchema,
   profileResponseSchema,
   sellerDashboardResponseSchema,
@@ -196,15 +196,15 @@ openApiRegistry.registerPath({
 
 openApiRegistry.registerPath({
   method: 'get',
-  path: '/sellers/by-area-category',
-  summary: 'Find Sellers by Area and Category',
-  description: 'Customer view. Lists active sellers filtered by area and category.',
+  path: '/sellers/by-city-category',
+  summary: 'Find Sellers by City and Category',
+  description: 'Customer view. Lists active sellers filtered by city (required) and optionally by category.',
   tags: ['Sellers'],
   security: [{ bearerAuth: [] }],
   request: {
     query: z.object({
-      areaId: z.string().uuid().openapi({ description: 'Area ID' }),
-      categoryId: z.string().uuid().optional().openapi({ description: 'Category ID to filter by' }),
+      cityId: z.string().uuid().openapi({ description: 'City ID (required)' }),
+      categoryId: z.string().uuid().optional().openapi({ description: 'Category ID to filter by (optional — omit for all sellers in city)' }),
       page: z.coerce.number().default(1),
       limit: z.coerce.number().default(20),
     }),

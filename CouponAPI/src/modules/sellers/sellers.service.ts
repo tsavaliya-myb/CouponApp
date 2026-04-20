@@ -11,7 +11,7 @@ import type {
   RegisterSellerDto,
   UpdateSellerDto,
   FindSellersDto,
-  GetSellersByAreaCategoryDto,
+  GetSellersByCityCategoryDto,
   LoginSellerResponse,
   ProfileResponse,
   SellerDashboardResponse,
@@ -328,13 +328,13 @@ export class SellersService {
     };
   }
 
-  // ─── Customer View: Get Sellers by Area and Category ──────────────────────────
-  async getSellersByAreaCategory(dto: GetSellersByAreaCategoryDto): Promise<PaginatedDistanceSellersResponse> {
-    const { areaId, categoryId, page, limit } = dto;
+  // ─── Customer View: Get Sellers by City and Category ──────────────────────────
+  async getSellersByCityCategory(dto: GetSellersByCityCategoryDto): Promise<PaginatedDistanceSellersResponse> {
+    const { cityId, categoryId, page, limit } = dto;
 
     const whereClause: any = {
       status: 'ACTIVE',
-      areaId,
+      cityId,
     };
 
     if (categoryId) {

@@ -87,6 +87,7 @@ Future<void> configureDependencies() async {
     () => AuthRepositoryImpl(
       getIt<AuthRemoteDatasource>(),
       getIt<TokenService>(),
+      getIt<HiveService>(),
     ),
   );
   getIt.registerFactory<SendOtpUsecase>(

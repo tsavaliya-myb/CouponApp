@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/security/token_service.dart';
+import '../../../../core/storage/hive_service.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
@@ -12,8 +13,9 @@ import '../datasources/auth_remote_datasource.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDatasource _datasource;
   final TokenService _tokenService;
+  final HiveService _hiveService;
 
-  AuthRepositoryImpl(this._datasource, this._tokenService);
+  AuthRepositoryImpl(this._datasource, this._tokenService, this._hiveService);
 
   @override
   Future<Either<Failure, String>> sendOtp({required String phone}) async {
@@ -61,7 +63,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, Unit>> logout() async {
     try {
-      await _tokenService.clearTokens();
+      await Future.wait([
+        _tokenService.clearTokens(),
+        _hiveService.clearAll(),
+      ]);
       return const Right(unit);
     } catch (_) {
       return Left(const ServerFailure(message: 'Failed to logout. Please try again.'));

@@ -37,7 +37,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final sellersAsync = ref.watch(nearbySellersProvider);
+    final sellersAsync = ref.watch(allSellersProvider);
     final couponsAsync = ref.watch(allCouponsProvider);
 
     final String queryLower = _query.trim().toLowerCase();

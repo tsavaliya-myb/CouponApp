@@ -8,8 +8,6 @@ abstract class HomeRepository {
   Future<Either<Failure, List<HomeCouponEntity>>> getAllCoupons();
 
   Future<Either<Failure, List<NearbySellerEntity>>> getNearbySellers({
-    required String areaId,
-    String? categoryId,
-    required int page,
+    required String cityId,
   });
 }

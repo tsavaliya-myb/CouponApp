@@ -8,6 +8,7 @@ import '../../domain/entities/home_coupon_entity.dart';
 import '../../domain/entities/nearby_seller_entity.dart';
 import '../../domain/usecases/get_featured_coupons_usecase.dart';
 import '../../domain/usecases/get_nearby_sellers_usecase.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 
 // ─── Selected category ────────────────────────────────────────────────────────
 // null means "ALL". Non-null is the selected CategoryItem.
@@ -24,10 +25,9 @@ final userLocationProvider = FutureProvider.autoDispose<Position?>((ref) async {
   return await LocationService.getUserLocation();
 });
 
-// ─── All Coupons (single fetch) ───────────────────────────────────────────────
+// ─── All Coupons (keepAlive, single fetch) ────────────────────────────────────
 
-class AllCouponsNotifier
-    extends AutoDisposeAsyncNotifier<List<HomeCouponEntity>> {
+class AllCouponsNotifier extends AsyncNotifier<List<HomeCouponEntity>> {
   @override
   Future<List<HomeCouponEntity>> build() async {
     final usecase = GetIt.I<GetFeaturedCouponsUsecase>();
@@ -45,11 +45,11 @@ class AllCouponsNotifier
 }
 
 final allCouponsProvider =
-    AutoDisposeAsyncNotifierProvider<AllCouponsNotifier, List<HomeCouponEntity>>(
+    AsyncNotifierProvider<AllCouponsNotifier, List<HomeCouponEntity>>(
   AllCouponsNotifier.new,
 );
 
-// ─── Filtered coupons (client-side, no extra request) ────────────────────────
+// ─── Filtered coupons (client-side) ──────────────────────────────────────────
 
 final filteredCouponsProvider =
     Provider.autoDispose<AsyncValue<List<HomeCouponEntity>>>((ref) {
@@ -70,64 +70,27 @@ final featuredCouponsProvider =
       (list) => list.where((c) => c.status != 'USED').toList());
 });
 
-// ─── Nearby Sellers (paginated) ───────────────────────────────────────────────
+// ─── All Sellers (keepAlive, single fetch with high limit) ───────────────────
 
-class NearbySellersNotifier
-    extends AutoDisposeAsyncNotifier<List<NearbySellerEntity>> {
-  int _page = 1;
-  bool _hasMore = true;
-  final List<NearbySellerEntity> _sellers = [];
-  bool _isFetchingMore = false;
-
+class AllSellersNotifier extends AsyncNotifier<List<NearbySellerEntity>> {
   @override
   Future<List<NearbySellerEntity>> build() async {
-    final category = ref.watch(selectedSellerCategoryProvider);
-    _page = 1;
-    _hasMore = true;
-    _sellers.clear();
-    return _fetch(category);
-  }
-
-  Future<List<NearbySellerEntity>> _fetch(CategoryItem? category) async {
+    final profile = await ref.watch(profileProvider.future);
+    final cityId = profile.cityId;
+    if (cityId == null) return [];
     final usecase = GetIt.I<GetNearbySellersUsecase>();
-    // TODO: Get actual areaId from user profile provider once implemented
-    const userAreaId = 'a331158a-24ed-47fc-8e3e-fa84e78cc4c4';
-
-    final result = await usecase(
-      areaId: userAreaId,
-      categoryId: category?.id,
-      page: _page,
-    );
+    final result = await usecase(cityId: cityId);
     return result.fold(
       (failure) => throw failure,
-      (list) {
-        _sellers.addAll(list);
-        _hasMore = list.length == 20;
-        return List.unmodifiable(_sellers);
-      },
+      (list) => list,
     );
-  }
-
-  Future<void> loadMore() async {
-    if (!_hasMore || state.isLoading || _isFetchingMore) return;
-    _isFetchingMore = true;
-    _page++;
-
-    try {
-      final category = ref.read(selectedSellerCategoryProvider);
-      final newItems = await _fetch(category);
-      state = AsyncData(newItems);
-    } catch (e, st) {
-      _page--;
-    } finally {
-      _isFetchingMore = false;
-    }
   }
 }
 
-final nearbySellersProvider =
-    AutoDisposeAsyncNotifierProvider<NearbySellersNotifier,
-        List<NearbySellerEntity>>(NearbySellersNotifier.new);
+final allSellersProvider =
+    AsyncNotifierProvider<AllSellersNotifier, List<NearbySellerEntity>>(
+  AllSellersNotifier.new,
+);
 
 // ─── Filtered sellers (client-side) ──────────────────────────────────────────
 
@@ -156,7 +119,7 @@ List<NearbySellerEntity> _filterAndMapDistance(List<NearbySellerEntity> all,
 
 final filteredSellersProvider =
     Provider.autoDispose<AsyncValue<List<NearbySellerEntity>>>((ref) {
-  final allAsync = ref.watch(nearbySellersProvider);
+  final allAsync = ref.watch(allSellersProvider);
   final category = ref.watch(selectedSellerCategoryProvider);
   final locationAsync = ref.watch(userLocationProvider);
 
@@ -166,7 +129,7 @@ final filteredSellersProvider =
 
 final homeFilteredSellersProvider =
     Provider.autoDispose<AsyncValue<List<NearbySellerEntity>>>((ref) {
-  final allAsync = ref.watch(nearbySellersProvider);
+  final allAsync = ref.watch(allSellersProvider);
   final category = ref.watch(selectedCategoryProvider);
   final locationAsync = ref.watch(userLocationProvider);
 

@@ -7,7 +7,7 @@ import {
   registerSellerSchema,
   updateSellerSchema,
   findSellersSchema,
-  getSellersByAreaCategorySchema,
+  getSellersByCityCategorySchema,
   getSellerMediaSchema,
   presignLogoSchema,
   confirmLogoSchema,
@@ -36,10 +36,10 @@ router.get(
 );
 
 router.get(
-  '/by-area-category',
+  '/by-city-category',
   authenticate,
-  validate(getSellersByAreaCategorySchema, 'query'),
-  controller.getSellersByAreaCategory
+  validate(getSellersByCityCategorySchema, 'query'),
+  controller.getSellersByCityCategory
 );
 
 router.post(

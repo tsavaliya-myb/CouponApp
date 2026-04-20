@@ -3,7 +3,7 @@ import { SellersService } from './sellers.service';
 import { sendSuccess, sendCreated } from '../../shared/utils/response';
 import { verifyRegistrationToken } from '../../shared/utils/jwt';
 import { UnauthorizedError } from '../../shared/utils/AppError';
-import type { FindSellersDto, GetSellersByAreaCategoryDto } from './sellers.validator';
+import type { FindSellersDto, GetSellersByCityCategoryDto } from './sellers.validator';
 
 const sellersService = new SellersService();
 
@@ -160,10 +160,10 @@ export class SellersController {
     }
   };
 
-  getSellersByAreaCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getSellersByCityCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const query = req.query as unknown as GetSellersByAreaCategoryDto;
-      const sellers = await sellersService.getSellersByAreaCategory(query);
+      const query = req.query as unknown as GetSellersByCityCategoryDto;
+      const sellers = await sellersService.getSellersByCityCategory(query);
       sendSuccess(res, sellers.data, 200, sellers.meta);
     } catch (err) {
       next(err);

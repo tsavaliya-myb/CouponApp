@@ -1,20 +1,12 @@
 // lib/features/home/presentation/screens/home_screen.dart
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/app_text_styles.dart';
-import '../../../../core/mock/mock_data.dart';
-import '../../../../core/providers/subscription_provider.dart';
-import '../../../../core/widgets/shimmer_loader.dart';
-import '../../../../core/widgets/subscribe_bottom_sheet.dart';
 import '../providers/home_provider.dart';
-import '../../../../core/widgets/coupon_card.dart';
-import '../../../../core/widgets/seller_card.dart';
 import '../../../../core/providers/categories_provider.dart';
 import '../../../../core/models/category_item.dart';
 import '../../../../core/utils/category_utils.dart';
@@ -37,22 +29,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.position.pixels;
-    
-    if (maxScroll > 0 && currentScroll >= maxScroll - 200) {
-      ref.read(nearbySellersProvider.notifier).loadMore();
-    }
-  }
-
-  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -61,32 +37,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final isSubscribed = ref.watch(isSubscribedProvider);
+    // Prefetch both datasets in the background as soon as home screen mounts.
+    ref.watch(allCouponsProvider);
+    ref.watch(allSellersProvider);
 
     return Scaffold(
       backgroundColor: AppColors.dsSurface,
       extendBody: true,
-      body: RefreshIndicator(
-        color: AppColors.dsPrimary,
-        backgroundColor: AppColors.dsSurfaceContainerLowest,
-        onRefresh: () async {
-          if (isSubscribed) {
-            await ref.read(allCouponsProvider.notifier).refresh();
-          }
-        },
+      extendBodyBehindAppBar: true,
+      body: MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
         child: CustomScrollView(
           controller: _scrollController,
           physics: const BouncingScrollPhysics(),
           slivers: [
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
-            // ── Header (Greeting & Search) ────────────────────────────────
-            const SliverToBoxAdapter(child: _HomeHeader()),
-            const SliverToBoxAdapter(child: SizedBox(height: 10)),
+            // ── Gradient hero: Header + Banner ───────────────────────────
+            SliverToBoxAdapter(
+              child: Builder(
+                builder: (ctx) => Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFFD4920A),
+                        const Color(0xFFEFBF3C),
+                        const Color(0xFFFFF3C2),
+                        AppColors.dsSurface.withValues(alpha: 0.6),
+                        AppColors.dsSurface.withValues(alpha: 0.0),
+                      ],
+                      stops: const [0.0, 0.4, 0.78, 0.92, 1.0],
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(ctx).padding.top +
+                            kToolbarHeight +
+                            50,
+                      ),
+                      const _HomeHeader(),
+                      const SizedBox(height: 10),
+                      const _BannerSlider(),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             // ── Category Tabs ─────────────────────────────────────────────
+            const SliverToBoxAdapter(child: SizedBox(height: 10)),
             const SliverToBoxAdapter(child: _CategoryTabs()),
             const SliverToBoxAdapter(child: SizedBox(height: 10)),
             // ── Active Coupons (Ticket Cards) ──────────────────────────────
-            SliverToBoxAdapter(
+            /*SliverToBoxAdapter(
               child: isSubscribed
                   ? const _ActiveCouponsSection()
                   : const _MockCouponsSection(),
@@ -125,7 +130,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               const _MockSellersSection(),
             const SliverToBoxAdapter(
               child: SizedBox(height: 120), // Bottom nav buffer
-            ),
+            ),*/
           ],
         ),
       ),
@@ -154,12 +159,15 @@ class _HomeHeader extends ConsumerWidget {
         children: [
           Text(
             'Hello, $displayName!',
-            style: AppTextStyles.dsDisplayLg.copyWith(fontSize: 24),
+            style: AppTextStyles.dsDisplayLg.copyWith(
+              fontSize: 24,
+              color: const Color(0xFF3B2200),
+            ),
           ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1),
           Text(
             'Ready to save?',
             style: AppTextStyles.dsBodyMd.copyWith(
-              color: AppColors.dsOnSurface.withOpacity(0.6),
+              color: const Color(0xFF3B2200).withValues(alpha: 0.6),
               fontSize: 12,
             ),
           ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
@@ -169,372 +177,501 @@ class _HomeHeader extends ConsumerWidget {
   }
 }
 
-// ─── Category Tabs ────────────────────────────────────────────────────────────
+// ─── Banner Slider ────────────────────────────────────────────────────────────
+
+class _BannerSlider extends StatefulWidget {
+  const _BannerSlider();
+
+  @override
+  State<_BannerSlider> createState() => _BannerSliderState();
+}
+
+class _BannerSliderState extends State<_BannerSlider> {
+  final _controller = PageController();
+  int _current = 0;
+
+  // Replace these with your actual asset paths e.g. 'assets/images/banner1.png'
+  static const _banners = [
+    'assets/images/banner1.png',
+    'assets/images/banner2.png',
+  ];
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 200,
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: _banners.length,
+            onPageChanged: (i) => setState(() => _current = i),
+            itemBuilder: (_, i) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  _banners[i],
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _BannerPlaceholder(index: i),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            _banners.length,
+            (i) => AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _current == i ? 20 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: _current == i
+                    ? AppColors.dsPrimary
+                    : AppColors.dsPrimary.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(100),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BannerPlaceholder extends StatelessWidget {
+  final int index;
+  const _BannerPlaceholder({required this.index});
+
+  static const _colors = [
+    [Color(0xFF2F6120), Color(0xFF82A346)],
+    [Color(0xFFB35227), Color(0xFFDEB86A)],
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final grad = _colors[index % _colors.length];
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: grad,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -20,
+            bottom: -20,
+            child: Icon(
+              index == 0
+                  ? Icons.local_offer_rounded
+                  : Icons.card_giftcard_rounded,
+              size: 140,
+              color: Colors.white.withValues(alpha: 0.1),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  index == 0 ? 'Exclusive Deals' : 'Gift Vouchers',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  index == 0
+                      ? 'Save big on your favourites'
+                      : 'Perfect gifts for every occasion',
+                  style: GoogleFonts.beVietnamPro(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.82),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Category Grid ────────────────────────────────────────────────────────────
 
 class _CategoryTabs extends ConsumerWidget {
   const _CategoryTabs();
+
+  static const _cardColor = {
+    'all': Color(0xFFDEB86A),
+    'food': Color(0xFFB35227),
+    'cafe': Color(0xFF2F6120),
+    'salon': Color(0xFF70586F),
+    'spa': Color(0xFF179156),
+    'theater': Color(0xFF82A346),
+    'default': Color(0xFFB1BAAE),
+  };
+
+  static const _subtitles = {
+    'all': 'Browse everything',
+    'food': 'Restaurants & more',
+    'cafe': 'Coffee & drinks',
+    'salon': 'Hair & beauty',
+    'spa': 'Relax & unwind',
+    'theater': 'Movies & shows',
+    'default': 'Explore deals',
+  };
+
+  Color _colorFor(String slug) => _cardColor[slug] ?? _cardColor['default']!;
+  String _subtitleFor(String slug) =>
+      _subtitles[slug] ?? _subtitles['default']!;
+
+  // Dark text for light cards, white for dark cards
+  Color _textColorFor(Color card) =>
+      card.computeLuminance() > 0.3 ? const Color(0xFF1C1A18) : Colors.white;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(selectedCategoryProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
-
     final categories = categoriesAsync.valueOrNull ?? [];
+    final itemCount = categories.length + 1;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Categories',
-                  style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20)),
-            ],
+          child: Text(
+            'Categories',
+            style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20),
           ),
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          height: 32,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            // "All" chip + one chip per category
-            itemCount: categories.length + 1,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+              childAspectRatio: 1.65,
+            ),
+            itemCount: itemCount,
             itemBuilder: (_, i) {
               final isAll = i == 0;
               final CategoryItem? item = isAll ? null : categories[i - 1];
               final isSelected = selected == item;
               final label = isAll ? 'All' : item!.name;
-              final icon = isAll
-                  ? Icons.grid_view_rounded
-                  : CategoryUtils.getIcon(item!.slug);
+              final slug = isAll ? 'all' : item!.slug;
+              final icon =
+                  isAll ? Icons.grid_view_rounded : CategoryUtils.getIcon(slug);
+              final cardColor = _colorFor(slug);
+              final textColor = _textColorFor(cardColor);
+              final subtitle = _subtitleFor(slug);
+              final isLight = textColor != Colors.white;
 
               return GestureDetector(
                 onTap: () {
-                  ref.read(selectedCategoryProvider.notifier).state = item;
+                  ref.read(selectedSellerCategoryProvider.notifier).state = item;
+                  context.go('/sellers');
                 },
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.dsPrimary
-                        : AppColors.dsSurfaceContainerLow,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        icon,
-                        color: isSelected
-                            ? AppColors.dsSurfaceContainerLowest
-                            : AppColors.dsPrimary,
-                        size: 16,
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: cardColor.withValues(
+                            alpha: isSelected ? 0.55 : 0.28),
+                        blurRadius: isSelected ? 22 : 10,
+                        offset: const Offset(0, 5),
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        label.toUpperCase(),
-                        style: AppTextStyles.dsLabelMd.copyWith(
-                          fontSize: 10,
-                          letterSpacing: 0.5,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w600,
-                          color: isSelected
-                              ? AppColors.dsSurfaceContainerLowest
-                              : AppColors.dsOnSurface.withOpacity(0.6),
+                    ],
+                  ),
+                  child: Stack(
+                    clipBehavior: Clip.hardEdge,
+                    children: [
+                      // Per-category decorations
+                      ..._decorationsFor(slug, isLight),
+                      // Ghost icon — larger, more visible
+                      Positioned(
+                        right: -10,
+                        top: -6,
+                        bottom: -6,
+                        child: Center(
+                          child: Icon(
+                            icon,
+                            size: 90,
+                            color: isLight
+                                ? Colors.black.withValues(alpha: 0.1)
+                                : Colors.white.withValues(alpha: 0.18),
+                          ),
+                        ),
+                      ),
+                      // Text content — left aligned, big
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 16, right: 80, top: 16, bottom: 14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              label,
+                              style: AppTextStyles.dsTitleLg.copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: textColor,
+                                height: 1.1,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              subtitle,
+                              style: AppTextStyles.dsLabelMd.copyWith(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: textColor.withValues(alpha: 0.65),
+                                letterSpacing: 0.1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-              );
+              )
+                  .animate()
+                  .fadeIn(
+                      duration: 350.ms, delay: Duration(milliseconds: 55 * i))
+                  .slideY(begin: 0.06, end: 0);
             },
           ),
         ),
       ],
     );
   }
+
+  List<Widget> _decorationsFor(String slug, bool isLight) {
+    final c = isLight
+        ? Colors.black.withValues(alpha: 0.1)
+        : Colors.white.withValues(alpha: 0.18);
+
+    switch (slug) {
+      // Circles — All
+      case 'all':
+        return [
+          _circle(c, 18, top: 8, left: 12),
+          _circle(c, 10, top: 28, left: 36),
+          _circle(c, 14, top: 4, left: 55),
+          _circle(c, 8, top: 20, left: 76),
+        ];
+      // Triangles — Food
+      case 'food':
+        return [
+          _triangle(c, 12, top: 6, left: 10),
+          _triangle(c, 8, top: 22, left: 30),
+          _triangle(c, 14, top: 4, left: 52),
+          _triangle(c, 10, top: 18, left: 72),
+        ];
+      // Dots grid — Cafe
+      case 'cafe':
+        return [
+          for (var r = 0; r < 3; r++)
+            for (var col = 0; col < 4; col++)
+              _circle(c, 5, top: 8.0 + r * 12, left: 8.0 + col * 14),
+        ];
+      // Horizontal lines — Salon
+      case 'salon':
+        return [
+          _line(c, w: 28, h: 3, top: 10, left: 8),
+          _line(c, w: 18, h: 3, top: 20, left: 16),
+          _line(c, w: 24, h: 3, top: 30, left: 10),
+        ];
+      // Plus / cross shapes — Spa
+      case 'spa':
+        return [
+          _plus(c, 12, top: 6, left: 10),
+          _plus(c, 8, top: 24, left: 34),
+          _plus(c, 14, top: 4, left: 56),
+          _plus(c, 10, top: 20, left: 78),
+        ];
+      // Stars (5-pt via rotated squares) — Theater
+      case 'theater':
+        return [
+          _star(c, 14, top: 6, left: 10),
+          _star(c, 10, top: 22, left: 32),
+          _star(c, 12, top: 4, left: 54),
+          _star(c, 8, top: 20, left: 74),
+        ];
+      // Diamonds — default
+      default:
+        return [
+          _diamond(c, 10, top: 8, left: 10),
+          _diamond(c, 7, top: 22, left: 30),
+          _diamond(c, 12, top: 4, left: 52),
+          _diamond(c, 8, top: 20, left: 72),
+        ];
+    }
+  }
+
+  Widget _circle(Color c, double size,
+          {required double top, required double left}) =>
+      Positioned(
+        top: top,
+        left: left,
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+        ),
+      );
+
+  Widget _diamond(Color c, double size,
+          {required double top, required double left}) =>
+      Positioned(
+        top: top,
+        left: left,
+        child: Transform.rotate(
+          angle: 0.785,
+          child: Container(
+            width: size,
+            height: size,
+            decoration:
+                BoxDecoration(color: c, borderRadius: BorderRadius.circular(2)),
+          ),
+        ),
+      );
+
+  Widget _triangle(Color c, double size,
+          {required double top, required double left}) =>
+      Positioned(
+        top: top,
+        left: left,
+        child: Transform.rotate(
+          angle: 0.0,
+          child: CustomPaint(
+            size: Size(size, size),
+            painter: _TrianglePainter(c),
+          ),
+        ),
+      );
+
+  Widget _line(Color c,
+          {required double w,
+          required double h,
+          required double top,
+          required double left}) =>
+      Positioned(
+        top: top,
+        left: left,
+        child: Container(
+          width: w,
+          height: h,
+          decoration:
+              BoxDecoration(color: c, borderRadius: BorderRadius.circular(4)),
+        ),
+      );
+
+  Widget _plus(Color c, double size,
+      {required double top, required double left}) {
+    final arm = size / 3;
+    return Positioned(
+      top: top,
+      left: left,
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Stack(children: [
+          Positioned(
+              left: arm,
+              top: 0,
+              child: Container(
+                  width: arm,
+                  height: size,
+                  decoration: BoxDecoration(
+                      color: c, borderRadius: BorderRadius.circular(2)))),
+          Positioned(
+              left: 0,
+              top: arm,
+              child: Container(
+                  width: size,
+                  height: arm,
+                  decoration: BoxDecoration(
+                      color: c, borderRadius: BorderRadius.circular(2)))),
+        ]),
+      ),
+    );
+  }
+
+  Widget _star(Color c, double size,
+          {required double top, required double left}) =>
+      Positioned(
+        top: top,
+        left: left,
+        child: Stack(children: [
+          Transform.rotate(
+              angle: 0,
+              child: Container(
+                  width: size,
+                  height: size,
+                  decoration: BoxDecoration(
+                      color: c, borderRadius: BorderRadius.circular(2)))),
+          Transform.rotate(
+              angle: 0.785,
+              child: Container(
+                  width: size,
+                  height: size,
+                  decoration: BoxDecoration(
+                      color: c, borderRadius: BorderRadius.circular(2)))),
+        ]),
+      );
 }
 
-// ─── Active Coupons Section (Subscribed) ──────────────────────────────────────
-
-class _ActiveCouponsSection extends ConsumerWidget {
-  const _ActiveCouponsSection();
+class _TrianglePainter extends CustomPainter {
+  final Color color;
+  const _TrianglePainter(this.color);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final couponsAsync = ref.watch(featuredCouponsProvider);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            children: [
-              Text('Your Active Coupons',
-                  style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20)),
-              const Spacer(),
-              GestureDetector(
-                onTap: () => context.go('/coupons'),
-                child: Text(
-                  'View All',
-                  style: AppTextStyles.dsLabelMd.copyWith(
-                    color: AppColors.dsPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        couponsAsync.when(
-          loading: () => _buildShimmer(),
-          error: (e, _) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Text('Failed to load coupons',
-                style: AppTextStyles.dsBodyMd
-                    .copyWith(color: AppColors.dsTertiaryPink)),
-          ),
-          data: (coupons) {
-            if (coupons.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: _buildEmptyCoupon(),
-              );
-            }
-            final preview = coupons.take(3).toList();
-            return ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              itemCount: preview.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
-              itemBuilder: (_, i) {
-                return CouponCard(
-                  coupon: preview[i],
-                  showUsesLeft: true,
-                  onTap: () => context.push(
-                    '/coupon-detail',
-                    extra: preview[i],
-                  ),
-                )
-                    .animate()
-                    .fadeIn(
-                        duration: 350.ms, delay: Duration(milliseconds: 60 * i))
-                    .slideY(begin: 0.05);
-              },
-            );
-          },
-        ),
-      ],
-    );
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(path, paint);
   }
-
-  Widget _buildShimmer() {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      itemCount: 2,
-      separatorBuilder: (_, __) => const SizedBox(height: 16),
-      itemBuilder: (_, __) => ShimmerLoader(
-        width: double.infinity,
-        height: 120,
-        borderRadius: 24,
-      ),
-    );
-  }
-
-  Widget _buildEmptyCoupon() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.confirmation_number_rounded,
-              size: 56, color: AppColors.dsOnSurface.withOpacity(0.15)),
-          const SizedBox(height: 16),
-          Text('No coupons found',
-              style: AppTextStyles.dsTitleLg
-                  .copyWith(color: AppColors.dsOnSurface.withOpacity(0.4))),
-          const SizedBox(height: 4),
-          Text('Try a different category',
-              style: AppTextStyles.dsBodyMd
-                  .copyWith(color: AppColors.dsOnSurface.withOpacity(0.3))),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Mock Coupons Section (Non-Subscribed) ────────────────────────────────────
-
-class _MockCouponsSection extends StatelessWidget {
-  const _MockCouponsSection();
 
   @override
-  Widget build(BuildContext context) {
-    final blurred = blurredCouponIndices.toSet();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            children: [
-              Text('Your Active Coupons',
-                  style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20)),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.dsPrimary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Text(
-                  'SUBSCRIBE TO UNLOCK',
-                  style: AppTextStyles.dsLabelMd.copyWith(
-                    color: AppColors.dsPrimary,
-                    fontSize: 8,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          itemCount: mockCoupons.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
-          itemBuilder: (_, i) {
-            final isBlurred = blurred.contains(i);
-            return CouponCard(
-              coupon: mockCoupons[i],
-              showUsesLeft: false,
-              isBlurred: isBlurred,
-              onTap: () => showSubscribeBottomSheet(context),
-            )
-                .animate()
-                .fadeIn(
-                    duration: 350.ms, delay: Duration(milliseconds: 60 * i))
-                .slideY(begin: 0.05);
-          },
-        ),
-      ],
-    );
-  }
+  bool shouldRepaint(_TrianglePainter old) => old.color != color;
 }
 
-// ─── Nearby Sellers Section (Subscribed) ──────────────────────────────────────
-
-class _NearbySellersSection extends ConsumerWidget {
-  const _NearbySellersSection();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final sellersAsync = ref.watch(homeFilteredSellersProvider);
-
-    return sellersAsync.when(
-      loading: () => SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (_, i) => Padding(
-            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 16),
-            child: ShimmerLoader(
-                width: double.infinity, height: 110, borderRadius: 24),
-          ),
-          childCount: 4,
-        ),
-      ),
-      error: (e, _) => SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Text('Failed to load sellers',
-              style: AppTextStyles.dsBodyMd
-                  .copyWith(color: AppColors.dsTertiaryPink)),
-        ),
-      ),
-      data: (sellers) {
-        if (sellers.isEmpty) {
-          return SliverToBoxAdapter(
-            child: _buildEmptySeller(),
-          );
-        }
-        return SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (_, i) => Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24, bottom: 20),
-              child: SellerCard(
-                seller: sellers[i],
-                onTap: () => context.push(
-                  '/seller-detail',
-                  extra: sellers[i],
-                ),
-              )
-                  .animate()
-                  .fadeIn(
-                      duration: 300.ms, delay: Duration(milliseconds: 50 * i))
-                  .slideY(begin: 0.05),
-            ),
-            childCount: sellers.length,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptySeller() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.storefront_outlined,
-              size: 56, color: AppColors.dsOnSurface.withOpacity(0.15)),
-          const SizedBox(height: 16),
-          Text('No sellers found',
-              style: AppTextStyles.dsTitleLg
-                  .copyWith(color: AppColors.dsOnSurface.withOpacity(0.4))),
-          const SizedBox(height: 4),
-          Text('Try a different category',
-              style: AppTextStyles.dsBodyMd
-                  .copyWith(color: AppColors.dsOnSurface.withOpacity(0.3))),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Mock Sellers Section (Non-Subscribed) ────────────────────────────────────
-
-class _MockSellersSection extends StatelessWidget {
-  const _MockSellersSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (_, i) => Padding(
-          padding: const EdgeInsets.only(left: 24, right: 24, bottom: 20),
-          child: SellerCard(
-            seller: mockSellers[i],
-            onTap: () => showSubscribeBottomSheet(context),
-          )
-              .animate()
-              .fadeIn(
-                  duration: 300.ms, delay: Duration(milliseconds: 50 * i))
-              .slideY(begin: 0.05),
-        ),
-        childCount: mockSellers.length,
-      ),
-    );
-  }
-}

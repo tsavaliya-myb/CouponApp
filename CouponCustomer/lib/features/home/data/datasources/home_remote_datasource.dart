@@ -9,9 +9,7 @@ abstract class HomeRemoteDatasource {
   Future<List<HomeCouponModel>> getAllCoupons();
 
   Future<List<NearbySellerModel>> getNearbySellers({
-    required String areaId,
-    String? categoryId,
-    required int page,
+    required String cityId,
   });
 }
 
@@ -25,7 +23,7 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
   Future<List<HomeCouponModel>> getAllCoupons() async {
     final response = await _apiClient.client.get(
       '/coupons',
-      queryParameters: {'page': 1, 'limit': 50},
+      queryParameters: {'page': 1, 'limit': 1000},
     );
     final List data = response.data['data'] as List;
     return data
@@ -35,22 +33,11 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
 
   @override
   Future<List<NearbySellerModel>> getNearbySellers({
-    required String areaId,
-    String? categoryId,
-    required int page,
+    required String cityId,
   }) async {
-    final queryParams = <String, dynamic>{
-      'areaId': areaId,
-      'page': page,
-      'limit': 20,
-    };
-    if (categoryId != null) {
-      queryParams['categoryId'] = categoryId;
-    }
-
     final response = await _apiClient.client.get(
-      '/sellers/by-area-category',
-      queryParameters: queryParams,
+      '/sellers/by-city-category',
+      queryParameters: {'cityId': cityId, 'page': 1, 'limit': 1000},
     );
     final List data = response.data['data'] as List;
     return data

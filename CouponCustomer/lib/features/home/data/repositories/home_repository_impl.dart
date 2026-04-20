@@ -31,15 +31,11 @@ class HomeRepositoryImpl implements HomeRepository {
 
   @override
   Future<Either<Failure, List<NearbySellerEntity>>> getNearbySellers({
-    required String areaId,
-    String? categoryId,
-    required int page,
+    required String cityId,
   }) async {
     try {
       final models = await _remote.getNearbySellers(
-        areaId: areaId,
-        categoryId: categoryId,
-        page: page,
+        cityId: cityId,
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {

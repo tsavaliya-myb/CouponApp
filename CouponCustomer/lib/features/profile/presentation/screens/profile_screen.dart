@@ -163,9 +163,11 @@ class ProfileScreen extends ConsumerWidget {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: TextButton.icon(
-                      onPressed: () {
-                        ref.read(authProvider.notifier).logout();
-                        context.go('/login');
+                      onPressed: () async {
+                        await ref.read(authProvider.notifier).logout();
+                        ref.invalidate(profileProvider);
+                        ref.invalidate(userSettingsProvider);
+                        if (context.mounted) context.go('/login');
                       },
                       icon: const Icon(
                         Icons.logout_rounded,

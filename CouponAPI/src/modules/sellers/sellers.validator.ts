@@ -36,8 +36,8 @@ export const findSellersSchema = z.object({
   limit: z.coerce.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
 });
 
-export const getSellersByAreaCategorySchema = z.object({
-  areaId: z.string().uuid(),
+export const getSellersByCityCategorySchema = z.object({
+  cityId: z.string().uuid(),
   categoryId: z.string().uuid().optional(),
   page: z.coerce.number().min(1).default(PAGINATION.DEFAULT_PAGE),
   limit: z.coerce.number().min(1).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
@@ -81,7 +81,7 @@ export const confirmMediaSchema = z.object({
 export type RegisterSellerDto = z.infer<typeof registerSellerSchema>;
 export type UpdateSellerDto = z.infer<typeof updateSellerSchema>;
 export type FindSellersDto = z.infer<typeof findSellersSchema>;
-export type GetSellersByAreaCategoryDto = z.infer<typeof getSellersByAreaCategorySchema>;
+export type GetSellersByCityCategoryDto = z.infer<typeof getSellersByCityCategorySchema>;
 
 export type GetSellerMediaDto = z.infer<typeof getSellerMediaSchema>;
 export type PresignLogoDto = z.infer<typeof presignLogoSchema>;

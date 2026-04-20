@@ -37,59 +37,70 @@ class AppBottomNavBar extends StatelessWidget {
               ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _NavItem(
-                  icon: Icons.home_rounded,
-                  label: 'Home',
-                  isSelected: currentIndex == 0,
-                  onTap: () => onTap(0),
+                // Nav items fill available space evenly
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _NavItem(
+                        icon: Icons.home_rounded,
+                        label: 'Home',
+                        isSelected: currentIndex == 0,
+                        onTap: () => onTap(0),
+                      ),
+                      // _NavItem(
+                      //   icon: Icons.confirmation_number_rounded,
+                      //   label: 'Coupons',
+                      //   isSelected: currentIndex == 1,
+                      //   onTap: () => onTap(1),
+                      // ),
+                      _NavItem(
+                        icon: Icons.storefront_rounded,
+                        label: 'Sellers',
+                        isSelected: currentIndex == 2,
+                        onTap: () => onTap(2),
+                      ),
+                      _NavItem(
+                        icon: Icons.account_balance_wallet_rounded,
+                        label: 'Wallet',
+                        isSelected: currentIndex == 3,
+                        onTap: () => onTap(3),
+                      ),
+                    ],
+                  ),
                 ),
-                _NavItem(
-                  icon: Icons.confirmation_number_rounded,
-                  label: 'Coupons',
-                  isSelected: currentIndex == 1,
-                  onTap: () => onTap(1),
-                ),
-                // Center QR FAB
+                // QR FAB — pinned flush to the right edge of the pill
                 GestureDetector(
-                  onTap: () => onTap(2),
+                  onTap: () => onTap(4),
                   child: Container(
-                    width: 56,
-                    height: 56,
+                    width: 72,
+                    height: 72,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [
                           AppColors.dsPrimary,
-                          AppColors.dsPrimaryContainer
+                          AppColors.dsPrimaryContainer,
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.dsPrimary.withOpacity(0.12),
+                        width: 1.5,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.dsPrimary.withOpacity(0.3),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
-                        )
+                        ),
                       ],
                     ),
                     child: const Icon(Icons.qr_code_scanner_rounded,
                         color: Colors.white, size: 28),
                   ),
-                ),
-                _NavItem(
-                  icon: Icons.storefront_rounded,
-                  label: 'Sellers',
-                  isSelected: currentIndex == 3,
-                  onTap: () => onTap(3),
-                ),
-                _NavItem(
-                  icon: Icons.account_balance_wallet_rounded,
-                  label: 'Wallet',
-                  isSelected: currentIndex == 4,
-                  onTap: () => onTap(4),
                 ),
               ],
             ),
