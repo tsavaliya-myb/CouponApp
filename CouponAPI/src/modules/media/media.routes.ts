@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client, BUCKET_NAME } from '../../config/s3';
 
@@ -19,9 +19,9 @@ const router = Router();
 // Allowed folders — prevents arbitrary key traversal
 const ALLOWED_FOLDERS = new Set(['logos', 'photos', 'videos']);
 
-router.get('/*', async (req: Request, res: Response) => {
-  // req.params[0] is everything after /media/
-  const rawKey = (req.params as any)[0] as string;
+router.use(async (req: Request, res: Response, next: NextFunction) => {
+  // req.path is everything after /media (e.g. "/logos/file.jpeg")
+  const rawKey = req.path.startsWith('/') ? req.path.slice(1) : req.path;
 
   if (!rawKey) {
     res.status(400).json({ error: 'Missing media key' });
