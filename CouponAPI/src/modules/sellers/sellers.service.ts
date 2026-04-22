@@ -6,7 +6,7 @@ import { redis } from '../../config/redis';
 import crypto from 'crypto';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { s3Client, BUCKET_NAME, getPublicUrl } from '../../config/s3';
+import { s3Client, BUCKET_NAME, getPublicUrl, extractKeyFromProxyUrl } from '../../config/s3';
 import type {
   RegisterSellerDto,
   UpdateSellerDto,
@@ -131,11 +131,8 @@ export class SellersService {
     const media = await prisma.sellerMedia.findUnique({
       where: { sellerId },
     });
-    // It's possible a seller doesn't have media yet, so we could just return null or empty object. 
-    // Let's return it directly. If they want an error when not found, we can throw one. 
-    // Let's return the media or an empty object.
     if (!media) {
-       throw NotFoundError('Media not found for this seller');
+      throw NotFoundError('Media not found for this seller');
     }
     return media;
   }
@@ -172,14 +169,18 @@ export class SellersService {
       ContentType: mimeType,
     });
     const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+    // getPublicUrl now returns a permanent proxy URL: <API_BASE_URL>/media/<fileKey>
     return { uploadUrl, fileKey, publicUrl: getPublicUrl(fileKey) };
   }
 
   async deleteS3Object(fileUrl: string): Promise<void> {
     try {
-      const url = new URL(fileUrl);
-      // path-style: /bucket-name/key
-      const key = url.pathname.replace(`/${BUCKET_NAME}/`, '');
+      // fileUrl is now a proxy URL: <API_BASE_URL>/media/<key>
+      const key = extractKeyFromProxyUrl(fileUrl);
+      if (!key) {
+        console.warn('[deleteS3Object] Could not extract key from URL:', fileUrl);
+        return;
+      }
       await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: key }));
     } catch (err: any) {
       console.error('Failed to delete S3 object:', err.message);
@@ -276,7 +277,7 @@ export class SellersService {
       whereClause.businessName = { contains: search, mode: 'insensitive' };
     }
 
-    // Since Prisma cannot perform Haversine distance sorts natively without Raw Queries, 
+    // Since Prisma cannot perform Haversine distance sorts natively without Raw Queries,
     // and this is an MVP, we fetch candidates and sort them in JavaScript.
     // In production with millions of sellers, you'd use raw SQL with PostGIS or earthdistance.
     const sellers = await prisma.seller.findMany({

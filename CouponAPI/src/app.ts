@@ -6,6 +6,7 @@ import { errorHandler, notFoundHandler } from './shared/middlewares/errorHandler
 import { logger } from './config/logger';
 import { env } from './config/env';
 import { apiRouter } from './routes';
+import { mediaRouter } from './modules/media/media.routes';
 
 export function createApp(): Express {
   const app = express();
@@ -49,6 +50,10 @@ export function createApp(): Express {
   // Serve static uploads
   // app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
   app.use('/uploads', express.static('/tmp/uploads'));
+
+  // Media proxy — serves private S3 objects via permanent URLs (no auth needed)
+  // URLs: GET /media/logos/file.jpeg, /media/photos/file.jpeg, /media/videos/file.mp4
+  app.use('/media', mediaRouter);
 
   // API routes (versioned)
   app.use('/api/v1', apiRouter);

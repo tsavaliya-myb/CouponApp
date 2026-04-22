@@ -48,4 +48,8 @@ export const env = cleanEnv(process.env, {
   IDRIVE_E2_SECRET_KEY:  str({ default: '' }),
   IDRIVE_E2_BUCKET_NAME: str({ default: 'seller-media' }),
   IDRIVE_E2_REGION:      str({ default: '' }),
+
+  // API public base URL — used for generating permanent media proxy URLs
+  // e.g. https://api.yourdomain.com  (no trailing slash)
+  API_BASE_URL:          str({ default: 'http://localhost:3000' }),
 });
