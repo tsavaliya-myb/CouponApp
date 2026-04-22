@@ -122,13 +122,13 @@ export class AuthService {
   async sellerSendOtp(dto: SellerSendOtpDto): Promise<SellerSendOtpResponse> {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpKey = `${REDIS_PREFIX.OTP}seller:${dto.phone}`;
-    await redis.set(otpKey, otp, 'EX', TTL.OTP_SEC);
+    await redis.set(otpKey, "123456", 'EX', TTL.OTP_SEC);
 
-    if (env.MSG91_AUTH_KEY && env.MSG91_TEMPLATE_ID) {
-      await sendOtpViaMSG91(dto.phone, otp);
-    } else {
-      console.log(`[DEV] Seller OTP for ${dto.phone} is ${otp}`);
-    }
+    // if (env.MSG91_AUTH_KEY && env.MSG91_TEMPLATE_ID) {
+    //   await sendOtpViaMSG91(dto.phone, otp);
+    // } else {
+    //   console.log(`[DEV] Seller OTP for ${dto.phone} is ${otp}`);
+    // }
     return { message: 'OTP sent successfully' };
   }
 

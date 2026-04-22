@@ -78,19 +78,20 @@ class _MainShellScaffoldState extends ConsumerState<MainShellScaffold> {
     return Scaffold(
       backgroundColor: AppColors.dsSurface,
       extendBody: true,
-      extendBodyBehindAppBar: isHome,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: SafeArea(
-          bottom: false,
-          child: Container(
-            height: kToolbarHeight,
-            alignment: Alignment.center,
-            color: isHome ? Colors.transparent : null,
-            child: AppHeader(
-              title: _screenName(widget.navigationShell.currentIndex),
-              showProfileIcon:
-                  widget.navigationShell.currentIndex == 5 ? false : true,
+        child: Container(
+          color: isHome ? const Color(0xFFD4920A) : AppColors.dsSurface,
+          child: SafeArea(
+            bottom: false,
+            child: Container(
+              height: kToolbarHeight,
+              alignment: Alignment.center,
+              child: AppHeader(
+                title: _screenName(widget.navigationShell.currentIndex),
+                showProfileIcon:
+                    widget.navigationShell.currentIndex == 5 ? false : true,
+              ),
             ),
           ),
         ),

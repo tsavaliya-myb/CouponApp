@@ -1,6 +1,7 @@
 // lib/features/home/data/repositories/home_repository_impl.dart
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import '../../../../core/error/error_handler.dart';
 import '../../../../core/error/failures.dart';
@@ -40,7 +41,8 @@ class HomeRepositoryImpl implements HomeRepository {
       return Right(models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
       return Left(mapDioExceptionToFailure(e));
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('getNearbySellers error: $e\n$st');
       return const Left(ServerFailure());
     }
   }

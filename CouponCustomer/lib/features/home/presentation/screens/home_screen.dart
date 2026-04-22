@@ -44,13 +44,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Scaffold(
       backgroundColor: AppColors.dsSurface,
       extendBody: true,
-      extendBodyBehindAppBar: true,
       body: MediaQuery.removePadding(
         context: context,
         removeTop: true,
         child: CustomScrollView(
           controller: _scrollController,
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           slivers: [
             // ── Gradient hero: Header + Banner ───────────────────────────
             SliverToBoxAdapter(
@@ -70,17 +69,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       stops: const [0.0, 0.4, 0.78, 0.92, 1.0],
                     ),
                   ),
-                  child: Column(
+                  child: const Column(
                     children: [
-                      SizedBox(
-                        height: MediaQuery.of(ctx).padding.top +
-                            kToolbarHeight +
-                            50,
-                      ),
-                      const _HomeHeader(),
-                      const SizedBox(height: 10),
-                      const _BannerSlider(),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 20),
+                      _HomeHeader(),
+                      SizedBox(height: 10),
+                      _BannerSlider(),
+                      SizedBox(height: 10),
                     ],
                   ),
                 ),
