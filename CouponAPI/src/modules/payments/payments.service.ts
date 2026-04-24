@@ -2,7 +2,7 @@ import { prisma } from '../../config/db';
 import { redis } from '../../config/redis';
 import { env } from '../../config/env';
 import { ConflictError } from '../../shared/utils/AppError';
-import { generatePayUHash, verifyPayUWebhookHash, computeHashFromString } from '../../shared/utils/payuHash';
+import { generateSIPayUHash, generateMobileSDKStaticHashes, verifyPayUWebhookHash, computeHashFromString } from '../../shared/utils/payuHash';
 import { oneSignal } from '../notifications/onesignal.service';
 
 export class PaymentService {
@@ -34,33 +34,56 @@ export class PaymentService {
     end.setFullYear(end.getFullYear() + 1);
     const fmt = (d: Date) => d.toISOString().split('T')[0]; // YYYY-MM-DD
 
-    const hash = generatePayUHash(
+    // SI params — billingCycle must be lowercase per PayU SDK docs
+    const siParams = {
+      billingAmount:    amount,
+      billingCurrency:  'INR',
+      billingCycle:     'yearly',
+      billingInterval:  1,
+      paymentStartDate: fmt(now),
+      paymentEndDate:   fmt(end),
+      billingRule:      'MAX',
+    };
+
+    // SI transactions require si_details JSON in the hash string
+    const hash = generateSIPayUHash(
       { txnid, amount, productinfo: 'CouponApp Premium', firstname, email },
+      siParams,
       env.PAYU_KEY,
       env.PAYU_SALT,
     );
+
+    // Static hashes required by the PayU CheckoutPro mobile SDK
+    const userCredential = `${env.PAYU_KEY}:${email}`;
+    const staticHashes = generateMobileSDKStaticHashes(env.PAYU_KEY, userCredential, env.PAYU_SALT);
 
     // Cache txnid → userId so the webhook can resolve the user (TTL: 1 h)
     await redis.set(`payu_txn:${txnid}`, userId, 'EX', 3600);
 
     return {
-      key:         env.PAYU_KEY,
+      key:            env.PAYU_KEY,
       txnid,
       amount,
-      productinfo: 'CouponApp Premium',
+      productinfo:    'CouponApp Premium',
       firstname,
       email,
-      phone:       user.phone,
+      phone:          user.phone,
       hash,
-      env:         env.PAYU_ENV,
+      userCredential,
+      env:            env.PAYU_ENV,
+      additionalParam: {
+        ...staticHashes,
+        payment: hash,
+      },
       si_details: {
-        billingAmount:    amount,
-        billingCurrency:  'INR',
-        billingCycle:     'YEARLY',
-        billingRule:      'MAX',
+        billingAmount:    siParams.billingAmount,
+        billingCurrency:  siParams.billingCurrency,
+        billingCycle:     siParams.billingCycle,
+        billingInterval:  siParams.billingInterval,
+        paymentStartDate: siParams.paymentStartDate,
+        paymentEndDate:   siParams.paymentEndDate,
+        billingRule:      siParams.billingRule,
         remarks:          'CouponApp Annual Subscription',
-        mandateStartDate: fmt(now),
-        mandateEndDate:   fmt(end),
       },
     };
   }

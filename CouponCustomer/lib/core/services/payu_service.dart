@@ -7,15 +7,13 @@ import 'package:payu_checkoutpro_flutter/PayUConstantKeys.dart';
 class PayUService implements PayUCheckoutProProtocol {
   PayUCheckoutProFlutter? _payU;
 
-  /// Called with the `mihpayid` string on a successful payment / mandate.
   Function(String mihpayid)? onSuccess;
-
-  /// Called with a human-readable error string on failure or cancellation.
   Function(String error)? onFailure;
 
-  /// Called by [generateHash] to fetch the computed hash from the server.
-  /// Receives the raw hashString from the PayU SDK; must return the SHA-512
-  /// hash or an empty string on error.
+  /// Set by the payment controller before [openCheckout].
+  /// The SDK calls [generateHash] for dynamic hashes (VPA validation, bin
+  /// lookup, etc.); this callback fetches the computed hash from the server
+  /// so the merchant salt never lives on the client.
   Future<String> Function(String hashString)? onGenerateHash;
 
   void initialize(BuildContext context) {
@@ -25,49 +23,58 @@ class PayUService implements PayUCheckoutProProtocol {
   void openCheckout(Map<String, dynamic> params) {
     final si = params['si_details'] as Map<String, dynamic>;
 
-    // "0" = Production, "1" = Test (PayU v1.x SDK convention)
+    // "0" = Production, "1" = Test
     final envFlag = params['env'] == 'production' ? '0' : '1';
 
-    // PayU native SDK requires txnid to be alphanumeric only, max 25 chars.
+    // PayU SDK requires txnid alphanumeric only, max 25 chars.
     final sanitized =
         (params['txnid']?.toString() ?? '').replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
     final txnid = sanitized.length > 25 ? sanitized.substring(0, 25) : sanitized;
-    debugPrint(
-        '[PayU] txnid raw="${params['txnid']}" sanitized="$txnid" params=$params');
+
+    debugPrint('[PayU] txnid="${params['txnid']}" → sanitized="$txnid"');
+
+    // Static hashes pre-computed server-side and returned by /payments/initiate.
+    // payment_related_details_for_mobile_sdk is required for the checkout screen
+    // to load payment options. Without it the screen stays on "processing".
+    final additionalParam = <String, dynamic>{
+      ...(params['additionalParam'] as Map<String, dynamic>? ?? {}),
+    };
 
     final paymentParams = {
-      PayUPaymentParamKey.key: params['key'],
-      PayUPaymentParamKey.amount: params['amount'],
-      PayUPaymentParamKey.productInfo: params['productinfo'],
-      PayUPaymentParamKey.firstName: params['firstname'],
-      PayUPaymentParamKey.email: params['email'] ?? '',
-      PayUPaymentParamKey.phone: params['phone'],
-      PayUPaymentParamKey.transactionId: txnid,
-      PayUPaymentParamKey.environment: envFlag,
-      PayUPaymentParamKey.android_surl: 'https://payu.in/txnstatus',
-      PayUPaymentParamKey.android_furl: 'https://payu.in/txnstatus',
-      PayUPaymentParamKey.ios_surl: 'https://payu.in/txnstatus',
-      PayUPaymentParamKey.ios_furl: 'https://payu.in/txnstatus',
+      PayUPaymentParamKey.key:              params['key'],
+      PayUPaymentParamKey.amount:           params['amount'],
+      PayUPaymentParamKey.productInfo:      params['productinfo'],
+      PayUPaymentParamKey.firstName:        params['firstname'],
+      PayUPaymentParamKey.email:            params['email'] ?? '',
+      PayUPaymentParamKey.phone:            params['phone'],
+      PayUPaymentParamKey.transactionId:    txnid,
+      PayUPaymentParamKey.environment:      envFlag,
+      PayUPaymentParamKey.userCredential:   params['userCredential'] ?? '',
+      PayUPaymentParamKey.android_surl:     'https://payu.in/txnstatus',
+      PayUPaymentParamKey.android_furl:     'https://payu.in/txnstatus',
+      PayUPaymentParamKey.ios_surl:         'https://payu.in/txnstatus',
+      PayUPaymentParamKey.ios_furl:         'https://payu.in/txnstatus',
+      if (additionalParam.isNotEmpty)
+        PayUPaymentParamKey.additionalParam: additionalParam,
       PayUPaymentParamKey.payUSIParams: {
-        PayUSIParamsKeys.isPreAuthTxn: false,
-        PayUSIParamsKeys.billingAmount: si['billingAmount'] ?? params['amount'],
-        PayUSIParamsKeys.billingInterval: '1',
-        PayUSIParamsKeys.paymentStartDate: si['mandateStartDate'],
-        PayUSIParamsKeys.paymentEndDate: si['mandateEndDate'],
-        // Use the billing cycle from the server (YEARLY / MONTHLY / etc.).
+        PayUSIParamsKeys.billingAmount:    si['billingAmount'] ?? params['amount'],
+        // PayU SDK expects lowercase billing cycle values
         PayUSIParamsKeys.billingCycle:
-            (si['billingCycle'] as String? ?? 'YEARLY').toUpperCase(),
-        PayUSIParamsKeys.billingRule:
-            (si['billingRule'] as String? ?? 'MAX').toUpperCase(),
-        PayUSIParamsKeys.remarks:
-            si['remarks'] ?? 'CouponApp Subscription',
+            (si['billingCycle'] as String? ?? 'yearly').toLowerCase(),
+        PayUSIParamsKeys.billingInterval:  '${si['billingInterval'] ?? 1}',
+        PayUSIParamsKeys.paymentStartDate: si['paymentStartDate'],
+        PayUSIParamsKeys.paymentEndDate:   si['paymentEndDate'],
+        PayUSIParamsKeys.billingRule:      si['billingRule'] ?? 'MAX',
+        PayUSIParamsKeys.billingCurrency:  si['billingCurrency'] ?? 'INR',
+        PayUSIParamsKeys.remarks:          si['remarks'] ?? 'CouponApp Subscription',
       },
     };
 
     final checkoutConfig = {
-      PayUCheckoutProConfigKeys.merchantName: 'CouponApp',
+      PayUCheckoutProConfigKeys.merchantName:
+          'CouponApp',
       PayUCheckoutProConfigKeys.showExitConfirmationOnCheckoutScreen: true,
-      PayUCheckoutProConfigKeys.showExitConfirmationOnPaymentScreen: true,
+      PayUCheckoutProConfigKeys.showExitConfirmationOnPaymentScreen:  true,
     };
 
     _payU?.openCheckoutScreen(
@@ -80,10 +87,8 @@ class PayUService implements PayUCheckoutProProtocol {
 
   @override
   void generateHash(Map response) async {
-    final hashName =
-        response[PayUHashConstantsKeys.hashName] as String? ?? '';
-    final hashString =
-        response[PayUHashConstantsKeys.hashString] as String? ?? '';
+    final hashName   = response[PayUHashConstantsKeys.hashName]   as String? ?? '';
+    final hashString = response[PayUHashConstantsKeys.hashString] as String? ?? '';
 
     String computed = '';
     if (onGenerateHash != null) {
@@ -97,7 +102,7 @@ class PayUService implements PayUCheckoutProProtocol {
     }
 
     _payU?.hashGenerated(hash: {
-      PayUHashConstantsKeys.hashName: hashName,
+      PayUHashConstantsKeys.hashName:   hashName,
       PayUHashConstantsKeys.hashString: computed,
     });
   }
@@ -112,8 +117,7 @@ class PayUService implements PayUCheckoutProProtocol {
   @override
   void onPaymentFailure(dynamic response) {
     final msg =
-        (response is Map ? response[PayUConstants.errorMsg] : null)
-            ?.toString() ??
+        (response is Map ? response[PayUConstants.errorMsg] : null)?.toString() ??
             'Payment failed';
     onFailure?.call(msg);
   }
@@ -125,9 +129,8 @@ class PayUService implements PayUCheckoutProProtocol {
 
   @override
   void onError(Map? response) {
-    final msg =
-        response?[PayUConstants.errorMsg]?.toString() ??
-            'An unknown payment error occurred';
+    final msg = response?[PayUConstants.errorMsg]?.toString() ??
+        'An unknown payment error occurred';
     onFailure?.call(msg);
   }
 }
