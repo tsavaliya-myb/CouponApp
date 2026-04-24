@@ -17,6 +17,22 @@ export class PaymentController {
     }
   };
 
+  // POST /api/v1/payments/generate-hash
+  // Called by Flutter's PayU SDK generateHash callback; keeps salt off the client
+  generateHash = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { hash_string } = req.body as { hash_string?: string };
+      if (!hash_string || typeof hash_string !== 'string') {
+        res.status(400).json({ success: false, message: 'hash_string is required' });
+        return;
+      }
+      const hash = paymentService.generateHash(hash_string);
+      sendSuccess(res, { hash });
+    } catch (err) {
+      next(err);
+    }
+  };
+
   // POST /api/v1/payments/webhook
   // PayU posts application/x-www-form-urlencoded; respond 200 immediately
   webhook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

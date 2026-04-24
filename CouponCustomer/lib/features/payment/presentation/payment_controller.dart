@@ -40,6 +40,12 @@ class PaymentController extends AutoDisposeAsyncNotifier<void> {
       // Step 2 — wire callbacks before opening checkout
       payuService.initialize(context);
 
+      // Server-side hash generation keeps the merchant salt off the client.
+      payuService.onGenerateHash = (hashString) async {
+        final result = await repository.generateHash(hashString);
+        return result.fold((_) => '', (hash) => hash);
+      };
+
       payuService.onSuccess = (_) async {
         // The actual subscription fulfilment happens server-side via S2S
         // webhook. We wait briefly, then refresh the profile.

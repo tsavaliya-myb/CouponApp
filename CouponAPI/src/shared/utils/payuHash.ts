@@ -29,6 +29,17 @@ export function generatePayUHash(p: HashParams, key: string, salt: string): stri
 }
 
 /**
+ * Compute SHA-512 hash from the raw hashString provided by the PayU SDK's
+ * generateHash callback. The SDK supplies the string up to (but not including)
+ * the salt; we append the salt and hash the result.
+ *
+ * Formula: SHA512(hashString + salt)
+ */
+export function computeHashFromString(hashString: string, salt: string): string {
+  return crypto.createHash('sha512').update(hashString + salt).digest('hex');
+}
+
+/**
  * Verify the reverse hash sent by PayU in the S2S webhook.
  * Formula: SALT|status||||||udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key
  */

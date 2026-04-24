@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Internet (required by PayU CheckoutPro SDK) -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Location -->
@@ -11,7 +12,8 @@
     <application
         android:label="Coupon Code"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        tools:replace="android:label">
         <!-- OneSignal: disable default open activity — we handle clicks via GoRouter -->
         <meta-data
             android:name="com.onesignal.NotificationOpened.DEFAULT"

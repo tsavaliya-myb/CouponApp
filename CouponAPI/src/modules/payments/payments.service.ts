@@ -2,7 +2,7 @@ import { prisma } from '../../config/db';
 import { redis } from '../../config/redis';
 import { env } from '../../config/env';
 import { ConflictError } from '../../shared/utils/AppError';
-import { generatePayUHash, verifyPayUWebhookHash } from '../../shared/utils/payuHash';
+import { generatePayUHash, verifyPayUWebhookHash, computeHashFromString } from '../../shared/utils/payuHash';
 import { oneSignal } from '../notifications/onesignal.service';
 
 export class PaymentService {
@@ -63,6 +63,13 @@ export class PaymentService {
         mandateEndDate:   fmt(end),
       },
     };
+  }
+
+  // ─── Server-side Hash Generation for PayU SDK Callback ──────────────────
+  // The Flutter SDK calls its generateHash callback with a hashString.
+  // We compute SHA512(hashString + salt) so the salt never leaves the server.
+  generateHash(hashString: string): string {
+    return computeHashFromString(hashString, env.PAYU_SALT);
   }
 
   // ─── Handle Incoming PayU S2S Webhook ────────────────────────────────────

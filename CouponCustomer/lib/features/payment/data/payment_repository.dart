@@ -39,4 +39,35 @@ class PaymentRepository {
       return Left(ServerFailure(message: e.toString()));
     }
   }
+
+  /// Calls POST /api/v1/payments/generate-hash with [hashString] and returns
+  /// the server-computed SHA-512 hash. Used by the PayU SDK's generateHash
+  /// callback so the merchant salt never lives on the client.
+  Future<Either<Failure, String>> generateHash(String hashString) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/payments/generate-hash',
+        data: {'hash_string': hashString},
+      );
+      final data = response.data;
+      if (data != null && data['success'] == true && data['data'] != null) {
+        final hash = data['data']['hash'] as String?;
+        if (hash != null && hash.isNotEmpty) return Right(hash);
+      }
+      return const Left(ServerFailure(message: 'Hash generation failed'));
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data is Map) {
+        return Left(ServerFailure(
+          statusCode: e.response?.statusCode,
+          message: e.response!.data['message'] ?? 'Hash generation failed',
+        ));
+      }
+      return Left(ServerFailure(
+        statusCode: e.response?.statusCode,
+        message: e.message ?? 'Hash generation failed',
+      ));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }

@@ -15,6 +15,13 @@ const paymentController = new PaymentController();
 router.post('/initiate', authenticate, paymentController.initiatePayment);
 
 /**
+ * @route   POST /api/v1/payments/generate-hash
+ * @desc    Compute SHA-512 hash server-side for PayU SDK's generateHash callback
+ * @access  Private (Customer) — salt never sent to client
+ */
+router.post('/generate-hash', authenticate, paymentController.generateHash);
+
+/**
  * @route   POST /api/v1/payments/webhook
  * @desc    PayU S2S webhook — fulfils subscription on successful mandate
  * @access  Public (PayU servers only — validated via reverse SHA-512 hash)
