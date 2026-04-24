@@ -1,24 +1,29 @@
 import { Router } from 'express';
+import express from 'express';
 import { PaymentController } from './payments.controller';
 import { authenticate } from '../../shared/middlewares/auth';
-import { razorpayWebhookSignature } from '../../shared/middlewares/razorpayWebhook.middleware';
 import './payments.swagger';
 
 const router = Router();
 const paymentController = new PaymentController();
 
 /**
- * @route   POST /api/v1/payments/create-order
- * @desc    Create a Razorpay order for subscription purchase
+ * @route   POST /api/v1/payments/initiate
+ * @desc    Generate PayU hash + SI details; Flutter opens PayU CheckoutPro
  * @access  Private (Customer)
  */
-router.post('/create-order', authenticate, paymentController.createOrder);
+router.post('/initiate', authenticate, paymentController.initiatePayment);
 
 /**
  * @route   POST /api/v1/payments/webhook
- * @desc    Razorpay payment webhook — fulfils subscription on payment.captured
- * @access  Public (Razorpay servers only — validated via HMAC signature)
+ * @desc    PayU S2S webhook — fulfils subscription on successful mandate
+ * @access  Public (PayU servers only — validated via reverse SHA-512 hash)
+ * @note    PayU sends application/x-www-form-urlencoded, NOT JSON
  */
-router.post('/webhook', razorpayWebhookSignature, paymentController.webhook);
+router.post(
+  '/webhook',
+  express.urlencoded({ extended: true }),
+  paymentController.webhook,
+);
 
 export { router as paymentsRouter };

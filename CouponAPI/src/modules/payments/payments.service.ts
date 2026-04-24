@@ -1,137 +1,171 @@
-import { getRazorpay } from '../../config/razorpay';
 import { prisma } from '../../config/db';
 import { redis } from '../../config/redis';
 import { env } from '../../config/env';
 import { ConflictError } from '../../shared/utils/AppError';
+import { generatePayUHash, verifyPayUWebhookHash } from '../../shared/utils/payuHash';
 import { oneSignal } from '../notifications/onesignal.service';
-import type { CreateOrderResponse } from './payments.validator';
-
-// ─── Razorpay Webhook Event Shape (simplified) ────────────────────────────────
-interface RazorpayWebhookPayload {
-  event: string;
-  payload: {
-    payment: {
-      entity: {
-        id: string;          // razorpay_payment_id
-        order_id: string;    // razorpay_order_id
-        amount: number;      // in paise
-        status: string;
-        notes: {
-          userId?: string;
-        };
-      };
-    };
-  };
-}
 
 export class PaymentService {
 
-  // ─── Create Razorpay Order ────────────────────────────────────────────────
-  async createOrder(userId: string): Promise<CreateOrderResponse> {
+  // ─── Initiate PayU Payment (replaces createOrder) ───────────────────────
+  async initiatePayment(userId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw ConflictError('User not found');
 
-    // Check for existing active subscription
-    const existingSub = await prisma.subscription.findUnique({
-      where: { userId },
-    });
+    const existingSub = await prisma.subscription.findUnique({ where: { userId } });
     if (existingSub?.status === 'ACTIVE') {
       throw ConflictError('User already has an active subscription');
     }
 
-    // Get subscription price from AppSetting (key: subscription_price)
+    // Read subscription price from AppSetting (key: subscription_price)
     const priceSetting = await prisma.appSetting.findUnique({
       where: { key: 'subscription_price' },
     });
-    const priceInRupees = priceSetting ? parseFloat(priceSetting.value) : 1000;
-    const amountInPaise = Math.round(priceInRupees * 100);
+    const amount = (priceSetting ? parseFloat(priceSetting.value) : 999).toFixed(2);
 
-    // Create Razorpay order
-    const order = await getRazorpay().orders.create({
-      amount: amountInPaise,
-      currency: 'INR',
-      receipt: `sub_${user.phone}_${Date.now()}`,
-      notes: { userId }, // embed userId so webhook can locate the user
-    });
+    // Build unique transaction id
+    const txnid = `sub_${userId.slice(0, 8)}_${Date.now()}`;
+    const firstname = user.name?.split(' ')[0] || 'Customer';
+    const email = user.email || '';
+
+    // Mandate date range: today → 1 year from now
+    const now = new Date();
+    const end = new Date(now);
+    end.setFullYear(end.getFullYear() + 1);
+    const fmt = (d: Date) => d.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    const hash = generatePayUHash(
+      { txnid, amount, productinfo: 'CouponApp Premium', firstname, email },
+      env.PAYU_KEY,
+      env.PAYU_SALT,
+    );
+
+    // Cache txnid → userId so the webhook can resolve the user (TTL: 1 h)
+    await redis.set(`payu_txn:${txnid}`, userId, 'EX', 3600);
 
     return {
-      orderId: order.id,
-      amount: amountInPaise,
-      currency: 'INR',
-      keyId: env.RAZORPAY_KEY_ID,
+      key:         env.PAYU_KEY,
+      txnid,
+      amount,
+      productinfo: 'CouponApp Premium',
+      firstname,
+      email,
+      phone:       user.phone,
+      hash,
+      env:         env.PAYU_ENV,
+      si_details: {
+        billingAmount:    amount,
+        billingCurrency:  'INR',
+        billingCycle:     'YEARLY',
+        billingRule:      'MAX',
+        remarks:          'CouponApp Annual Subscription',
+        mandateStartDate: fmt(now),
+        mandateEndDate:   fmt(end),
+      },
     };
   }
 
-  // ─── Handle Incoming Webhook ──────────────────────────────────────────────
-  async handleWebhook(payload: RazorpayWebhookPayload): Promise<void> {
-    if (payload.event !== 'payment.captured') {
-      // Silently ignore unrelated events
+  // ─── Handle Incoming PayU S2S Webhook ────────────────────────────────────
+  /**
+   * PayU posts application/x-www-form-urlencoded.
+   * We respond 200 immediately (in the controller) and process async here.
+   */
+  async handleWebhook(body: Record<string, string>): Promise<void> {
+    // 1. Verify reverse hash
+    if (!verifyPayUWebhookHash(body, env.PAYU_SALT)) {
+      console.error('[PayU Webhook] Hash mismatch — rejected');
       return;
     }
 
-    const payment = payload.payload.payment.entity;
-    const razorpayPaymentId = payment.id;
-    const userId = payment.notes?.userId;
+    // 2. Only act on successful payments
+    if (body.status !== 'success') {
+      console.log(`[PayU Webhook] Non-success status: ${body.status}`);
+      return;
+    }
 
+    const { txnid, mihpayid, auth_payuid } = body;
+
+    // 3. Idempotency: skip if mihpayid already processed (48 h window)
+    const idKey = `payu_processed:${mihpayid}`;
+    if (await redis.get(idKey)) {
+      console.log(`[PayU Webhook] ${mihpayid} already processed. Skipping.`);
+      return;
+    }
+
+    // 4. Resolve userId from cached txnid
+    const userId = await redis.get(`payu_txn:${txnid}`);
     if (!userId) {
-      console.error('[Webhook] Missing userId in notes, cannot fulfil subscription');
+      console.error(`[PayU Webhook] Unknown txnid: ${txnid}`);
       return;
     }
 
-    // ── Idempotency guard: skip if already processed ──────────────────────
-    const idempotencyKey = `payment_processed:${razorpayPaymentId}`;
-    const alreadyProcessed = await redis.get(idempotencyKey);
-    if (alreadyProcessed) {
-      console.log(`[Webhook] Payment ${razorpayPaymentId} already processed. Skipping.`);
-      return;
-    }
+    // 5. Fulfill subscription atomically
+    await this.fulfillSubscription(userId, mihpayid, auth_payuid || '');
 
+    // 6. Mark as processed
+    await redis.set(idKey, '1', 'EX', 48 * 3600);
+
+    // 7. Push notifications (fire-and-forget)
+    oneSignal
+      .sendToUser(userId, '🎉 Subscription Activated!', 'Your coupon book is now active. Enjoy your discounts!', 'subscription_success')
+      .catch(() => {});
+
+    console.log(`[PayU Webhook] Subscription fulfilled for user ${userId}, mihpayid ${mihpayid}`);
+  }
+
+  // ─── Atomic Subscription Fulfillment ────────────────────────────────────
+  private async fulfillSubscription(
+    userId: string,
+    payuPaymentId: string,
+    authPayUID: string,
+  ): Promise<void> {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      console.error(`[Webhook] User ${userId} not found`);
+      console.error(`[fulfillSubscription] User ${userId} not found`);
       return;
     }
 
-    // ── Read AppSettings ──────────────────────────────────────────────────
+    // Read AppSettings
     const [validityDaySetting, coinsSetting] = await Promise.all([
       prisma.appSetting.findUnique({ where: { key: 'book_validity_days' } }),
       prisma.appSetting.findUnique({ where: { key: 'coins_per_subscription' } }),
     ]);
-    const validityDays = validityDaySetting ? parseInt(validityDaySetting.value) : 30;
+    const validityDays = validityDaySetting ? parseInt(validityDaySetting.value) : 365;
     const coinsToAward = coinsSetting ? parseInt(coinsSetting.value) : 50;
 
-    // ── Fetch base coupons for the user's city ────────────────────────────
+    // Fetch base coupons for the user's city
     const baseCoupons = user.cityId
       ? await prisma.coupon.findMany({
-        where: {
-          isBaseCoupon: true,
-          status: 'ACTIVE',
-          seller: { cityId: user.cityId },
-        },
-      })
+          where: {
+            isBaseCoupon: true,
+            status:       'ACTIVE',
+            seller: { cityId: user.cityId },
+          },
+        })
       : [];
 
     const now = new Date();
     const endDate = new Date(now);
     endDate.setDate(endDate.getDate() + validityDays);
 
-    // ── Atomic transaction: subscription + coupon book + coins ────────────
     await prisma.$transaction(async (tx) => {
-      // 1. Create or renew Subscription
+      // 1. Create or renew Subscription (stores PayU IDs)
       const subscription = await tx.subscription.upsert({
-        where: { userId },
+        where:  { userId },
         create: {
           userId,
-          startDate: now,
+          startDate:     now,
           endDate,
-          status: 'ACTIVE',
-          razorpayPaymentId,
+          status:        'ACTIVE',
+          payuPaymentId,
+          authPayUID,
         },
         update: {
-          startDate: now,
+          startDate:     now,
           endDate,
-          status: 'ACTIVE',
-          razorpayPaymentId,
+          status:        'ACTIVE',
+          payuPaymentId,
+          authPayUID,
         },
       });
 
@@ -140,8 +174,8 @@ export class PaymentService {
         data: {
           subscriptionId: subscription.id,
           userId,
-          validFrom: now,
-          validUntil: endDate,
+          validFrom:      now,
+          validUntil:     endDate,
         },
       });
 
@@ -149,37 +183,32 @@ export class PaymentService {
       if (baseCoupons.length > 0) {
         await tx.userCoupon.createMany({
           data: baseCoupons.map((c) => ({
-            couponBookId: couponBook.id,
-            couponId: c.id,
+            couponBookId:  couponBook.id,
+            couponId:      c.id,
             usesRemaining: c.maxUsesPerBook,
-            status: 'ACTIVE' as const,
+            status:        'ACTIVE' as const,
           })),
           skipDuplicates: true,
         });
       }
 
-      // 4. Award coins via WalletTransaction + update cached balance
+      // 4. Award coins
       await tx.walletTransaction.create({
         data: {
           userId,
-          type: 'EARNED',
+          type:   'EARNED',
           amount: coinsToAward,
-          note: 'Subscription bonus coins',
+          note:   'Subscription bonus coins',
         },
       });
       await tx.user.update({
         where: { id: userId },
-        data: { coinBalance: { increment: coinsToAward } },
+        data:  { coinBalance: { increment: coinsToAward } },
       });
     });
 
-    // ── Mark as processed in Redis for 48h (idempotency window) ──────────
-    await redis.set(idempotencyKey, '1', 'EX', 48 * 60 * 60);
-
-    // ── Push notifications (fire-and-forget) ──────────────────────────────
-    oneSignal.sendToUser(userId, '🎉 Subscription Activated!', `Your coupon book is now active. Enjoy your discounts!`, 'subscription_success').catch(() => {});
-    oneSignal.sendToUser(userId, '🪙 Coins Credited!', `${coinsToAward} coins have been added to your wallet.`, 'coins_credited').catch(() => {});
-
-    console.log(`[Webhook] Subscription fulfilled for user ${userId}, payment ${razorpayPaymentId}`);
+    oneSignal
+      .sendToUser(userId, '🪙 Coins Credited!', `${coinsToAward} coins have been added to your wallet.`, 'coins_credited')
+      .catch(() => {});
   }
 }

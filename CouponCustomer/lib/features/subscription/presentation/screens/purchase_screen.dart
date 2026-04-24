@@ -311,10 +311,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                       GestureDetector(
                         onTap: paymentState.isLoading ? null : () {
                           if (settingsAsync.value == null || userAsync.value == null) return;
-                          ref.read(paymentControllerProvider.notifier).startPaymentFlow(
-                            contact: userAsync.value!.phone,
-                            email: userAsync.value!.email ?? 'user@couponapp.in',
-                          );
+                          ref.read(paymentControllerProvider.notifier).startPaymentFlow(context);
                         },
                         child: Container(
                           width: double.infinity,
@@ -355,14 +352,14 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
 
                       // Trust Badges
                       Text(
-                        'SECURE PAYMENT VIA RAZORPAY',
+                        'SECURE PAYMENT VIA PAYU',
                         style: AppTextStyles.dsLabelMd.copyWith(
                           color: AppColors.dsOnSurface.withOpacity(0.4),
                           letterSpacing: 1.5,
                           fontSize: 9,
                         ),
                       ),
-                      // Placeholders for Razorpay/PCI logos as indicated in mockup
+                      // Placeholders for PayU/PCI logos as indicated in mockup
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,

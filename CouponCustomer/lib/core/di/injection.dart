@@ -35,7 +35,7 @@ import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
 // Payment feature
 import '../../features/payment/data/payment_repository.dart';
-import '../services/razorpay_service.dart';
+import '../services/payu_service.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -64,7 +64,7 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<NotificationService>(
     () => NotificationService(AppConfig.current.oneSignalAppId),
   );
-  getIt.registerLazySingleton<RazorpayService>(() => RazorpayService());
+  getIt.registerLazySingleton<PayUService>(() => PayUService());
 
   // ---------------------------------------------------------------------------
   // Network

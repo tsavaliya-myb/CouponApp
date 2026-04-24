@@ -1,50 +1,59 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 
-import '../../../core/services/razorpay_service.dart';
+import '../../../core/services/payu_service.dart';
 import '../../../core/error/failures.dart';
 import '../../profile/presentation/providers/profile_provider.dart';
 import '../data/payment_repository.dart';
 
+/// Drives the PayU UPI Autopay purchase flow.
+///
+/// State is `AsyncLoading` while the SDK checkout is open, `AsyncData(null)`
+/// on success, and `AsyncError` on failure / cancellation.
 class PaymentController extends AutoDisposeAsyncNotifier<void> {
   @override
   FutureOr<void> build() {
-    // Initial state
+    // Initial idle state
   }
 
-  Future<void> startPaymentFlow({
-    required String contact,
-    required String email,
-  }) async {
+  /// Initiates the PayU UPI Autopay flow.
+  ///
+  /// 1. Calls the backend to get payment params + SHA-512 hash.
+  /// 2. Opens the PayU CheckoutPro SDK.
+  /// 3. On success, waits 3 s for the S2S webhook to fulfil the subscription,
+  ///    then invalidates [profileProvider] to refresh the user's status.
+  Future<void> startPaymentFlow(BuildContext context) async {
     state = const AsyncLoading();
     try {
       final repository = GetIt.I<PaymentRepository>();
-      final razorpayService = GetIt.I<RazorpayService>();
+      final payuService = GetIt.I<PayUService>();
 
-      // 1. Create order
-      final orderResult = await repository.createOrder();
-      final order = orderResult.fold(
+      // Step 1 — fetch PayU params from backend
+      final result = await repository.initiatePayment();
+      final params = result.fold(
         (failure) => throw failure,
-        (o) => o,
+        (p) => p,
       );
 
-      // 2. Open Checkout
-      await razorpayService.openCheckout(
-        keyId: order.keyId,
-        orderId: order.orderId,
-        amount: order.amount,
-        contact: contact,
-        email: email,
-      );
+      // Step 2 — wire callbacks before opening checkout
+      payuService.initialize(context);
 
-      // 3. Success -> Reload profile to get new subscription status
-      ref.invalidate(profileProvider);
+      payuService.onSuccess = (_) async {
+        // The actual subscription fulfilment happens server-side via S2S
+        // webhook. We wait briefly, then refresh the profile.
+        await Future.delayed(const Duration(seconds: 3));
+        ref.invalidate(profileProvider);
+        state = const AsyncData(null);
+      };
 
-      // We can also actively wait or refresh the provider to ensure we have the new status,
-      // but invalidating makes it reload on the next read.
+      payuService.onFailure = (err) {
+        state = AsyncError(err, StackTrace.current);
+      };
 
-      state = const AsyncData(null);
+      // Step 3 — open checkout (non-blocking; result via callbacks above)
+      payuService.openCheckout(params);
     } on Failure catch (f, stack) {
       state = AsyncError(f.message, stack);
     } catch (e, stack) {

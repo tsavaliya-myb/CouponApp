@@ -5,7 +5,7 @@
 class AppConfig {
   final String appName;
   final String baseUrl;
-  final String razorpayKey;
+  final String payuMerchantKey;
   final String qrSecretKey;
   final String appVersion;
   final bool enableAnalytics;
@@ -18,7 +18,7 @@ class AppConfig {
   const AppConfig({
     required this.appName,
     required this.baseUrl,
-    required this.razorpayKey,
+    required this.payuMerchantKey,
     required this.qrSecretKey,
     required this.appVersion,
     required this.enableAnalytics,
@@ -43,7 +43,7 @@ class AppConfig {
   factory AppConfig.prod() => const AppConfig(
         appName: 'CouponApp',
         baseUrl: 'https://api.couponapp.in/v1',
-        razorpayKey: String.fromEnvironment('RAZORPAY_KEY'),
+        payuMerchantKey: String.fromEnvironment('PAYU_KEY'),
         qrSecretKey: String.fromEnvironment('QR_SECRET_KEY'),
         appVersion: '1.0.0',
         enableAnalytics: true,
@@ -56,7 +56,7 @@ class AppConfig {
   factory AppConfig.dev() => const AppConfig(
         appName: 'CouponApp (Dev)',
         baseUrl: 'https://couponapp-r1vv.onrender.com/api/v1',
-        razorpayKey: 'rzp_test_SaDWFQaPFr4e2G',
+        payuMerchantKey: 'gtKFFx', // PayU sandbox merchant key
         qrSecretKey: 'dev_qr_secret_key_32chars_padded!',
         appVersion: '1.0.0-dev',
         enableAnalytics: false,

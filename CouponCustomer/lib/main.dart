@@ -11,7 +11,7 @@ import 'services/notification_service.dart';
 
 /// Development entry point.
 /// Run with: flutter run -t lib/main.dart
-/// Production: flutter run -t lib/main_prod.dart --dart-define=RAZORPAY_KEY=xxx --dart-define=QR_SECRET_KEY=xxx
+/// Production: flutter run -t lib/main_prod.dart --dart-define=PAYU_KEY=xxx --dart-define=QR_SECRET_KEY=xxx
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

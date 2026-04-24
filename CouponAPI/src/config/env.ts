@@ -34,10 +34,11 @@ export const env = cleanEnv(process.env, {
   MSG91_TEMPLATE_ID:    str({ default: '' }),
   MSG91_SENDER_ID:      str({ default: 'CPNAPP' }),
 
-  // Razorpay
-  RAZORPAY_KEY_ID:      str({ default: '' }),
-  RAZORPAY_KEY_SECRET:  str({ default: '' }),
-  RAZORPAY_WEBHOOK_SECRET: str({ default: '' }),
+  // PayU
+  PAYU_KEY:         str({ default: '' }),
+  PAYU_SALT:        str({ default: '' }),
+  PAYU_MERCHANT_ID: str({ default: '' }),
+  PAYU_ENV:         str({ choices: ['test', 'production'], default: 'test' }),
 
   // OneSignal
   ONESIGNAL_APP_ID:     str({ default: '' }),

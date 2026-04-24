@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Internet (required by PayU CheckoutPro SDK) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Location -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -61,6 +63,11 @@
         <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="comgooglemaps"/>
+        </intent>
+        <!-- PayU UPI Autopay: allow resolving UPI deep-links -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="upi"/>
         </intent>
     </queries>
 </manifest>

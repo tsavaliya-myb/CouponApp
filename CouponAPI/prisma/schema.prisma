@@ -137,9 +137,9 @@ model Subscription {
   startDate DateTime
   endDate   DateTime
   status    SubscriptionStatus @default(ACTIVE)
-  // Razorpay references
-  razorpayOrderId   String?
-  razorpayPaymentId String? @unique
+  // PayU references
+  payuPaymentId String?  // mihpayid from PayU webhook
+  authPayUID    String?  // mandate ref for si_transaction recurring debits
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

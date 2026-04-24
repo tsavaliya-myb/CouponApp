@@ -31,7 +31,7 @@ class AppConfig {
   /// Uses 10.0.2.2 for Android emulator to access host localhost.
   factory AppConfig.dev() => const AppConfig(
     appName: 'Coupon Seller (Dev)',
-    baseUrl: 'http://192.168.1.9:3000/api/v1',
+    baseUrl: 'https://couponapp-r1vv.onrender.com/api/v1',
     razorpayKey: 'rzp_test_placeholder',
     qrSecretKey: 'dev_qr_secret_key_32chars_padded!',
     appVersion: '1.0.0-dev',

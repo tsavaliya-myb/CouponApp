@@ -4,7 +4,6 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../../core/network/api_client.dart';
-import 'models/payment_order_model.dart';
 
 @injectable
 class PaymentRepository {
@@ -12,25 +11,29 @@ class PaymentRepository {
 
   PaymentRepository(this._apiClient);
 
-  Future<Either<Failure, PaymentOrderModel>> createOrder() async {
+  /// Calls POST /api/v1/payments/initiate and returns the PayU payment params
+  /// map (key, txnid, amount, hash, si_details, etc.) on success.
+  Future<Either<Failure, Map<String, dynamic>>> initiatePayment() async {
     try {
-      final response = await _apiClient.client.post('/payments/create-order');
+      final response =
+          await _apiClient.client.post('/payments/initiate');
       final data = response.data;
       if (data != null && data['success'] == true && data['data'] != null) {
-        return Right(PaymentOrderModel.fromJson(data['data']));
+        return Right(data['data'] as Map<String, dynamic>);
       } else {
-        return Left(const ServerFailure(message: 'Failed to parse order ID from response.'));
+        return const Left(
+            ServerFailure(message: 'Failed to parse payment params from response.'));
       }
     } on DioException catch (e) {
       if (e.response != null && e.response!.data is Map) {
         return Left(ServerFailure(
           statusCode: e.response?.statusCode,
-          message: e.response!.data['message'] ?? 'Failed to create order',
+          message: e.response!.data['message'] ?? 'Failed to initiate payment',
         ));
       }
       return Left(ServerFailure(
         statusCode: e.response?.statusCode,
-        message: e.message ?? 'Failed to create order',
+        message: e.message ?? 'Failed to initiate payment',
       ));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
