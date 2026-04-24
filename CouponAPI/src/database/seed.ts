@@ -204,8 +204,7 @@ async function main() {
       startDate: now,
       endDate: nextMonth,
       status: 'ACTIVE',
-      razorpayOrderId: 'order_TEST123',
-      razorpayPaymentId: 'pay_TEST123',
+      payuPaymentId: 'pay_TEST123',
     }
   });
 
