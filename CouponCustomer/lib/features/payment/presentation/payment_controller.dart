@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
@@ -42,15 +43,34 @@ class PaymentController extends AutoDisposeAsyncNotifier<void> {
 
       // Server-side hash generation keeps the merchant salt off the client.
       payuService.onGenerateHash = (hashString) async {
+        debugPrint('[PayU] generateHash request: hashString="$hashString"');
         final result = await repository.generateHash(hashString);
-        return result.fold((_) => '', (hash) => hash);
+        return result.fold(
+          (failure) {
+            debugPrint('[PayU] generateHash FAILED: ${failure.message}');
+            return '';
+          },
+          (hash) {
+            debugPrint('[PayU] generateHash SUCCESS: hash="${hash.substring(0, hash.length.clamp(0, 20))}..."');
+            return hash;
+          },
+        );
       };
 
       payuService.onSuccess = (_) async {
-        // The actual subscription fulfilment happens server-side via S2S
-        // webhook. We wait briefly, then refresh the profile.
-        await Future.delayed(const Duration(seconds: 3));
-        ref.invalidate(profileProvider);
+        // Subscription fulfilment happens server-side via S2S webhook.
+        // Poll the profile up to 5 times (2 s apart) until it turns ACTIVE,
+        // so slow webhooks don't leave the UI stuck on the old state.
+        for (var i = 0; i < 5; i++) {
+          await Future.delayed(const Duration(seconds: 2));
+          ref.invalidate(profileProvider);
+          try {
+            final profile = await ref.read(profileProvider.future);
+            if (profile.subscriptionStatus == 'ACTIVE') break;
+          } catch (_) {
+            // profile fetch failed — keep polling
+          }
+        }
         state = const AsyncData(null);
       };
 

@@ -6,7 +6,10 @@
       "WebFetch(domain:docs.payu.in)",
       "WebFetch(domain:devguide.payu.in)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:payumobile.gitbook.io)"
+      "WebFetch(domain:payumobile.gitbook.io)",
+      "Bash(xargs grep *)",
+      "Read(//c/Users/TusharJS/**)",
+      "Bash(xargs cat *)"
     ]
   },
   "enabledMcpjsonServers": [

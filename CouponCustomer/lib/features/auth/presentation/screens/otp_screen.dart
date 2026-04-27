@@ -8,6 +8,7 @@ import 'package:logger/logger.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../features/profile/presentation/providers/profile_provider.dart';
 import '../../../../features/auth/domain/usecases/send_otp_usecase.dart';
 import '../../../../features/auth/domain/usecases/verify_otp_usecase.dart';
 import '../../../../services/notification_service.dart';
@@ -139,13 +140,18 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           phone: widget.phone,
           otp: _otpController.text,
           onSuccess: () async {
-            // Update auth state so GoRouter guard lets user through
             ref.read(authProvider.notifier).onLoginSuccess(phone: widget.phone);
-            // Request push notification permission with rationale
-            if (context.mounted) {
-              await _requestNotificationPermission(context);
+            // Prefetch profile before navigating so isSubscribedProvider has
+            // real data by the time gated screens render (avoids optimistic
+            // loading:true flash showing premium content to non-subscribers).
+            try {
+              await ref.read(profileProvider.future);
+            } catch (_) {
+              // Network error — proceed anyway; screens will show error state
             }
-            if (context.mounted) context.go('/home');
+            if (!mounted) return;
+            await _requestNotificationPermission(context);
+            if (mounted) context.go('/home');
           },
           onError: (message) {
             ScaffoldMessenger.of(context).showSnackBar(

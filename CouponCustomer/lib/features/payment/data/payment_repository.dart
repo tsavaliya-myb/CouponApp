@@ -51,7 +51,7 @@ class PaymentRepository {
       );
       final data = response.data;
       if (data != null && data['success'] == true && data['data'] != null) {
-        final hash = data['data']['hash'] as String?;
+        final hash = (data['data']['hash'] as String?)?.trim();
         if (hash != null && hash.isNotEmpty) return Right(hash);
       }
       return const Left(ServerFailure(message: 'Hash generation failed'));

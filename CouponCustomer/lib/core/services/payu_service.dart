@@ -33,13 +33,6 @@ class PayUService implements PayUCheckoutProProtocol {
 
     debugPrint('[PayU] txnid="${params['txnid']}" → sanitized="$txnid"');
 
-    // Static hashes pre-computed server-side and returned by /payments/initiate.
-    // payment_related_details_for_mobile_sdk is required for the checkout screen
-    // to load payment options. Without it the screen stays on "processing".
-    final additionalParam = <String, dynamic>{
-      ...(params['additionalParam'] as Map<String, dynamic>? ?? {}),
-    };
-
     final paymentParams = {
       PayUPaymentParamKey.key:              params['key'],
       PayUPaymentParamKey.amount:           params['amount'],
@@ -54,11 +47,9 @@ class PayUService implements PayUCheckoutProProtocol {
       PayUPaymentParamKey.android_furl:     'https://payu.in/txnstatus',
       PayUPaymentParamKey.ios_surl:         'https://payu.in/txnstatus',
       PayUPaymentParamKey.ios_furl:         'https://payu.in/txnstatus',
-      if (additionalParam.isNotEmpty)
-        PayUPaymentParamKey.additionalParam: additionalParam,
       PayUPaymentParamKey.payUSIParams: {
+        PayUSIParamsKeys.isPreAuthTxn:     true,
         PayUSIParamsKeys.billingAmount:    si['billingAmount'] ?? params['amount'],
-        // PayU SDK expects lowercase billing cycle values
         PayUSIParamsKeys.billingCycle:
             (si['billingCycle'] as String? ?? 'yearly').toLowerCase(),
         PayUSIParamsKeys.billingInterval:  '${si['billingInterval'] ?? 1}',
@@ -75,6 +66,9 @@ class PayUService implements PayUCheckoutProProtocol {
           'CouponApp',
       PayUCheckoutProConfigKeys.showExitConfirmationOnCheckoutScreen: true,
       PayUCheckoutProConfigKeys.showExitConfirmationOnPaymentScreen:  true,
+      // Allow up to 10 s for the server hash callback to respond.
+      // Default SDK timeout is very short; Render.com cold-starts can exceed it.
+      PayUCheckoutProConfigKeys.merchantResponseTimeout: 10,
     };
 
     _payU?.openCheckoutScreen(

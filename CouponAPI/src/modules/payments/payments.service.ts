@@ -2,7 +2,7 @@ import { prisma } from '../../config/db';
 import { redis } from '../../config/redis';
 import { env } from '../../config/env';
 import { ConflictError } from '../../shared/utils/AppError';
-import { generateSIPayUHash, generateMobileSDKStaticHashes, verifyPayUWebhookHash, computeHashFromString } from '../../shared/utils/payuHash';
+import { verifyPayUWebhookHash, computeHashFromString } from '../../shared/utils/payuHash';
 import { oneSignal } from '../notifications/onesignal.service';
 
 export class PaymentService {
@@ -27,14 +27,14 @@ export class PaymentService {
     const txnid = `sub_${userId.slice(0, 8)}_${Date.now()}`;
     const firstname = user.name?.split(' ')[0] || 'Customer';
     const email = user.email || '';
+    const phone = (user.phone || '').replace(/^\+91/, '');
 
-    // Mandate date range: today → 1 year from now
+    // Mandate date range: today → 30 years (covers indefinite annual renewals)
     const now = new Date();
     const end = new Date(now);
-    end.setFullYear(end.getFullYear() + 1);
-    const fmt = (d: Date) => d.toISOString().split('T')[0]; // YYYY-MM-DD
+    end.setFullYear(end.getFullYear() + 30);
+    const fmt = (d: Date) => d.toISOString().split('T')[0];
 
-    // SI params — billingCycle must be lowercase per PayU SDK docs
     const siParams = {
       billingAmount:    amount,
       billingCurrency:  'INR',
@@ -43,22 +43,16 @@ export class PaymentService {
       paymentStartDate: fmt(now),
       paymentEndDate:   fmt(end),
       billingRule:      'MAX',
+      remarks:          'CouponApp Annual Subscription',
     };
 
-    // SI transactions require si_details JSON in the hash string
-    const hash = generateSIPayUHash(
-      { txnid, amount, productinfo: 'CouponApp Premium', firstname, email },
-      siParams,
-      env.PAYU_KEY,
-      env.PAYU_SALT,
-    );
+    // Persist a PENDING attempt — durable fallback if Redis TTL expires before webhook arrives
+    await prisma.paymentAttempt.create({
+      data: { userId, txnid, amount: amount as any, kind: 'MANDATE', status: 'PENDING' },
+    });
 
-    // Static hashes required by the PayU CheckoutPro mobile SDK
-    const userCredential = `${env.PAYU_KEY}:${email}`;
-    const staticHashes = generateMobileSDKStaticHashes(env.PAYU_KEY, userCredential, env.PAYU_SALT);
-
-    // Cache txnid → userId so the webhook can resolve the user (TTL: 1 h)
-    await redis.set(`payu_txn:${txnid}`, userId, 'EX', 3600);
+    // Cache txnid → userId so the webhook can resolve the user (TTL: 48 h covers PayU retry window)
+    await redis.set(`payu_txn:${txnid}`, userId, 'EX', 48 * 3600);
 
     return {
       key:            env.PAYU_KEY,
@@ -67,24 +61,10 @@ export class PaymentService {
       productinfo:    'CouponApp Premium',
       firstname,
       email,
-      phone:          user.phone,
-      hash,
-      userCredential,
+      phone,
+      userCredential: '',
       env:            env.PAYU_ENV,
-      additionalParam: {
-        ...staticHashes,
-        payment: hash,
-      },
-      si_details: {
-        billingAmount:    siParams.billingAmount,
-        billingCurrency:  siParams.billingCurrency,
-        billingCycle:     siParams.billingCycle,
-        billingInterval:  siParams.billingInterval,
-        paymentStartDate: siParams.paymentStartDate,
-        paymentEndDate:   siParams.paymentEndDate,
-        billingRule:      siParams.billingRule,
-        remarks:          'CouponApp Annual Subscription',
-      },
+      si_details:     siParams,
     };
   }
 
@@ -103,44 +83,66 @@ export class PaymentService {
   async handleWebhook(body: Record<string, string>): Promise<void> {
     // 1. Verify reverse hash
     if (!verifyPayUWebhookHash(body, env.PAYU_SALT)) {
-      console.error('[PayU Webhook] Hash mismatch — rejected');
+      console.error('[PayU Webhook] Hash mismatch — rejected', { txnid: body.txnid });
       return;
     }
 
-    // 2. Only act on successful payments
-    if (body.status !== 'success') {
-      console.log(`[PayU Webhook] Non-success status: ${body.status}`);
-      return;
-    }
+    const { txnid, mihpayid, status, error_Message } = body;
+    // PayU sends the mandate ref under either key depending on product/region
+    const authPayUID = body.auth_payuid || body.authPayUID || '';
 
-    const { txnid, mihpayid, auth_payuid } = body;
-
-    // 3. Idempotency: skip if mihpayid already processed (48 h window)
+    // 2. Idempotency: skip if mihpayid already processed (48 h window)
     const idKey = `payu_processed:${mihpayid}`;
     if (await redis.get(idKey)) {
       console.log(`[PayU Webhook] ${mihpayid} already processed. Skipping.`);
       return;
     }
 
-    // 4. Resolve userId from cached txnid
-    const userId = await redis.get(`payu_txn:${txnid}`);
+    // 3. Resolve userId — Redis first, PaymentAttempt table as fallback for late webhooks
+    const userId =
+      (await redis.get(`payu_txn:${txnid}`)) ??
+      (await prisma.paymentAttempt.findUnique({ where: { txnid } }))?.userId;
     if (!userId) {
-      console.error(`[PayU Webhook] Unknown txnid: ${txnid}`);
+      console.error('[PayU Webhook] Unknown txnid — cannot resolve user', { txnid });
       return;
     }
 
-    // 5. Fulfill subscription atomically
-    await this.fulfillSubscription(userId, mihpayid, auth_payuid || '');
+    if (status === 'success') {
+      // 4a. Fulfill subscription atomically
+      await this.fulfillSubscription(userId, mihpayid, authPayUID);
 
-    // 6. Mark as processed
+      // 4b. Record success on the attempt
+      await prisma.paymentAttempt.update({
+        where: { txnid },
+        data: {
+          status:        'SUCCESS',
+          payuPaymentId: mihpayid,
+          authPayUID,
+          rawWebhook:    body as any,
+        },
+      });
+
+      oneSignal
+        .sendToUser(userId, '🎉 Subscription Activated!', 'Your coupon book is now active. Enjoy your discounts!', 'subscription_success')
+        .catch(() => {});
+
+      console.log(`[PayU Webhook] Subscription fulfilled for user ${userId}, mihpayid ${mihpayid}`);
+    } else {
+      // 4c. Record failure so support can debug without sifting through logs
+      await prisma.paymentAttempt.update({
+        where: { txnid },
+        data: {
+          status:       'FAILED',
+          errorMessage: error_Message,
+          rawWebhook:   body as any,
+        },
+      });
+
+      console.log(`[PayU Webhook] Non-success status: ${status}`, { txnid, error_Message });
+    }
+
+    // 5. Mark mihpayid as processed (idempotency guard for PayU retries)
     await redis.set(idKey, '1', 'EX', 48 * 3600);
-
-    // 7. Push notifications (fire-and-forget)
-    oneSignal
-      .sendToUser(userId, '🎉 Subscription Activated!', 'Your coupon book is now active. Enjoy your discounts!', 'subscription_success')
-      .catch(() => {});
-
-    console.log(`[PayU Webhook] Subscription fulfilled for user ${userId}, mihpayid ${mihpayid}`);
   }
 
   // ─── Atomic Subscription Fulfillment ────────────────────────────────────

@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
+import '../../features/profile/presentation/providers/profile_provider.dart';
 import '../error/failures.dart';
 import '../security/token_service.dart';
 
@@ -18,7 +19,7 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 /// Source of truth for GoRouter redirect guard.
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final tokenService = GetIt.I<TokenService>();
-  return AuthNotifier(tokenService);
+  return AuthNotifier(tokenService, ref);
 });
 
 class AuthState {
@@ -46,8 +47,9 @@ class AuthState {
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final TokenService _tokenService;
+  final Ref _ref;
 
-  AuthNotifier(this._tokenService) : super(const AuthState()) {
+  AuthNotifier(this._tokenService, this._ref) : super(const AuthState()) {
     _checkAuthStatus();
   }
 
@@ -97,6 +99,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> logout() async {
     final usecase = GetIt.I<LogoutUsecase>();
     await usecase();
+    _ref.invalidate(profileProvider);
     state = const AuthState(isLoading: false);
   }
 }
