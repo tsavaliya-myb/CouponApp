@@ -31,7 +31,7 @@ export class PaymentService {
     });
     const amount = (priceSetting ? parseFloat(priceSetting.value) : 999).toFixed(2);
 
-    const txnid = `sub_${userId.slice(0, 8)}_${Date.now()}`;
+    const txnid = `sub${userId.replace(/-/g, '').slice(0, 8)}${Date.now()}`;
     const firstname = user.name?.split(' ')[0] || 'Customer';
     const email = user.email || '';
     const phone = (user.phone || '').replace(/^\+91/, '');

@@ -26,12 +26,9 @@ class PayUService implements PayUCheckoutProProtocol {
     // "0" = Production, "1" = Test
     final envFlag = params['env'] == 'production' ? '0' : '1';
 
-    // PayU SDK requires txnid alphanumeric only, max 25 chars.
-    final sanitized =
-        (params['txnid']?.toString() ?? '').replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
-    final txnid = sanitized.length > 25 ? sanitized.substring(0, 25) : sanitized;
+    final txnid = params['txnid']?.toString() ?? '';
 
-    debugPrint('[PayU] txnid="${params['txnid']}" → sanitized="$txnid"');
+    debugPrint('[PayU] txnid="$txnid"');
 
     final paymentParams = {
       PayUPaymentParamKey.key:              params['key'],
