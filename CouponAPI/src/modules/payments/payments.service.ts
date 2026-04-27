@@ -76,7 +76,7 @@ export class PaymentService {
 
   // ─── Server-side Hash Generation for PayU SDK Callback ──────────────────
   generateHash(hashString: string): string {
-    log.info('generateHash: computing hash for SDK callback');
+    log.info('generateHash: computing hash for SDK callback' + ` (hashString: ${hashString})` + ` (salt: ${env.PAYU_SALT ? '***' : 'MISSING'})`);
     return computeHashFromString(hashString, env.PAYU_SALT);
   }
 

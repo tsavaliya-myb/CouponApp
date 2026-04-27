@@ -96,8 +96,9 @@ class PayUService implements PayUCheckoutProProtocol {
     }
 
     _payU?.hashGenerated(hash: {
-      PayUHashConstantsKeys.hashName:   hashName,
-      PayUHashConstantsKeys.hashString: computed,
+      // PayUHashConstantsKeys.hashName:   hashName,
+      // PayUHashConstantsKeys.hashString: computed,
+      hashName: computed,
     });
   }
 
