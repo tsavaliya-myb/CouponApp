@@ -3,6 +3,7 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/home_coupon_model.dart';
 import '../models/nearby_seller_model.dart';
+import '../models/banner_ad_model.dart';
 
 abstract class HomeRemoteDatasource {
   /// Fetches ALL user coupons in one call (client-side category filtering).
@@ -11,6 +12,9 @@ abstract class HomeRemoteDatasource {
   Future<List<NearbySellerModel>> getNearbySellers({
     required String cityId,
   });
+
+  /// Fetches active banner ads for the given city (slider).
+  Future<List<BannerAdModel>> getBannerAds({String? cityId});
 }
 
 @Injectable(as: HomeRemoteDatasource)
@@ -46,5 +50,19 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
       if (cat is Map) map['category'] = cat['slug'] as String;
       return NearbySellerModel.fromJson(map);
     }).toList();
+  }
+
+  @override
+  Future<List<BannerAdModel>> getBannerAds({String? cityId}) async {
+    final response = await _apiClient.client.get(
+      '/ads/banners',
+      queryParameters: {
+        if (cityId != null) 'cityId': cityId,
+      },
+    );
+    final List data = response.data['data'] as List;
+    return data
+        .map((e) => BannerAdModel.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
   }
 }

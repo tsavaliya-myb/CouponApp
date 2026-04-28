@@ -9,6 +9,7 @@ import {
   Bell,
   MapPin,
   Settings,
+  Megaphone,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -35,8 +36,9 @@ const coreItems = [
 
 const operationsItems = [
   { title: "Settlements", url: "/admin/settlements", icon: Landmark },
-  { title: "Wallet", url: "/admin/wallet", icon: Wallet },
-  { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
+  { title: "Wallet",      url: "/admin/wallet",       icon: Wallet },
+  { title: "Analytics",  url: "/admin/analytics",    icon: BarChart3 },
+  { title: "Banner Ads", url: "/admin/ads",           icon: Megaphone },
   { title: "Notifications", url: "/admin/notifications", icon: Bell },
 ];
 

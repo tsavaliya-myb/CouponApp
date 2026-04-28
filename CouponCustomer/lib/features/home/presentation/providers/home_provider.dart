@@ -6,9 +6,12 @@ import '../../../../services/location_service.dart';
 import '../../../../core/models/category_item.dart';
 import '../../domain/entities/home_coupon_entity.dart';
 import '../../domain/entities/nearby_seller_entity.dart';
+import '../../domain/entities/banner_ad_entity.dart';
 import '../../domain/usecases/get_featured_coupons_usecase.dart';
 import '../../domain/usecases/get_nearby_sellers_usecase.dart';
+import '../../domain/usecases/get_banner_ads_usecase.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
+
 
 // ─── Selected category ────────────────────────────────────────────────────────
 // null means "ALL". Non-null is the selected CategoryItem.
@@ -135,4 +138,18 @@ final homeFilteredSellersProvider =
 
   return allAsync
       .whenData((all) => _filterAndMapDistance(all, category, locationAsync));
+});
+
+// ─── Banner Ads (auto-dispose, fetched once per session) ─────────────────────
+
+final bannerAdsProvider =
+    FutureProvider.autoDispose<List<BannerAdEntity>>((ref) async {
+  final profile = await ref.watch(profileProvider.future);
+  final cityId = profile.cityId;
+  final usecase = GetIt.I<GetBannerAdsUsecase>();
+  final result = await usecase(cityId: cityId);
+  return result.fold(
+    (failure) => <BannerAdEntity>[], // fail silently — slider shows nothing
+    (ads) => ads,
+  );
 });

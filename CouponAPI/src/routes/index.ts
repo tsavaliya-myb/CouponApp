@@ -78,3 +78,7 @@ import { adminDashboardRouter } from '../modules/admin/dashboard/dashboard.route
 import { sellerDashboardRouter } from '../modules/sellers/dashboard/dashboard.routes';
 apiRouter.use('/admin/dashboard', adminDashboardRouter);
 apiRouter.use('/sellers/me/dashboard', sellerDashboardRouter);
+
+// Phase 14: Banner Ads
+import { adsRouter } from '../modules/ads/ads.routes';
+apiRouter.use('/ads', adsRouter);

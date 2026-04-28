@@ -24,6 +24,7 @@ import '../../features/home/data/repositories/home_repository_impl.dart';
 import '../../features/home/domain/repositories/home_repository.dart';
 import '../../features/home/domain/usecases/get_featured_coupons_usecase.dart';
 import '../../features/home/domain/usecases/get_nearby_sellers_usecase.dart';
+import '../../features/home/domain/usecases/get_banner_ads_usecase.dart';
 // Wallet feature
 import '../../features/wallet/data/datasources/wallet_remote_data_source.dart';
 import '../../features/wallet/data/repositories/wallet_repository_impl.dart';
@@ -114,6 +115,9 @@ Future<void> configureDependencies() async {
   );
   getIt.registerFactory<GetNearbySellersUsecase>(
     () => GetNearbySellersUsecase(getIt<HomeRepository>()),
+  );
+  getIt.registerFactory<GetBannerAdsUsecase>(
+    () => GetBannerAdsUsecase(getIt<HomeRepository>()),
   );
 
   // ---------------------------------------------------------------------------

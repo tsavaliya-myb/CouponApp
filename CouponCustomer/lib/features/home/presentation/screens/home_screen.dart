@@ -1,15 +1,18 @@
 // lib/features/home/presentation/screens/home_screen.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../providers/home_provider.dart';
 import '../../../../core/providers/categories_provider.dart';
 import '../../../../core/models/category_item.dart';
 import '../../../../core/utils/category_utils.dart';
+import '../../domain/entities/banner_ad_entity.dart';
 import 'package:couponcode/features/profile/presentation/providers/profile_provider.dart';
 
 // ─── Home Screen ─────────────────────────────────────────────────────────────
@@ -172,59 +175,115 @@ class _HomeHeader extends ConsumerWidget {
   }
 }
 
-// ─── Banner Slider ────────────────────────────────────────────────────────────
+// ─── Banner Slider ─────────────────────────────────────────────────────────────
+// Fetches active ads from the API for the user's city and auto-scrolls them.
+// Falls back to two branded placeholders when no ads are available.
 
-class _BannerSlider extends StatefulWidget {
+class _BannerSlider extends ConsumerStatefulWidget {
   const _BannerSlider();
 
   @override
-  State<_BannerSlider> createState() => _BannerSliderState();
+  ConsumerState<_BannerSlider> createState() => _BannerSliderState();
 }
 
-class _BannerSliderState extends State<_BannerSlider> {
+class _BannerSliderState extends ConsumerState<_BannerSlider> {
   final _controller = PageController();
   int _current = 0;
+  Timer? _timer;
 
-  // Replace these with your actual asset paths e.g. 'assets/images/banner1.png'
-  static const _banners = [
-    'assets/images/banner1.png',
-    'assets/images/banner2.png',
-  ];
+  void _startAutoScroll(int count) {
+    _timer?.cancel();
+    if (count <= 1) return;
+    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted) return;
+      final next = (_current + 1) % count;
+      _controller.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
+  Future<void> _handleTap(BannerAdEntity ad) async {
+    // Fire click tracking (fire-and-forget — no auth needed)
+    // We call directly via the API URL; tracking failures are silent.
+    if (ad.actionUrl != null) {
+      final uri = Uri.tryParse(ad.actionUrl!);
+      if (uri != null && await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final adsAsync = ref.watch(bannerAdsProvider);
+
+    return adsAsync.when(
+      loading: () => _buildSlider(ads: const [], loading: true),
+      error: (_, __) => _buildSlider(ads: const []),
+      data: (ads) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _startAutoScroll(ads.isEmpty ? 2 : ads.length),
+        );
+        return _buildSlider(ads: ads);
+      },
+    );
+  }
+
+  Widget _buildSlider({
+    required List<BannerAdEntity> ads,
+    bool loading = false,
+  }) {
+    final count = ads.isEmpty ? 2 : ads.length; // 2 placeholders when empty
+
     return Column(
       children: [
         SizedBox(
           height: 200,
           child: PageView.builder(
             controller: _controller,
-            itemCount: _banners.length,
+            itemCount: count,
             onPageChanged: (i) => setState(() => _current = i),
-            itemBuilder: (_, i) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  _banners[i],
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _BannerPlaceholder(index: i),
+            itemBuilder: (_, i) {
+              final ad = ads.isEmpty ? null : ads[i];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GestureDetector(
+                  onTap: ad == null ? null : () => _handleTap(ad),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: loading
+                        ? _shimmer()
+                        : ad?.imageUrl != null
+                            ? Image.network(
+                                ad!.imageUrl!,
+                                fit: BoxFit.cover,
+                                loadingBuilder: (_, child, progress) =>
+                                    progress == null ? child : _shimmer(),
+                                errorBuilder: (_, __, ___) =>
+                                    _BannerPlaceholder(index: i),
+                              )
+                            : _BannerPlaceholder(index: i),
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ),
         const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            _banners.length,
+            count,
             (i) => AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -242,7 +301,23 @@ class _BannerSliderState extends State<_BannerSlider> {
       ],
     );
   }
+
+  Widget _shimmer() => Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.grey.shade300,
+              Colors.grey.shade100,
+              Colors.grey.shade300,
+            ],
+            stops: const [0.0, 0.5, 1.0],
+          ),
+        ),
+      );
 }
+
+// ─── Banner Placeholder ───────────────────────────────────────────────────────
+// Shown when no ads are available or when a banner image fails to load.
 
 class _BannerPlaceholder extends StatelessWidget {
   final int index;
@@ -270,9 +345,7 @@ class _BannerPlaceholder extends StatelessWidget {
             right: -20,
             bottom: -20,
             child: Icon(
-              index == 0
-                  ? Icons.local_offer_rounded
-                  : Icons.card_giftcard_rounded,
+              index == 0 ? Icons.local_offer_rounded : Icons.card_giftcard_rounded,
               size: 140,
               color: Colors.white.withValues(alpha: 0.1),
             ),

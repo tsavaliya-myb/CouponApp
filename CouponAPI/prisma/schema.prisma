@@ -87,9 +87,10 @@ model City {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
-  areas   Area[]
-  users   User[]
-  sellers Seller[]
+  areas         Area[]
+  users         User[]
+  sellers       Seller[]
+  bannerAdCities BannerAdCity[]
 
   @@map("cities")
 }
@@ -258,6 +259,7 @@ model Seller {
   redemptions Redemption[]
   settlements Settlement[]
   media       SellerMedia?
+  bannerAds   BannerAd[]
 
   @@map("sellers")
 }
@@ -420,6 +422,59 @@ model NotificationLog {
 
   @@map("notification_logs")
 }
+
+// ─────────────────────────────────────────
+// BANNER ADS
+// ─────────────────────────────────────────
+
+enum BannerAdStatus {
+  ACTIVE     // Showing in the slider right now
+  PAUSED     // Admin manually paused
+  COMPLETED  // endsAt has passed
+}
+
+model BannerAd {
+  id        String        @id @default(uuid())
+  // Optional: link ad to a specific seller (for reporting / display)
+  sellerId  String?
+  title     String        // Internal label shown in admin panel
+  // Media — exactly one of imageUrl or videoUrl must be set
+  imageUrl  String?
+  videoUrl  String?
+  // Deep-link destination when customer taps the banner (optional)
+  actionUrl String?
+  status    BannerAdStatus @default(ACTIVE)
+  // Campaign window — set by admin at creation
+  startsAt  DateTime
+  endsAt    DateTime
+  // Impression & click tracking (incremented atomically)
+  impressions Int         @default(0)
+  clicks      Int         @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  seller Seller?        @relation(fields: [sellerId], references: [id])
+  cities BannerAdCity[] // multi-city targeting via join table
+
+  @@index([sellerId])
+  @@index([status, startsAt, endsAt])
+  @@map("banner_ads")
+}
+
+// Join table: one ad → many cities
+model BannerAdCity {
+  id         String   @id @default(uuid())
+  bannerAdId String
+  cityId     String
+  createdAt  DateTime @default(now())
+
+  bannerAd BannerAd @relation(fields: [bannerAdId], references: [id], onDelete: Cascade)
+  city     City     @relation(fields: [cityId], references: [id])
+
+  @@unique([bannerAdId, cityId])
+  @@map("banner_ad_cities")
+}
+
 
 // ─────────────────────────────────────────
 // ADMIN & APP SETTINGS

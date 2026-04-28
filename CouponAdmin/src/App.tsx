@@ -14,6 +14,7 @@ import AnalyticsPage from "@/pages/admin/Analytics";
 import NotificationsPage from "@/pages/admin/Notifications";
 import CitiesAreasPage from "@/pages/admin/CitiesAreas";
 import SettingsPage from "@/pages/admin/Settings";
+import BannerAdsPage from "@/pages/admin/BannerAds";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="cities" element={<CitiesAreasPage />} />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route path="ads" element={<BannerAdsPage />} />
               </Route>
             </Route>
             
