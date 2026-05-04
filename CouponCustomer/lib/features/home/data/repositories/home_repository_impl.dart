@@ -10,6 +10,8 @@ import '../../domain/entities/nearby_seller_entity.dart';
 import '../../domain/entities/banner_ad_entity.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../datasources/home_remote_datasource.dart';
+import '../models/home_coupon_model.dart';
+import '../models/nearby_seller_model.dart';
 
 @Injectable(as: HomeRepository)
 class HomeRepositoryImpl implements HomeRepository {
