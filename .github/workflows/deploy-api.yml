@@ -22,7 +22,8 @@ jobs:
             cd /var/www/couponapi
             git pull origin main --no-tags
             cd CouponAPI
-            npm ci --omit=dev
+            npm ci
             npm run build
+            npm prune --omit=dev
             npx prisma migrate deploy
             pm2 restart couponapi --update-env
