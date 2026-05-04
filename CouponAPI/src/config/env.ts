@@ -53,4 +53,7 @@ export const env = cleanEnv(process.env, {
   // API public base URL — used for generating permanent media proxy URLs
   // e.g. https://api.yourdomain.com  (no trailing slash)
   API_BASE_URL:          str({ default: 'http://localhost:3000' }),
+
+  // Swagger — enable in production by setting to 'true'
+  SWAGGER_ENABLED:       str({ default: 'false' }),
 });

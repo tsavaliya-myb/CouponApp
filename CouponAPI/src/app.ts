@@ -59,7 +59,7 @@ export function createApp(): Express {
   app.use('/api/v1', apiRouter);
 
   // Swagger Documentation
-  if (!env.isProduction) {
+  if (!env.isProduction || env.SWAGGER_ENABLED === 'true') {
     const { setupSwagger } = require('./config/swagger');
     setupSwagger(app);
   }
