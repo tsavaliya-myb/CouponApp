@@ -10,8 +10,10 @@ import {
 const BASE = "/ads/admin/banners";
 
 export const getBannerAds = async (params?: GetBannerAdsParams): Promise<BannerAdsResponse> => {
-  const { data } = await apiClient.get<BannerAdsResponse>(BASE, { params });
-  return data;
+  const { data } = await apiClient.get<any>(BASE, { params });
+  // Normalize: old API wraps {data, meta} inside data; new API puts them at root
+  if (Array.isArray(data.data)) return data as BannerAdsResponse;
+  return { success: data.success, data: data.data?.data ?? [], meta: data.data?.meta ?? data.meta };
 };
 
 export const getBannerAd = async (id: string): Promise<BannerAdResponse> => {

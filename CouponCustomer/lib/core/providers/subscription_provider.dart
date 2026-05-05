@@ -20,7 +20,7 @@ final isSubscribedProvider = Provider<bool>((ref) {
 
   final profileAsync = ref.watch(profileProvider);
   return profileAsync.when(
-    data: (user) => user.status == 'ACTIVE',
+    data: (user) => user.subscriptionStatus == 'ACTIVE',
     loading: () => true,  // Optimistic: assume subscribed while profile loads.
                           // Prevents mock screen flashing for subscribed users.
                           // Real sections show their own shimmer loaders during fetch.

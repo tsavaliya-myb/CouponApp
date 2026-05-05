@@ -31,7 +31,7 @@ class AppHeader extends StatelessWidget {
     Widget? activeLeftWidget = leftWidget;
     if (activeLeftWidget == null && showDefaultLocation) {
       activeLeftWidget =
-          const Icon(Icons.location_on, color: AppColors.dsPrimary, size: 24);
+          const Icon(Icons.location_on, color: Color(0xFF775A00), size: 24);
     }
 
     return Padding(
@@ -51,7 +51,7 @@ class AppHeader extends StatelessWidget {
                     title,
                     style: titleStyle ??
                         AppTextStyles.dsTitleLg.copyWith(
-                          color: AppColors.dsPrimary,
+                          color: const Color(0xFF775A00),
                           fontWeight: FontWeight.w800,
                           fontSize: 22,
                           fontStyle:

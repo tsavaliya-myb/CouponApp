@@ -1,9 +1,17 @@
 import { PaginatedMeta, City, Area } from "./users";
 
+export interface SellerCategory {
+  id: string;
+  name: string;
+  slug: string;
+  iconName?: string | null;
+}
+
 export interface Seller {
   id: string;
   businessName: string;
-  category: string;
+  category: SellerCategory;
+  categoryId: string;
   cityId: string;
   areaId: string;
   address: string | null;

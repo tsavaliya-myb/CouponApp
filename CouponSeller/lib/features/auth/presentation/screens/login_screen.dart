@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/constants/app_spacing.dart';
@@ -255,46 +256,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Footer Disclaimer
+                      // Terms of Service & Privacy Policy
                       Center(
-                        child: Text(
-                          'BY SIGNING IN YOU AGREE TO OUR TERMS OF SERVICE',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.labelSM.copyWith(
-                            fontSize: 10,
-                            letterSpacing: 0.5,
+                        child: GestureDetector(
+                          onTap: () async {
+                            final uri = Uri.parse('https://couponcode360.com');
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            }
+                          },
+                          child: Text.rich(
+                            TextSpan(
+                              text: 'By continuing, you agree to our ',
+                              style: AppTextStyles.labelSM.copyWith(
+                                color: Colors.grey[400],
+                                fontSize: 11,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: 'terms of service & privacy policy',
+                                  style: AppTextStyles.labelSM.copyWith(
+                                    color: Colors.grey[400],
+                                    fontSize: 11,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: Colors.grey[400],
+                                  ),
+                                ),
+                                const TextSpan(text: '.'),
+                              ],
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Support & Privacy
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextButton(
-                            onPressed: () {},
-                            child: Text(
-                              'Support Hub',
-                              style: AppTextStyles.footerLink,
-                            ),
-                          ),
-                          Container(
-                            width: 4,
-                            height: 4,
-                            decoration: const BoxDecoration(
-                              color: AppColors.outlineVariant,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text(
-                              'Privacy Policy',
-                              style: AppTextStyles.footerLink,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),

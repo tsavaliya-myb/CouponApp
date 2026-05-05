@@ -155,7 +155,7 @@ class _NavItem extends StatelessWidget {
                 fontSize: 9,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                 color: isSelected
-                    ? AppColors.dsPrimary
+                    ? const Color(0xFF775A00)
                     : AppColors.dsOnSurface.withOpacity(0.4),
               ),
               child: Text(label.toUpperCase()),

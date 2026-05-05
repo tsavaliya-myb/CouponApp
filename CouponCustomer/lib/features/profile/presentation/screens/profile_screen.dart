@@ -79,7 +79,7 @@ class ProfileScreen extends ConsumerWidget {
                                 color: AppColors.dsOnSurface.withOpacity(0.6),
                               ),
                             ),
-                            if (user.status == 'ACTIVE') ...[
+                            if (user.subscriptionStatus == 'ACTIVE') ...[
                               const SizedBox(height: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(

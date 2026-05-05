@@ -88,6 +88,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Called after successful OTP verification with the user's phone.
   void onLoginSuccess({required String phone}) {
+    _ref.invalidate(profileProvider);
+    _ref.invalidate(userSettingsProvider);
     state = state.copyWith(
       isAuthenticated: true,
       phone: phone,

@@ -192,7 +192,7 @@ export default function SellersPage() {
             {!isLoading && !isError && sellers.map((s) => (
               <TableRow key={s.id} className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => setSelectedSeller(s)}>
                 <TableCell className="font-medium">{s.businessName}</TableCell>
-                <TableCell className="hidden md:table-cell text-muted-foreground capitalize">{s.category}</TableCell>
+                <TableCell className="hidden md:table-cell text-muted-foreground capitalize">{s.category?.name}</TableCell>
                 <TableCell className="hidden lg:table-cell text-muted-foreground capitalize">{s.city?.name || "-"}</TableCell>
                 <TableCell className="hidden lg:table-cell text-muted-foreground capitalize">{s.area?.name || "-"}</TableCell>
                 <TableCell className="text-right hidden md:table-cell tabular-nums font-medium">{s.commissionPct}%</TableCell>
@@ -290,7 +290,7 @@ export default function SellersPage() {
                       setEditSeller(s); 
                       setEditForm({
                         businessName: s.businessName,
-                        category: s.category,
+                        category: s.category?.name,
                         cityId: s.cityId,
                         areaId: s.areaId,
                         upiId: s.upiId || undefined,
@@ -322,7 +322,7 @@ export default function SellersPage() {
             <>
               <SheetHeader>
                 <SheetTitle className="text-xl">{selectedSeller.businessName}</SheetTitle>
-                <SheetDescription>{selectedSeller.category} · {selectedSeller.city?.name || "-"}, {selectedSeller.area?.name || "-"}</SheetDescription>
+                <SheetDescription>{selectedSeller.category?.name} · {selectedSeller.city?.name || "-"}, {selectedSeller.area?.name || "-"}</SheetDescription>
               </SheetHeader>
               <div className="mt-5 space-y-3 text-sm">
                 <div className="grid grid-cols-2 gap-3">

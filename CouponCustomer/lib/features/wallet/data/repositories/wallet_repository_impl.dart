@@ -1,4 +1,6 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
+import '../../../../core/error/error_handler.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/wallet_entity.dart';
 import '../../domain/repositories/wallet_repository.dart';
@@ -14,8 +16,9 @@ class WalletRepositoryImpl implements WalletRepository {
     try {
       final result = await _remoteDataSource.getWallet(page: page, limit: limit);
       return Right(result);
-    } catch (e) {
-      if (e is ServerFailure) return Left(e);
+    } on DioException catch (e) {
+      return Left(mapDioExceptionToFailure(e));
+    } catch (_) {
       return Left(const ServerFailure());
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:logger/logger.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -288,6 +289,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ],
                             ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Terms of Service & Privacy Policy
+                Center(
+                  child: GestureDetector(
+                    onTap: () async {
+                      final uri = Uri.parse('https://couponcode360.com');
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    },
+                    child: Text.rich(
+                      TextSpan(
+                        text: 'By continuing, you agree to our ',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: Colors.grey[400],
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'terms of service & privacy policy',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: Colors.grey[400],
+                              decoration: TextDecoration.underline,
+                              decorationColor: Colors.grey[400],
+                            ),
+                          ),
+                          const TextSpan(text: '.'),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),

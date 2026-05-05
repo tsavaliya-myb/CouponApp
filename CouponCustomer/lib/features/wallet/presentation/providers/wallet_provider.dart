@@ -8,7 +8,7 @@ class WalletNotifier extends AutoDisposeAsyncNotifier<WalletEntity> {
   Future<WalletEntity> build() async {
     final usecase = GetIt.I<GetWalletUseCase>();
     final result = await usecase(limit: 5);
-    return result.fold((f) => throw f, (w) => w);
+    return result.fold((f) => throw f.message, (w) => w);
   }
 
   Future<void> refresh() async {
@@ -39,7 +39,7 @@ class WalletLedgerNotifier
     final usecase = GetIt.I<GetWalletUseCase>();
     final result = await usecase(page: _page);
     return result.fold(
-      (f) => throw f,
+      (f) => throw f.message,
       (w) {
         _transactions.addAll(w.transactions.data);
         _hasMore = _page < w.transactions.totalPages;

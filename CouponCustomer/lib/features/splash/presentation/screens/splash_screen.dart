@@ -21,9 +21,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   Future<void> _navigateToNextScreen() async {
-    // Wait for a simulated splash duration
-    await Future.delayed(const Duration(seconds: 2));
-
     if (!mounted) return;
 
     // Wait for TokenService to finish checking secure storage
@@ -58,7 +55,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             ),
             const SizedBox(height: 32),
             Text(
-              'CouponBook',
+              'CouponCode',
               style: AppTextStyles.dsDisplayLg.copyWith(
                 color: AppColors.dsPrimary,
               ),

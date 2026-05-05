@@ -50,7 +50,7 @@ export class AdsController {
   adminListAds = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const result = await adsService.adminListAds(req.query as unknown as AdminListAdsDto);
-      sendSuccess(res, result);
+      res.status(200).json({ success: true, data: result.data, meta: result.meta });
     } catch (err) {
       next(err);
     }
