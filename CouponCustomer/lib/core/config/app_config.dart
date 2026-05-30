@@ -42,13 +42,13 @@ class AppConfig {
 
   factory AppConfig.prod() => const AppConfig(
         appName: 'CouponApp',
-        baseUrl: 'https://api.couponapp.in/v1',
+        baseUrl: String.fromEnvironment('BASE_URL'),
         payuMerchantKey: String.fromEnvironment('PAYU_KEY'),
         qrSecretKey: String.fromEnvironment('QR_SECRET_KEY'),
         appVersion: '1.0.0',
         enableAnalytics: true,
         enablePerformance: true,
-        oneSignalAppId: 'c1aace53-f49e-4814-9292-9c23e92bbcbe',
+        oneSignalAppId: String.fromEnvironment('ONE_SIGNAL_APP_ID'),
       );
 
   /// Development flavor — points to local backend.
@@ -61,6 +61,6 @@ class AppConfig {
         appVersion: '1.0.0-dev',
         enableAnalytics: false,
         enablePerformance: false,
-        oneSignalAppId: 'c1aace53-f49e-4814-9292-9c23e92bbcbe',
+        oneSignalAppId: 'test-onesignal-app-id-for-dev-1234567890ab',
       );
 }

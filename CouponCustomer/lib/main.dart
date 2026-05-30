@@ -16,7 +16,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 1. Setup environment config
-  AppConfig.setup(AppConfig.dev());
+  AppConfig.setup(AppConfig.prod());
 
   // 2. Initialize GetIt DI
   await configureDependencies();
