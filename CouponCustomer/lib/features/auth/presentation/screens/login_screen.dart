@@ -227,7 +227,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 Text.rich(
                   TextSpan(
-                    text: "We'll send you a 6-digit code to verify your\nidentity.",
+                    text:
+                        "We'll send you a 6-digit code to verify your\nidentity.",
                     style: AppTextStyles.dsBodyMd.copyWith(
                       color: AppColors.dsOnSurface.withOpacity(0.7),
                     ),
@@ -279,8 +280,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text('Send OTP',
-                                    style: AppTextStyles.dsButton),
+                                Text('Send OTP', style: AppTextStyles.dsButton),
                                 const SizedBox(width: 8),
                                 const Icon(
                                   Icons.arrow_forward_rounded,
@@ -298,9 +298,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Center(
                   child: GestureDetector(
                     onTap: () async {
-                      final uri = Uri.parse('https://couponcode360.com');
+                      final uri = Uri.parse(
+                          'https://couponcode360.com/#privacy-policy');
                       if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        await launchUrl(uri,
+                            mode: LaunchMode.externalApplication);
                       }
                     },
                     child: Text.rich(

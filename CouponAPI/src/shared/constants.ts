@@ -23,7 +23,7 @@ export const REDIS_KEYS = {
 
 // ─── JWT TTLs (in seconds, for Redis EX) ─────────────────────────────────────
 export const TTL = {
-  REFRESH_TOKEN_SEC: 7 * 24 * 60 * 60, // 7 days
+  REFRESH_TOKEN_SEC: 60 * 24 * 60 * 60, // 60 days
   OTP_SEC: 5 * 60,            // 5 minutes
   QR_TOKEN_SEC: 5 * 60,            // 5 minutes
 } as const;

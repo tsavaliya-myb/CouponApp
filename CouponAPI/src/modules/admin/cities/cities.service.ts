@@ -13,6 +13,56 @@ import type {
 } from './cities.validator';
 
 export class CitiesService {
+  private getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  private async recalculateAreaDistances(area: { id: string, cityId: string, latitude: number | null, longitude: number | null }) {
+    if (area.latitude === null || area.longitude === null) return;
+
+    const otherAreas = await prisma.area.findMany({
+      where: {
+        cityId: area.cityId,
+        id: { not: area.id },
+        latitude: { not: null },
+        longitude: { not: null },
+      }
+    });
+
+    for (const other of otherAreas) {
+      const distance = this.getDistanceFromLatLonInKm(area.latitude, area.longitude, other.latitude!, other.longitude!);
+      
+      // Upsert area -> other
+      await prisma.areaDistance.upsert({
+        where: { fromAreaId_toAreaId: { fromAreaId: area.id, toAreaId: other.id } },
+        update: { distanceKm: distance },
+        create: { fromAreaId: area.id, toAreaId: other.id, distanceKm: distance }
+      });
+
+      // Upsert other -> area
+      await prisma.areaDistance.upsert({
+        where: { fromAreaId_toAreaId: { fromAreaId: other.id, toAreaId: area.id } },
+        update: { distanceKm: distance },
+        create: { fromAreaId: other.id, toAreaId: area.id, distanceKm: distance }
+      });
+    }
+
+    // Distance to itself is 0
+    await prisma.areaDistance.upsert({
+      where: { fromAreaId_toAreaId: { fromAreaId: area.id, toAreaId: area.id } },
+      update: { distanceKm: 0 },
+      create: { fromAreaId: area.id, toAreaId: area.id, distanceKm: 0 }
+    });
+  }
+
   // ─── Cities ──────────────────────────────────────────────────────────────────
 
   async getCities(): Promise<CityWithCountsResponse[]> {
@@ -101,6 +151,10 @@ export class CitiesService {
       },
     });
 
+    if (result.latitude && result.longitude) {
+      await this.recalculateAreaDistances(result);
+    }
+
     await RedisCacheService.delCache([REDIS_KEYS.CITIES_ALL, REDIS_KEYS.CITY_AREAS(cityId)]);
     return result;
   }
@@ -123,6 +177,12 @@ export class CitiesService {
       where: { id },
       data: dto,
     });
+
+    if (dto.latitude !== undefined || dto.longitude !== undefined) {
+      if (result.latitude && result.longitude) {
+        await this.recalculateAreaDistances(result);
+      }
+    }
 
     await RedisCacheService.delCache([REDIS_KEYS.CITIES_ALL, REDIS_KEYS.CITY_AREAS(area.cityId)]);
     return result;

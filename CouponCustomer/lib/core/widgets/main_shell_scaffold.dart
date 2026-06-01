@@ -75,36 +75,44 @@ class _MainShellScaffoldState extends ConsumerState<MainShellScaffold> {
 
     final isHome = widget.navigationShell.currentIndex == 0;
 
-    return Scaffold(
-      backgroundColor: AppColors.dsSurface,
-      extendBody: true,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Container(
-          color: isHome ? const Color(0xFFD4920A) : AppColors.dsSurface,
-          child: SafeArea(
-            bottom: false,
-            child: Container(
-              height: kToolbarHeight,
-              alignment: Alignment.center,
-              child: AppHeader(
-                title: _screenName(widget.navigationShell.currentIndex),
-                showProfileIcon:
-                    widget.navigationShell.currentIndex == 5 ? false : true,
+    return PopScope(
+      canPop: isHome,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          widget.navigationShell.goBranch(0, initialLocation: true);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.dsSurface,
+        extendBody: true,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: Container(
+            color: isHome ? const Color(0xFFD4920A) : AppColors.dsSurface,
+            child: SafeArea(
+              bottom: false,
+              child: Container(
+                height: kToolbarHeight,
+                alignment: Alignment.center,
+                child: AppHeader(
+                  title: _screenName(widget.navigationShell.currentIndex),
+                  showProfileIcon:
+                      widget.navigationShell.currentIndex == 5 ? false : true,
+                ),
               ),
             ),
           ),
         ),
-      ),
-      body: widget.navigationShell,
-      bottomNavigationBar: AppBottomNavBar(
-        currentIndex: widget.navigationShell.currentIndex,
-        onTap: (index) {
-          widget.navigationShell.goBranch(
-            index,
-            initialLocation: index == widget.navigationShell.currentIndex,
-          );
-        },
+        body: widget.navigationShell,
+        bottomNavigationBar: AppBottomNavBar(
+          currentIndex: widget.navigationShell.currentIndex,
+          onTap: (index) {
+            widget.navigationShell.goBranch(
+              index,
+              initialLocation: index == widget.navigationShell.currentIndex,
+            );
+          },
+        ),
       ),
     );
   }

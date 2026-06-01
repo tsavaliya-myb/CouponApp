@@ -57,7 +57,8 @@ class AboutUsScreen extends StatelessWidget {
                         color: AppColors.dsSecondaryMint.withOpacity(0.12),
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: AppColors.dsSecondaryMint.withOpacity(0.3), width: 2.5),
+                            color: AppColors.dsSecondaryMint.withOpacity(0.3),
+                            width: 2.5),
                       ),
                       child: const Center(
                         child: Icon(Icons.info_outline_rounded,
@@ -80,7 +81,7 @@ class AboutUsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Welcome to CouponApp', style: AppTextStyles.dsTitleLg),
+                  Text('Welcome to Coupon360', style: AppTextStyles.dsTitleLg),
                   const SizedBox(height: 16),
                   Text(
                     'CouponApp is your one-stop destination for amazing discounts and offers across your city. By subscribing as a premium member, you unlock hundreds of exclusive coupon books that save you money on dining, shopping, and more.\n\nOur mission is to connect local businesses with awesome customers like you, creating a win-win community of savings and growth.',
@@ -89,13 +90,14 @@ class AboutUsScreen extends StatelessWidget {
                       height: 1.6,
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  Center(
-                    child: Text(
-                      'Version 1.0.0',
-                      style: AppTextStyles.dsLabelMd.copyWith(color: AppColors.dsOnSurface.withOpacity(0.4)),
-                    ),
-                  ),
+                  // const SizedBox(height: 32),
+                  // Center(
+                  //   child: Text(
+                  //     'Version 1.0.0',
+                  //     style: AppTextStyles.dsLabelMd.copyWith(
+                  //         color: AppColors.dsOnSurface.withOpacity(0.4)),
+                  //   ),
+                  // ),
                   const SizedBox(height: 40),
                 ],
               ),

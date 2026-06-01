@@ -171,26 +171,8 @@ class _SettlementScreenState extends ConsumerState<SettlementScreen> {
 
   Widget _buildTopActions() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: Text(
-              'Download Report',
-              style: AppTextStyles.buttonText.copyWith(fontSize: 14),
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(

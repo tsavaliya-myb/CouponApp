@@ -14,9 +14,11 @@ import 'features/scan/presentation/screens/scan_screen.dart';
 import 'features/redemption/presentation/screens/redemption_screen.dart';
 import 'features/auth/presentation/screens/registration_screen.dart';
 import 'features/auth/presentation/screens/approval_pending_screen.dart';
+import 'core/router/global_navigator.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/',
     routes: [
       GoRoute(

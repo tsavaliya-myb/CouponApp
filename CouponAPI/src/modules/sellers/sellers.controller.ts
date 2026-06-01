@@ -162,8 +162,9 @@ export class SellersController {
 
   getSellersByCityCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const userId = req.user!.userId;
       const query = req.query as unknown as GetSellersByCityCategoryDto;
-      const sellers = await sellersService.getSellersByCityCategory(query);
+      const sellers = await sellersService.getSellersByCityCategory(userId, query);
       sendSuccess(res, sellers.data, 200, sellers.meta);
     } catch (err) {
       next(err);

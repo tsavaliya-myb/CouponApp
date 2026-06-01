@@ -18,11 +18,15 @@ export const updateCitySchema = z.object({
 export const createAreaSchema = z.object({
   name: z.string().trim().min(1, 'Area name is required').max(100),
   isActive: z.boolean().optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
 });
 
 export const updateAreaSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
   isActive: z.boolean().optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
 });
 
 // ─── Response Schemas ─────────────────────────────────────────────────────────

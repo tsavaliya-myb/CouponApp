@@ -15,6 +15,8 @@ export interface Area {
   id: string;
   name: string;
   cityId: string;
+  latitude?: number;
+  longitude?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

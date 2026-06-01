@@ -39,7 +39,7 @@ export const useUpdateCity = () => {
 export const useCreateArea = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ cityId, payload }: { cityId: string; payload: { name: string; isActive: boolean } }) => createArea(cityId, payload),
+    mutationFn: ({ cityId, payload }: { cityId: string; payload: { name: string; isActive: boolean; latitude?: number; longitude?: number } }) => createArea(cityId, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["areas", variables.cityId] });
       queryClient.invalidateQueries({ queryKey: ["cities"] });
@@ -50,7 +50,7 @@ export const useCreateArea = () => {
 export const useUpdateArea = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: { name?: string; isActive?: boolean } }) => updateArea(id, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: { name?: string; isActive?: boolean; latitude?: number; longitude?: number } }) => updateArea(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["areas"] });
     }

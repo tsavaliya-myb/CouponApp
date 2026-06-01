@@ -13,96 +13,102 @@ class AppBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 24, right: 24, bottom: 10),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(100),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            height: 72,
-            decoration: BoxDecoration(
-              color: AppColors.dsSurfaceContainerLowest.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(100),
-              border: Border.all(
-                color: AppColors.dsPrimary.withOpacity(0.12),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.dsOnSurface.withOpacity(0.08),
-                  blurRadius: 32,
-                  offset: const Offset(0, 12),
+    return SafeArea(
+      top: false,
+      left: false,
+      right: false,
+      bottom: true,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 24, right: 24, bottom: 10),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(100),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.dsSurfaceContainerLowest.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(
+                  color: AppColors.dsPrimary.withOpacity(0.12),
+                  width: 1.5,
                 ),
-              ],
-            ),
-            child: Row(
-              children: [
-                // Nav items fill available space evenly
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _NavItem(
-                        icon: Icons.home_rounded,
-                        label: 'Home',
-                        isSelected: currentIndex == 0,
-                        onTap: () => onTap(0),
-                      ),
-                      // _NavItem(
-                      //   icon: Icons.confirmation_number_rounded,
-                      //   label: 'Coupons',
-                      //   isSelected: currentIndex == 1,
-                      //   onTap: () => onTap(1),
-                      // ),
-                      _NavItem(
-                        icon: Icons.storefront_rounded,
-                        label: 'Sellers',
-                        isSelected: currentIndex == 2,
-                        onTap: () => onTap(2),
-                      ),
-                      _NavItem(
-                        icon: Icons.account_balance_wallet_rounded,
-                        label: 'Wallet',
-                        isSelected: currentIndex == 3,
-                        onTap: () => onTap(3),
-                      ),
-                    ],
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.dsOnSurface.withOpacity(0.08),
+                    blurRadius: 32,
+                    offset: const Offset(0, 12),
                   ),
-                ),
-                // QR FAB — pinned flush to the right edge of the pill
-                GestureDetector(
-                  onTap: () => onTap(4),
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          AppColors.dsPrimary,
-                          AppColors.dsPrimaryContainer,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.dsPrimary.withOpacity(0.12),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.dsPrimary.withOpacity(0.3),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Nav items fill available space evenly
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _NavItem(
+                          icon: Icons.home_rounded,
+                          label: 'Home',
+                          isSelected: currentIndex == 0,
+                          onTap: () => onTap(0),
+                        ),
+                        // _NavItem(
+                        //   icon: Icons.confirmation_number_rounded,
+                        //   label: 'Coupons',
+                        //   isSelected: currentIndex == 1,
+                        //   onTap: () => onTap(1),
+                        // ),
+                        _NavItem(
+                          icon: Icons.storefront_rounded,
+                          label: 'Sellers',
+                          isSelected: currentIndex == 2,
+                          onTap: () => onTap(2),
+                        ),
+                        _NavItem(
+                          icon: Icons.account_balance_wallet_rounded,
+                          label: 'Wallet',
+                          isSelected: currentIndex == 3,
+                          onTap: () => onTap(3),
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.qr_code_scanner_rounded,
-                        color: Colors.white, size: 28),
                   ),
-                ),
-              ],
+                  // QR FAB — pinned flush to the right edge of the pill
+                  GestureDetector(
+                    onTap: () => onTap(4),
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            AppColors.dsPrimary,
+                            AppColors.dsPrimaryContainer,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.dsPrimary.withOpacity(0.12),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.dsPrimary.withOpacity(0.3),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.qr_code_scanner_rounded,
+                          color: Colors.white, size: 28),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

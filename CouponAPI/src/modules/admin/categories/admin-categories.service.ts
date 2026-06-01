@@ -15,8 +15,12 @@ export class AdminCategoriesService {
       orderBy: { name: 'asc' },
     });
 
-    await RedisCacheService.setCache(REDIS_KEYS.CATEGORIES_ALL, categories, 24 * 60 * 60);
-    return includeInactive ? categories : categories.filter(c => c.isActive);
+    const others = categories.filter(c => c.name.toLowerCase() === 'other');
+    const nonOthers = categories.filter(c => c.name.toLowerCase() !== 'other');
+    const finalCategories = [...nonOthers, ...others];
+
+    await RedisCacheService.setCache(REDIS_KEYS.CATEGORIES_ALL, finalCategories, 24 * 60 * 60);
+    return includeInactive ? finalCategories : finalCategories.filter(c => c.isActive);
   }
 
   async createCategory(dto: CreateCategoryDto): Promise<CategoryResponse> {

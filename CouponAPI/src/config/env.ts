@@ -12,9 +12,9 @@ export const env = cleanEnv(process.env, {
 
   // JWT
   JWT_SECRET:           str({ default: 'change-me-in-production' }),
-  JWT_EXPIRES_IN:       str({ default: '24h' }),
+  JWT_EXPIRES_IN:       str({ default: '30d' }),
   JWT_REFRESH_SECRET:   str({ default: 'change-refresh-secret-in-production' }),
-  JWT_REFRESH_EXPIRES_IN: str({ default: '7d' }),
+  JWT_REFRESH_EXPIRES_IN: str({ default: '60d' }),
 
   // Password hashing
   BCRYPT_ROUNDS:        num({ default: 12 }),

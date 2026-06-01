@@ -21,12 +21,12 @@ export const updateCity = async (id: string, payload: { name?: string; status?: 
   return data;
 };
 
-export const createArea = async (cityId: string, payload: { name: string; isActive: boolean }): Promise<AreaResponse> => {
+export const createArea = async (cityId: string, payload: { name: string; isActive: boolean; latitude?: number; longitude?: number }): Promise<AreaResponse> => {
   const { data } = await apiClient.post<AreaResponse>(`/admin/cities/${cityId}/areas`, payload);
   return data;
 };
 
-export const updateArea = async (id: string, payload: { name?: string; isActive?: boolean }): Promise<AreaResponse> => {
+export const updateArea = async (id: string, payload: { name?: string; isActive?: boolean; latitude?: number; longitude?: number }): Promise<AreaResponse> => {
   const { data } = await apiClient.patch<AreaResponse>(`/admin/areas/${id}`, payload);
   return data;
 };

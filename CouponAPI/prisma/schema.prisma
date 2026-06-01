@@ -87,9 +87,9 @@ model City {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
-  areas         Area[]
-  users         User[]
-  sellers       Seller[]
+  areas          Area[]
+  users          User[]
+  sellers        Seller[]
   bannerAdCities BannerAdCity[]
 
   @@map("cities")
@@ -100,15 +100,32 @@ model Area {
   name      String
   cityId    String
   isActive  Boolean  @default(true)
+  latitude  Float?
+  longitude Float?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  city    City     @relation(fields: [cityId], references: [id])
-  users   User[]
-  sellers Seller[]
+  city          City           @relation(fields: [cityId], references: [id])
+  users         User[]
+  sellers       Seller[]
+  distancesFrom AreaDistance[] @relation("FromArea")
+  distancesTo   AreaDistance[] @relation("ToArea")
 
   @@unique([name, cityId]) // Same area name can exist across different cities
   @@map("areas")
+}
+
+model AreaDistance {
+  id         String @id @default(uuid())
+  fromAreaId String
+  toAreaId   String
+  distanceKm Float
+
+  fromArea Area @relation("FromArea", fields: [fromAreaId], references: [id])
+  toArea   Area @relation("ToArea", fields: [toAreaId], references: [id])
+
+  @@unique([fromAreaId, toAreaId])
+  @@map("area_distances")
 }
 
 // ─────────────────────────────────────────
@@ -116,22 +133,22 @@ model Area {
 // ─────────────────────────────────────────
 
 model User {
-  id        String     @id @default(uuid())
-  phone     String     @unique
-  name      String?
-  email     String?
-  cityId    String?
-  areaId    String?
-  status    UserStatus @default(ACTIVE)
+  id                String     @id @default(uuid())
+  phone             String     @unique
+  name              String?
+  email             String?
+  cityId            String?
+  areaId            String?
+  status            UserStatus @default(ACTIVE)
   // OneSignal player ID for push notifications
   onesignalPlayerId String?
   // User's cached coin balance (1 coin = ₹1)
   coinBalance       Int        @default(0)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
-  city            City?                @relation(fields: [cityId], references: [id])
-  area            Area?                @relation(fields: [areaId], references: [id])
+  city            City?               @relation(fields: [cityId], references: [id])
+  area            Area?               @relation(fields: [areaId], references: [id])
   subscription    Subscription?
   wallet          WalletTransaction[]
   redemptions     Redemption[]
@@ -141,22 +158,22 @@ model User {
 }
 
 model Subscription {
-  id        String             @id @default(uuid())
-  userId    String             @unique
-  startDate DateTime
-  endDate   DateTime
-  status    SubscriptionStatus @default(ACTIVE)
+  id                  String             @id @default(uuid())
+  userId              String             @unique
+  startDate           DateTime
+  endDate             DateTime
+  status              SubscriptionStatus @default(ACTIVE)
   // PayU references
-  payuPaymentId       String?   // mihpayid from latest debit
-  authPayUID          String?   // mandate ref — required for si_transaction recurring debits
+  payuPaymentId       String? // mihpayid from latest debit
+  authPayUID          String? // mandate ref — required for si_transaction recurring debits
   mandateStartDate    DateTime?
   mandateEndDate      DateTime?
   // RBI pre-debit notification compliance
   preDebitNotifiedAt  DateTime?
   lastRenewalAt       DateTime?
-  renewalFailureCount Int       @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  renewalFailureCount Int                @default(0)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   user       User             @relation(fields: [userId], references: [id])
   couponBook CouponBook?
@@ -171,10 +188,10 @@ model PaymentAttempt {
   subscriptionId String?
   txnid          String               @unique
   amount         Decimal              @db.Decimal(10, 2)
-  kind           String               // "MANDATE" | "RENEWAL"
+  kind           String // "MANDATE" | "RENEWAL"
   status         PaymentAttemptStatus @default(PENDING)
-  payuPaymentId  String?              // mihpayid
-  authPayUID     String?              // mandate ref
+  payuPaymentId  String? // mihpayid
+  authPayUID     String? // mandate ref
   errorCode      String?
   errorMessage   String?
   rawWebhook     Json?
@@ -196,9 +213,9 @@ model WalletTransaction {
   id           String                @id @default(uuid())
   userId       String
   type         WalletTransactionType
-  amount       Int                   // in coins (1 coin = ₹1)
-  redemptionId String?               // populated when type = USED
-  note         String?               // e.g. "Welcome bonus", "Renewal reward"
+  amount       Int // in coins (1 coin = ₹1)
+  redemptionId String? // populated when type = USED
+  note         String? // e.g. "Welcome bonus", "Renewal reward"
   createdAt    DateTime              @default(now())
 
   user       User        @relation(fields: [userId], references: [id])
@@ -230,27 +247,27 @@ model Category {
 // ─────────────────────────────────────────
 
 model Seller {
-  id             String         @id @default(uuid())
-  businessName   String
-  categoryId     String
-  cityId         String
-  areaId         String
-  address        String?
-  phone          String         @unique
-  email          String?
-  upiId          String?
+  id                String       @id @default(uuid())
+  businessName      String
+  categoryId        String
+  cityId            String
+  areaId            String
+  address           String?
+  phone             String       @unique
+  email             String?
+  upiId             String?
   // Location for distance-based sorting
-  latitude       Float?
-  longitude      Float?
+  latitude          Float?
+  longitude         Float?
   // Operating hours (free-form, e.g. "Mon–Sat, 10am–9pm")
-  operatingHours String?
+  operatingHours    String?
   // Commission default for all coupons of this seller; can be overridden per coupon
-  commissionPct  Float          @default(5)
-  status         SellerStatus   @default(PENDING)
+  commissionPct     Float        @default(5)
+  status            SellerStatus @default(PENDING)
   // OneSignal player ID for push notifications
   onesignalPlayerId String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   category    Category     @relation(fields: [categoryId], references: [id])
   city        City         @relation(fields: [cityId], references: [id])
@@ -274,7 +291,7 @@ model SellerMedia {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  seller    Seller   @relation(fields: [sellerId], references: [id])
+  seller Seller @relation(fields: [sellerId], references: [id])
 
   @@map("seller_media")
 }
@@ -368,20 +385,20 @@ model Redemption {
 // ─────────────────────────────────────────
 
 model Settlement {
-  id    String   @id @default(uuid())
-  sellerId  String
-  weekStart DateTime
-  weekEnd   DateTime
+  id                    String           @id @default(uuid())
+  sellerId              String
+  weekStart             DateTime
+  weekEnd               DateTime
   // Commission owed BY seller TO admin
-  commissionTotal        Float            @default(0)
-  commissionStatus       SettlementStatus @default(PENDING)
-  commissionPaidAt       DateTime?
+  commissionTotal       Float            @default(0)
+  commissionStatus      SettlementStatus @default(PENDING)
+  commissionPaidAt      DateTime?
   // Coin compensation owed BY admin TO seller
-  coinCompensationTotal  Float            @default(0)
-  coinCompStatus         SettlementStatus @default(PENDING)
-  coinCompPaidAt         DateTime?
-  createdAt              DateTime         @default(now())
-  updatedAt              DateTime         @updatedAt
+  coinCompensationTotal Float            @default(0)
+  coinCompStatus        SettlementStatus @default(PENDING)
+  coinCompPaidAt        DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
 
   seller          Seller           @relation(fields: [sellerId], references: [id])
   settlementLines SettlementLine[]
@@ -391,13 +408,13 @@ model Settlement {
 }
 
 model SettlementLine {
-  id           String   @id @default(uuid())
-  settlementId String
-  redemptionId String   @unique
-  billAmount   Float
+  id            String   @id @default(uuid())
+  settlementId  String
+  redemptionId  String   @unique
+  billAmount    Float
   commissionAmt Float
-  coinCompAmt  Float    @default(0)
-  createdAt    DateTime @default(now())
+  coinCompAmt   Float    @default(0)
+  createdAt     DateTime @default(now())
 
   settlement Settlement @relation(fields: [settlementId], references: [id])
   redemption Redemption @relation(fields: [redemptionId], references: [id])
@@ -410,15 +427,15 @@ model SettlementLine {
 // ─────────────────────────────────────────
 
 model NotificationLog {
-  id         String                 @id @default(uuid())
-  type       String                 // e.g. "expiry_reminder_7d", "redemption_confirmation"
-  targetType NotificationTargetType
-  targetId   String?                // userId or cityId; null for GLOBAL
-  title      String
-  body       String
+  id          String                 @id @default(uuid())
+  type        String // e.g. "expiry_reminder_7d", "redemption_confirmation"
+  targetType  NotificationTargetType
+  targetId    String? // userId or cityId; null for GLOBAL
+  title       String
+  body        String
   // OneSignal notification id for delivery tracking
   onesignalId String?
-  sentAt     DateTime               @default(now())
+  sentAt      DateTime               @default(now())
 
   @@map("notification_logs")
 }
@@ -428,30 +445,30 @@ model NotificationLog {
 // ─────────────────────────────────────────
 
 enum BannerAdStatus {
-  ACTIVE     // Showing in the slider right now
-  PAUSED     // Admin manually paused
-  COMPLETED  // endsAt has passed
+  ACTIVE // Showing in the slider right now
+  PAUSED // Admin manually paused
+  COMPLETED // endsAt has passed
 }
 
 model BannerAd {
-  id        String        @id @default(uuid())
+  id          String         @id @default(uuid())
   // Optional: link ad to a specific seller (for reporting / display)
-  sellerId  String?
-  title     String        // Internal label shown in admin panel
+  sellerId    String?
+  title       String // Internal label shown in admin panel
   // Media — exactly one of imageUrl or videoUrl must be set
-  imageUrl  String?
-  videoUrl  String?
+  imageUrl    String?
+  videoUrl    String?
   // Deep-link destination when customer taps the banner (optional)
-  actionUrl String?
-  status    BannerAdStatus @default(ACTIVE)
+  actionUrl   String?
+  status      BannerAdStatus @default(ACTIVE)
   // Campaign window — set by admin at creation
-  startsAt  DateTime
-  endsAt    DateTime
+  startsAt    DateTime
+  endsAt      DateTime
   // Impression & click tracking (incremented atomically)
-  impressions Int         @default(0)
-  clicks      Int         @default(0)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  impressions Int            @default(0)
+  clicks      Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   seller Seller?        @relation(fields: [sellerId], references: [id])
   cities BannerAdCity[] // multi-city targeting via join table
@@ -475,7 +492,6 @@ model BannerAdCity {
   @@map("banner_ad_cities")
 }
 
-
 // ─────────────────────────────────────────
 // ADMIN & APP SETTINGS
 // ─────────────────────────────────────────
@@ -494,7 +510,7 @@ model Admin {
 model AppSetting {
   id        String   @id @default(uuid())
   key       String   @unique
-  value     String   // stored as string; parsed by the service layer
+  value     String // stored as string; parsed by the service layer
   updatedAt DateTime @updatedAt
 
   @@map("app_settings")

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../providers/auth_provider.dart';
 
-class ApprovalPendingScreen extends StatelessWidget {
+class ApprovalPendingScreen extends ConsumerWidget {
   final String status;
 
   const ApprovalPendingScreen({
@@ -12,7 +14,7 @@ class ApprovalPendingScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -172,9 +174,11 @@ class ApprovalPendingScreen extends StatelessWidget {
               SizedBox(
                 height: 56,
                 child: OutlinedButton(
-                  onPressed: () {
-                    // TODO: Clear auth tokens from secure storage when logout usecase is available
-                    context.go('/login');
+                  onPressed: () async {
+                    await ref.read(authNotifierProvider.notifier).logout();
+                    if (context.mounted) {
+                      context.go('/login');
+                    }
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.error,

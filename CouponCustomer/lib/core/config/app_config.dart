@@ -54,13 +54,13 @@ class AppConfig {
   /// Development flavor — points to local backend.
   /// Run with: flutter run (no extra flags needed)
   factory AppConfig.dev() => const AppConfig(
-        appName: 'CouponApp (Dev)',
-        baseUrl: 'https://couponapp-r1vv.onrender.com/api/v1',
-        payuMerchantKey: 'oG8Mdd', // PayU sandbox merchant key
-        qrSecretKey: 'dev_qr_secret_key_32chars_padded!',
-        appVersion: '1.0.0-dev',
-        enableAnalytics: false,
-        enablePerformance: false,
-        oneSignalAppId: 'test-onesignal-app-id-for-dev-1234567890ab',
+        appName: 'CouponApp',
+        baseUrl: String.fromEnvironment('BASE_URL'),
+        payuMerchantKey: String.fromEnvironment('PAYU_KEY'),
+        qrSecretKey: String.fromEnvironment('QR_SECRET_KEY'),
+        appVersion: '1.0.0',
+        enableAnalytics: true,
+        enablePerformance: true,
+        oneSignalAppId: String.fromEnvironment('ONE_SIGNAL_APP_ID'),
       );
 }

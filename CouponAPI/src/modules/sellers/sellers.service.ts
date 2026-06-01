@@ -330,7 +330,7 @@ export class SellersService {
   }
 
   // ─── Customer View: Get Sellers by City and Category ──────────────────────────
-  async getSellersByCityCategory(dto: GetSellersByCityCategoryDto): Promise<PaginatedDistanceSellersResponse> {
+  async getSellersByCityCategory(userId: string, dto: GetSellersByCityCategoryDto): Promise<PaginatedDistanceSellersResponse> {
     const { cityId, categoryId, page, limit } = dto;
 
     const whereClause: any = {
@@ -342,9 +342,29 @@ export class SellersService {
       whereClause.categoryId = categoryId;
     }
 
+    // 1. Fetch user's areaId
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { areaId: true },
+    });
+    const userAreaId = user?.areaId;
+
+    let orderedAreaIds: string[] = [];
+    if (userAreaId) {
+      // 2. Fetch ordered list of areas from AreaDistance
+      const areaDistances = await prisma.areaDistance.findMany({
+        where: { fromAreaId: userAreaId },
+        orderBy: { distanceKm: 'asc' },
+        select: { toAreaId: true }
+      });
+      // Ensure the user's area is at the very top (index 0) even if AreaDistance is somehow missing it
+      orderedAreaIds = [userAreaId, ...areaDistances.map((ad: any) => ad.toAreaId).filter((id: string) => id !== userAreaId)];
+    }
+
     const total = await prisma.seller.count({ where: whereClause });
     const skip = (page - 1) * limit;
 
+    // 3. Fetch all matching active sellers
     const sellers = await prisma.seller.findMany({
       where: whereClause,
       include: {
@@ -352,12 +372,33 @@ export class SellersService {
         area: { select: { name: true } },
         media: { select: { logoUrl: true, photoUrl1: true, photoUrl2: true, videoUrl: true } },
       },
-      skip,
-      take: limit,
-      orderBy: { businessName: 'asc' },
     });
 
-    const paginatedData = (sellers as any[]).map(seller => ({
+    // 4. Sort the sellers in JavaScript
+    sellers.sort((a, b) => {
+      if (!userAreaId || orderedAreaIds.length === 0) {
+        // Fallback to alphabetical sorting if no userAreaId or no distances are calculated
+        return a.businessName.localeCompare(b.businessName);
+      }
+
+      const indexA = orderedAreaIds.indexOf(a.areaId);
+      const indexB = orderedAreaIds.indexOf(b.areaId);
+
+      // Fallback for areas not in the matrix (put them at the end)
+      const valA = indexA === -1 ? 9999 : indexA;
+      const valB = indexB === -1 ? 9999 : indexB;
+
+      if (valA === valB) {
+        // Same area (or both unknown area), fallback to alphabetical
+        return a.businessName.localeCompare(b.businessName);
+      }
+      return valA - valB;
+    });
+
+    // 5. Apply pagination
+    const paginatedSellers = sellers.slice(skip, skip + limit);
+
+    const paginatedData = (paginatedSellers as any[]).map(seller => ({
       id: seller.id,
       businessName: seller.businessName,
       category: seller.category,
@@ -366,7 +407,7 @@ export class SellersService {
       lng: seller.longitude ?? null,
       logoUrl: seller.media?.logoUrl ?? null,
       media: seller.media ?? null,
-      distanceKm: null,
+      distanceKm: null, // We could populate distance if we wanted, but not requested
     }));
 
     return {

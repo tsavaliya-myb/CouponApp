@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../../../../services/location_service.dart';
 import '../providers/profile_provider.dart';
 
@@ -482,6 +484,23 @@ class _AccountSettingsScreenState extends ConsumerState<AccountSettingsScreen> {
                                       ),
                               ),
                             ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // ── Subtle Log Out Button ────────────────────────────
+                        Center(
+                          child: TextButton(
+                            onPressed: () async {
+                              await ref.read(authProvider.notifier).logout();
+                              ref.invalidate(profileProvider);
+                              if (context.mounted) context.go('/login');
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.dsOnSurface.withOpacity(0.4),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            ),
+                            child: const Text('Log Out'),
                           ),
                         ),
                         const SizedBox(height: 60),

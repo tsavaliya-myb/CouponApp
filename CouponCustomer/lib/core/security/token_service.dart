@@ -42,12 +42,11 @@ class TokenService {
 
     final response = await plainDio.post(
       '${AppConfig.current.baseUrl}/auth/refresh',
-      data: {'refresh_token': refreshToken},
+      data: {'refreshToken': refreshToken},
     );
 
-    final newAccess = response.data['access_token'] as String;
-    final newRefresh = response.data['refresh_token'] as String;
-    await saveTokens(access: newAccess, refresh: newRefresh);
+    final newAccess = response.data['data']['accessToken'] as String;
+    await saveTokens(access: newAccess, refresh: refreshToken);
     return newAccess;
   }
 }

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
-import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/widgets/app_header.dart';
 import '../providers/profile_provider.dart';
 
@@ -152,44 +151,6 @@ class ProfileScreen extends ConsumerWidget {
                           isLast: true,
                         ),
                       ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // ── Log Out Button ───────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: () async {
-                        await ref.read(authProvider.notifier).logout();
-                        ref.invalidate(profileProvider);
-                        ref.invalidate(userSettingsProvider);
-                        if (context.mounted) context.go('/login');
-                      },
-                      icon: const Icon(
-                        Icons.logout_rounded,
-                        color: AppColors.dsTertiaryPink,
-                        size: 18,
-                      ),
-                      label: Text(
-                        'Log Out',
-                        style: AppTextStyles.dsButton.copyWith(
-                          color: AppColors.dsTertiaryPink,
-                          fontSize: 14,
-                        ),
-                      ),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        backgroundColor:
-                            AppColors.dsTertiaryPink.withOpacity(0.1),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                      ),
                     ),
                   ),
                 ),

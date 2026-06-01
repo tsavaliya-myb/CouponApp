@@ -57,7 +57,8 @@ class SupportScreen extends StatelessWidget {
                         color: AppColors.dsPrimary.withOpacity(0.12),
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: AppColors.dsPrimary.withOpacity(0.3), width: 2.5),
+                            color: AppColors.dsPrimary.withOpacity(0.3),
+                            width: 2.5),
                       ),
                       child: const Center(
                         child: Icon(Icons.support_agent_rounded,
@@ -84,12 +85,15 @@ class SupportScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     'If you have any issues or questions about your subscription, coupon redemptions, or account, please contact our support team.',
-                    style: AppTextStyles.dsBodyMd.copyWith(color: AppColors.dsOnSurface.withOpacity(0.7)),
+                    style: AppTextStyles.dsBodyMd.copyWith(
+                        color: AppColors.dsOnSurface.withOpacity(0.7)),
                   ),
                   const SizedBox(height: 24),
-                  _ContactTile(icon: Icons.email_outlined, title: 'support@couponapp.in'),
-                  const SizedBox(height: 16),
-                  _ContactTile(icon: Icons.phone_outlined, title: '+91 1800 123 4567'),
+                  _ContactTile(
+                      icon: Icons.email_outlined,
+                      title: 'couponcode108@gmail.com'),
+                  // const SizedBox(height: 16),
+                  // _ContactTile(icon: Icons.phone_outlined, title: '+91 1800 123 4567'),
                 ],
               ),
             ),
@@ -125,7 +129,9 @@ class _ContactTile extends StatelessWidget {
         children: [
           Icon(icon, color: AppColors.dsPrimary),
           const SizedBox(width: 16),
-          Text(title, style: AppTextStyles.dsBodyMd.copyWith(fontWeight: FontWeight.w600)),
+          Text(title,
+              style:
+                  AppTextStyles.dsBodyMd.copyWith(fontWeight: FontWeight.w600)),
         ],
       ),
     );

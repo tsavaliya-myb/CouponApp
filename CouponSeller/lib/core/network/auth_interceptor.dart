@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
+import 'package:go_router/go_router.dart';
 import '../security/token_service.dart';
+import '../router/global_navigator.dart';
 
 @singleton
 class AuthInterceptor extends Interceptor {
@@ -31,7 +33,9 @@ class AuthInterceptor extends Interceptor {
         return;
       } catch (_) {
         await _tokenService.clearTokens();
-        // TODO: AppRouter.navigateToLogin();
+        if (rootNavigatorKey.currentContext != null) {
+          rootNavigatorKey.currentContext!.go('/login');
+        }
       }
     }
     handler.next(err);

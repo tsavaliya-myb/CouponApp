@@ -207,8 +207,6 @@ class _ProfileContent extends ConsumerWidget {
 
           // Settings
           _SettingsItem(icon: Icons.security_outlined, title: 'Privacy & Security'),
-          _SettingsItem(icon: Icons.description_outlined, title: 'Compliance Docs'),
-          _SettingsItem(icon: Icons.help_outline_rounded, title: 'Help & Training'),
           const SizedBox(height: 48),
 
           // Logout

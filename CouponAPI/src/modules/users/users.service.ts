@@ -96,7 +96,7 @@ export class UsersService {
     });
 
     if (!user) throw NotFoundError('User profile not found');
-    
+
     return {
       ...user,
       subscriptionStatus:
@@ -115,14 +115,23 @@ export class UsersService {
       if (emailTaken) throw ConflictError('Email is already in use by another account');
     }
 
-    return prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: dto,
       include: {
         city: { select: { id: true, name: true } },
         area: { select: { id: true, name: true } },
+        subscription: { select: { status: true, endDate: true } },
       },
     });
+
+    return {
+      ...updatedUser,
+      subscriptionStatus:
+        updatedUser.subscription?.status === 'ACTIVE' && updatedUser.subscription.endDate > new Date()
+          ? 'ACTIVE'
+          : 'NONE',
+    };
   }
 
   // ─── App Settings ─────────────────────────────────────────────────────────────
@@ -141,9 +150,9 @@ export class UsersService {
     const map = Object.fromEntries(settings.map((s) => [s.key, s.value]));
 
     return {
-      subscriptionPrice:      parseFloat(map['subscription_price']       ?? '1000'),
-      bookValidityDays:       parseInt(map['book_validity_days']          ?? '30', 10),
-      maxCoinsPerTransaction: parseInt(map['MAX_COINS_PER_TRANSACTION']   ?? '0',  10),
+      subscriptionPrice: parseFloat(map['subscription_price'] ?? '1000'),
+      bookValidityDays: parseInt(map['book_validity_days'] ?? '30', 10),
+      maxCoinsPerTransaction: parseInt(map['MAX_COINS_PER_TRANSACTION'] ?? '0', 10),
       totalActiveCoupons,
     };
   }
