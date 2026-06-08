@@ -156,4 +156,82 @@ export class UsersService {
       totalActiveCoupons,
     };
   }
+
+  // ─── Leaderboard ─────────────────────────────────────────────────────────────
+
+  async getLeaderboard(type: string, timeFrame: string) {
+    let startDate: Date | undefined;
+    const now = new Date();
+
+    if (timeFrame === 'week') {
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+      startDate = new Date(now.setDate(diff));
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeFrame === 'month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    if (type === 'savers') {
+      const topSavers = await prisma.redemption.groupBy({
+        by: ['userId'],
+        _sum: { discountAmount: true },
+        where: {
+          redeemedAt: startDate ? { gte: startDate } : undefined,
+        },
+        orderBy: {
+          _sum: { discountAmount: 'desc' },
+        },
+        take: 100,
+      });
+
+      const userIds = topSavers.map(s => s.userId);
+      const users = await prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, name: true }
+      });
+
+      return topSavers.map((s, index) => {
+        const user = users.find(u => u.id === s.userId);
+        return {
+          id: s.userId,
+          name: user?.name || 'Unknown',
+          avatarUrl: null,
+          metricValue: s._sum.discountAmount || 0,
+          rank: index + 1,
+        };
+      });
+    } else if (type === 'spenders') {
+      const topSpenders = await prisma.redemption.groupBy({
+        by: ['userId'],
+        _sum: { finalAmount: true },
+        where: {
+          redeemedAt: startDate ? { gte: startDate } : undefined,
+        },
+        orderBy: {
+          _sum: { finalAmount: 'desc' },
+        },
+        take: 100,
+      });
+
+      const userIds = topSpenders.map(s => s.userId);
+      const users = await prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, name: true }
+      });
+
+      return topSpenders.map((s, index) => {
+        const user = users.find(u => u.id === s.userId);
+        return {
+          id: s.userId,
+          name: user?.name || 'Unknown',
+          avatarUrl: null,
+          metricValue: s._sum.finalAmount || 0,
+          rank: index + 1,
+        };
+      });
+    }
+
+    throw BadRequestError('Invalid leaderboard type');
+  }
 }

@@ -2,6 +2,7 @@ import '../../../../core/network/api_client.dart';
 import '../models/user_model.dart';
 import '../models/area_model.dart';
 import '../models/user_settings_model.dart';
+import '../models/leaderboard_user_model.dart';
 
 abstract class ProfileRemoteDataSource {
   Future<UserModel> getUser();
@@ -9,6 +10,10 @@ abstract class ProfileRemoteDataSource {
   Future<List<AreaModel>> getAreas(String cityId);
   Future<List<CityModel>> getCities();
   Future<UserSettingsModel> getUserSettings();
+  Future<List<LeaderboardUserModel>> getLeaderboard({
+    required String type,
+    required String timeFrame,
+  });
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -46,5 +51,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   Future<UserSettingsModel> getUserSettings() async {
     final response = await _apiClient.client.get('/users/settings');
     return UserSettingsModel.fromJson(response.data['data']);
+  }
+
+  @override
+  Future<List<LeaderboardUserModel>> getLeaderboard({
+    required String type,
+    required String timeFrame,
+  }) async {
+    final response = await _apiClient.client.get(
+      '/users/leaderboard',
+      queryParameters: {'type': type, 'time': timeFrame},
+    );
+    final list = response.data['data'] as List;
+    return list.map((e) => LeaderboardUserModel.fromJson(e)).toList();
   }
 }

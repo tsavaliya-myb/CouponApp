@@ -61,7 +61,7 @@ final filteredCouponsProvider =
 
   return allAsync.whenData((all) {
     if (category == null) return all;
-    return all.where((c) => c.category == category.slug).toList();
+    return all.where((c) => c.category.slug == category.slug).toList();
   });
 });
 
@@ -101,7 +101,7 @@ List<NearbySellerEntity> _filterAndMapDistance(List<NearbySellerEntity> all,
     CategoryItem? category, AsyncValue<Position?> locationAsync) {
   var filtered = all;
   if (category != null) {
-    filtered = filtered.where((s) => s.category == category.slug).toList();
+    filtered = filtered.where((s) => s.category.slug == category.slug).toList();
   }
 
   if (locationAsync is AsyncData && locationAsync.value != null) {

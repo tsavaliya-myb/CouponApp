@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/widgets/app_header.dart';
 import '../providers/profile_provider.dart';
+import '../widgets/leaderboard_section.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -159,6 +160,10 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 32),
+                
+                const LeaderboardSection(),
+                
                 const SizedBox(
                     height: 140), // Buffer for the glassmorphic bottom nav
               ],

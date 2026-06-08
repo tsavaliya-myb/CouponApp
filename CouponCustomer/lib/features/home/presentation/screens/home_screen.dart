@@ -431,7 +431,7 @@ class _CategoryTabs extends ConsumerWidget {
               final slug = isAll ? 'all' : item!.slug;
               final icon =
                   isAll ? Icons.grid_view_rounded : CategoryUtils.getIcon(item);
-              final cardColor = isAll ? const Color(0xFF0F0E0E) : CategoryUtils.getBaseColor(item);
+              final cardColor = isAll ? const Color(0xFFEED5BE) : CategoryUtils.getBaseColor(item);
               final textColor = _textColorFor(cardColor);
               final subtitle = isAll ? 'Browse everything' : (item?.subtitle ?? 'Explore deals');
               final isLight = textColor != Colors.white;
@@ -477,21 +477,27 @@ class _CategoryTabs extends ConsumerWidget {
                         ),
                       ),
                       // Text content — left aligned, big
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16, right: 80, top: 16, bottom: 14),
+                      Positioned(
+                        left: 16,
+                        right: 44, // Reduced to allow more text width
+                        top: 16,
+                        bottom: 14,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            Text(
-                              label,
-                              style: AppTextStyles.dsTitleLg.copyWith(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                color: textColor,
-                                height: 1.1,
-                                letterSpacing: -0.3,
+                            Flexible(
+                              child: Text(
+                                label,
+                                style: AppTextStyles.dsTitleLg.copyWith(
+                                  fontSize: 18, // Slightly reduced to fit longer words better
+                                  fontWeight: FontWeight.w800,
+                                  color: textColor,
+                                  height: 1.1,
+                                  letterSpacing: -0.3,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -529,55 +535,58 @@ class _CategoryTabs extends ConsumerWidget {
         ? Colors.black.withValues(alpha: 0.1)
         : Colors.white.withValues(alpha: 0.18);
 
-    switch (slug) {
-      // Circles — All
-      case 'all':
+    final patternIndex = slug == 'all' ? 0 : slug.hashCode.abs() % 7;
+
+    switch (patternIndex) {
+      case 0:
+        // Circles
         return [
           _circle(c, 18, top: 8, left: 12),
           _circle(c, 10, top: 28, left: 36),
           _circle(c, 14, top: 4, left: 55),
           _circle(c, 8, top: 20, left: 76),
         ];
-      // Triangles — Food
-      case 'food':
+      case 1:
+        // Triangles
         return [
           _triangle(c, 12, top: 6, left: 10),
           _triangle(c, 8, top: 22, left: 30),
           _triangle(c, 14, top: 4, left: 52),
           _triangle(c, 10, top: 18, left: 72),
         ];
-      // Dots grid — Cafe
-      case 'cafe':
+      case 2:
+        // Dots grid
         return [
           for (var r = 0; r < 3; r++)
             for (var col = 0; col < 4; col++)
               _circle(c, 5, top: 8.0 + r * 12, left: 8.0 + col * 14),
         ];
-      // Horizontal lines — Salon
-      case 'salon':
+      case 3:
+        // Horizontal lines
         return [
           _line(c, w: 28, h: 3, top: 10, left: 8),
           _line(c, w: 18, h: 3, top: 20, left: 16),
           _line(c, w: 24, h: 3, top: 30, left: 10),
         ];
-      // Plus / cross shapes — Spa
-      case 'spa':
+      case 4:
+        // Plus / cross shapes
         return [
           _plus(c, 12, top: 6, left: 10),
           _plus(c, 8, top: 24, left: 34),
           _plus(c, 14, top: 4, left: 56),
           _plus(c, 10, top: 20, left: 78),
         ];
-      // Stars (5-pt via rotated squares) — Theater
-      case 'theater':
+      case 5:
+        // Stars (5-pt via rotated squares)
         return [
           _star(c, 14, top: 6, left: 10),
           _star(c, 10, top: 22, left: 32),
           _star(c, 12, top: 4, left: 54),
           _star(c, 8, top: 20, left: 74),
         ];
-      // Diamonds — default
+      case 6:
       default:
+        // Diamonds
         return [
           _diamond(c, 10, top: 8, left: 10),
           _diamond(c, 7, top: 22, left: 30),

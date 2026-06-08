@@ -24,6 +24,11 @@ router.get(
   controller.getProfile
 );
 
+router.get(
+  '/leaderboard',
+  controller.getLeaderboard
+);
+
 router.patch(
   '/me',
   validate(updateUserSchema),

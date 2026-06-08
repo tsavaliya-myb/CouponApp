@@ -42,4 +42,15 @@ export class UsersController {
       next(err);
     }
   };
+
+  getLeaderboard = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const type = req.query.type as string || 'savers';
+      const timeFrame = req.query.timeFrame as string || 'month';
+      const leaderboard = await usersService.getLeaderboard(type, timeFrame);
+      sendSuccess(res, leaderboard);
+    } catch (err) {
+      next(err);
+    }
+  };
 }
