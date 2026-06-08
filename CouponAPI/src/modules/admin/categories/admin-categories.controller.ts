@@ -33,4 +33,13 @@ export class AdminCategoriesController {
       next(err);
     }
   };
+
+  reorderCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      await service.reorderCategories(req.body.orderedIds);
+      sendSuccess(res, { message: 'Categories reordered successfully' });
+    } catch (err) {
+      next(err);
+    }
+  };
 }

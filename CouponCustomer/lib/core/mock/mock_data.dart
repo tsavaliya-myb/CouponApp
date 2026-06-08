@@ -6,6 +6,13 @@
 import 'dart:math';
 import 'package:couponcode/features/home/domain/entities/home_coupon_entity.dart';
 import 'package:couponcode/features/home/domain/entities/nearby_seller_entity.dart';
+import 'package:couponcode/core/models/category_item.dart';
+
+const _catFood = CategoryItem(id: '1', name: 'Food', slug: 'food', iconName: 'restaurant_rounded', subtitle: 'Restaurants & more', color: '#B35227', isActive: true);
+const _catCafe = CategoryItem(id: '2', name: 'Cafe', slug: 'cafe', iconName: 'coffee_rounded', subtitle: 'Coffee & drinks', color: '#2F6120', isActive: true);
+const _catSalon = CategoryItem(id: '3', name: 'Salon', slug: 'salon', iconName: 'content_cut_rounded', subtitle: 'Hair & beauty', color: '#70586F', isActive: true);
+const _catSpa = CategoryItem(id: '4', name: 'Spa', slug: 'spa', iconName: 'spa_rounded', subtitle: 'Relax & unwind', color: '#179156', isActive: true);
+const _catTheater = CategoryItem(id: '5', name: 'Theater', slug: 'theater', iconName: 'movie_rounded', subtitle: 'Movies & shows', color: '#82A346', isActive: true);
 
 // ─── Mock Coupons (6 items) ───────────────────────────────────────────────────
 
@@ -15,7 +22,7 @@ final List<HomeCouponEntity> mockCoupons = [
     sellerId: 'mock-s-1',
     sellerName: 'Spice Garden',
     sellerArea: 'Adajan',
-    category: 'FOOD',
+    category: _catFood,
     discountPercent: 20,
     couponType: 'FLAT',
     minSpend: 299,
@@ -32,7 +39,7 @@ final List<HomeCouponEntity> mockCoupons = [
     sellerId: 'mock-s-2',
     sellerName: 'Brew & Co.',
     sellerArea: 'Vesu',
-    category: 'CAFE',
+    category: _catCafe,
     discountPercent: 15,
     couponType: 'PERCENT',
     minSpend: 150,
@@ -49,7 +56,7 @@ final List<HomeCouponEntity> mockCoupons = [
     sellerId: 'mock-s-3',
     sellerName: 'Style Studio',
     sellerArea: 'Pal',
-    category: 'SALON',
+    category: _catSalon,
     discountPercent: 30,
     couponType: 'FLAT',
     minSpend: 499,
@@ -66,7 +73,7 @@ final List<HomeCouponEntity> mockCoupons = [
     sellerId: 'mock-s-4',
     sellerName: 'Aura Wellness',
     sellerArea: 'Citylight',
-    category: 'SPA',
+    category: _catSpa,
     discountPercent: 25,
     couponType: 'PERCENT',
     minSpend: 699,
@@ -83,7 +90,7 @@ final List<HomeCouponEntity> mockCoupons = [
     sellerId: 'mock-s-5',
     sellerName: 'Cinemax Prime',
     sellerArea: 'Ghod Dod Rd',
-    category: 'THEATER',
+    category: _catTheater,
     discountPercent: 10,
     couponType: 'FLAT',
     minSpend: 200,
@@ -100,7 +107,7 @@ final List<HomeCouponEntity> mockCoupons = [
     sellerId: 'mock-s-6',
     sellerName: 'The Grind House',
     sellerArea: 'Piplod',
-    category: 'CAFE',
+    category: _catCafe,
     discountPercent: 20,
     couponType: 'FLAT',
     minSpend: 199,
@@ -120,7 +127,7 @@ final List<NearbySellerEntity> mockSellers = [
   const NearbySellerEntity(
     id: 'mock-s-1',
     name: 'Spice Garden',
-    category: 'FOOD',
+    category: _catFood,
     area: 'Adajan',
     lat: 21.1702,
     lng: 72.8311,
@@ -129,7 +136,7 @@ final List<NearbySellerEntity> mockSellers = [
   const NearbySellerEntity(
     id: 'mock-s-2',
     name: 'Brew & Co.',
-    category: 'CAFE',
+    category: _catCafe,
     area: 'Vesu',
     lat: 21.1562,
     lng: 72.7928,
@@ -138,7 +145,7 @@ final List<NearbySellerEntity> mockSellers = [
   const NearbySellerEntity(
     id: 'mock-s-3',
     name: 'Style Studio',
-    category: 'SALON',
+    category: _catSalon,
     area: 'Pal',
     lat: 21.1690,
     lng: 72.7700,
@@ -147,7 +154,7 @@ final List<NearbySellerEntity> mockSellers = [
   const NearbySellerEntity(
     id: 'mock-s-4',
     name: 'Aura Wellness',
-    category: 'SPA',
+    category: _catSpa,
     area: 'Citylight',
     lat: 21.1490,
     lng: 72.7920,
@@ -156,7 +163,7 @@ final List<NearbySellerEntity> mockSellers = [
   const NearbySellerEntity(
     id: 'mock-s-5',
     name: 'Cinemax Prime',
-    category: 'THEATER',
+    category: _catTheater,
     area: 'Ghod Dod Rd',
     lat: 21.1760,
     lng: 72.8145,
@@ -165,7 +172,7 @@ final List<NearbySellerEntity> mockSellers = [
   const NearbySellerEntity(
     id: 'mock-s-6',
     name: 'The Grind House',
-    category: 'CAFE',
+    category: _catCafe,
     area: 'Piplod',
     lat: 21.1632,
     lng: 72.8053,

@@ -12,7 +12,7 @@ export class AdminCategoriesService {
     if (cached && includeInactive) return cached;
 
     const categories = await prisma.category.findMany({
-      orderBy: { name: 'asc' },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     });
 
     const others = categories.filter(c => c.name.toLowerCase() === 'other');
@@ -23,16 +23,30 @@ export class AdminCategoriesService {
     return includeInactive ? finalCategories : finalCategories.filter(c => c.isActive);
   }
 
+  async reorderCategories(orderedIds: string[]): Promise<void> {
+    const transactions = orderedIds.map((id, index) => 
+      prisma.category.update({
+        where: { id },
+        data: { sortOrder: index + 1 }
+      })
+    );
+    await prisma.$transaction(transactions);
+    await RedisCacheService.delCache(REDIS_KEYS.CATEGORIES_ALL);
+  }
+
   async createCategory(dto: CreateCategoryDto): Promise<CategoryResponse> {
     const existingName = await prisma.category.findFirst({
       where: { name: { equals: dto.name, mode: 'insensitive' } },
     });
     if (existingName) throw ConflictError('Category with this name already exists');
 
-    const existingSlug = await prisma.category.findUnique({ where: { slug: dto.slug } });
-    if (existingSlug) throw ConflictError('Category with this slug already exists');
+    let slug = dto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    if (!slug) slug = 'category-' + Date.now();
 
-    const result = await prisma.category.create({ data: dto });
+    const existingSlug = await prisma.category.findUnique({ where: { slug } });
+    if (existingSlug) throw ConflictError('Category with this slug already exists. Please choose a different name.');
+
+    const result = await prisma.category.create({ data: { ...dto, slug } });
     await RedisCacheService.delCache(REDIS_KEYS.CATEGORIES_ALL);
     return result;
   }
@@ -46,11 +60,6 @@ export class AdminCategoriesService {
         where: { name: { equals: dto.name, mode: 'insensitive' } },
       });
       if (existing) throw ConflictError('Category with this name already exists');
-    }
-
-    if (dto.slug && dto.slug !== category.slug) {
-      const existing = await prisma.category.findUnique({ where: { slug: dto.slug } });
-      if (existing) throw ConflictError('Category with this slug already exists');
     }
 
     const result = await prisma.category.update({ where: { id }, data: dto });

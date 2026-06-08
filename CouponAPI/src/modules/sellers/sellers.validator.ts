@@ -91,7 +91,7 @@ export type ConfirmMediaDto = z.infer<typeof confirmMediaSchema>;
 
 // ─── Response Schemas ─────────────────────────────────────────────────────────
 
-const categoryShapeSchema = z.object({ id: z.string().uuid(), name: z.string(), slug: z.string(), iconName: z.string().nullable() });
+const categoryShapeSchema = z.object({ id: z.string().uuid(), name: z.string(), slug: z.string(), iconName: z.string().nullable(), subtitle: z.string().nullable(), color: z.string().nullable() });
 
 export const baseSellerResponseSchema = z.object({
   id: z.string().uuid(),

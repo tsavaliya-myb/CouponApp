@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { PAGINATION } from '../../shared/constants';
 
-const categoryShapeSchema = z.object({ id: z.string().uuid(), name: z.string(), slug: z.string(), iconName: z.string().nullable() });
+const categoryShapeSchema = z.object({ id: z.string().uuid(), name: z.string(), slug: z.string(), iconName: z.string().nullable(), subtitle: z.string().nullable(), color: z.string().nullable() });
 
 // ─── Query for My Active Coupons (UserCoupons) ────────────────────────────────
 export const myCouponsQuerySchema = z.object({

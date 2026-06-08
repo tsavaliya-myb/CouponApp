@@ -173,7 +173,7 @@ CouponSellerModel _$CouponSellerModelFromJson(Map<String, dynamic> json) {
 mixin _$CouponSellerModel {
   String get id => throw _privateConstructorUsedError;
   String get businessName => throw _privateConstructorUsedError;
-  String get category => throw _privateConstructorUsedError;
+  CategoryItem get category => throw _privateConstructorUsedError;
   SellerAreaModel get area => throw _privateConstructorUsedError;
 
   /// Serializes this CouponSellerModel to a JSON map.
@@ -193,7 +193,10 @@ abstract class $CouponSellerModelCopyWith<$Res> {
       _$CouponSellerModelCopyWithImpl<$Res, CouponSellerModel>;
   @useResult
   $Res call(
-      {String id, String businessName, String category, SellerAreaModel area});
+      {String id,
+      String businessName,
+      CategoryItem category,
+      SellerAreaModel area});
 
   $SellerAreaModelCopyWith<$Res> get area;
 }
@@ -230,7 +233,7 @@ class _$CouponSellerModelCopyWithImpl<$Res, $Val extends CouponSellerModel>
       category: null == category
           ? _value.category
           : category // ignore: cast_nullable_to_non_nullable
-              as String,
+              as CategoryItem,
       area: null == area
           ? _value.area
           : area // ignore: cast_nullable_to_non_nullable
@@ -258,7 +261,10 @@ abstract class _$$CouponSellerModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String id, String businessName, String category, SellerAreaModel area});
+      {String id,
+      String businessName,
+      CategoryItem category,
+      SellerAreaModel area});
 
   @override
   $SellerAreaModelCopyWith<$Res> get area;
@@ -294,7 +300,7 @@ class __$$CouponSellerModelImplCopyWithImpl<$Res>
       category: null == category
           ? _value.category
           : category // ignore: cast_nullable_to_non_nullable
-              as String,
+              as CategoryItem,
       area: null == area
           ? _value.area
           : area // ignore: cast_nullable_to_non_nullable
@@ -320,7 +326,7 @@ class _$CouponSellerModelImpl implements _CouponSellerModel {
   @override
   final String businessName;
   @override
-  final String category;
+  final CategoryItem category;
   @override
   final SellerAreaModel area;
 
@@ -368,7 +374,7 @@ abstract class _CouponSellerModel implements CouponSellerModel {
   const factory _CouponSellerModel(
       {required final String id,
       required final String businessName,
-      required final String category,
+      required final CategoryItem category,
       required final SellerAreaModel area}) = _$CouponSellerModelImpl;
 
   factory _CouponSellerModel.fromJson(Map<String, dynamic> json) =
@@ -379,7 +385,7 @@ abstract class _CouponSellerModel implements CouponSellerModel {
   @override
   String get businessName;
   @override
-  String get category;
+  CategoryItem get category;
   @override
   SellerAreaModel get area;
 

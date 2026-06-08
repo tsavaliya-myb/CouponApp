@@ -48,7 +48,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ? []
         : sellers.where((s) {
             return s.name.toLowerCase().contains(queryLower) ||
-                s.category.toLowerCase().contains(queryLower);
+                s.category.name.toLowerCase().contains(queryLower);
           }).toList();
 
     final coupons = couponsAsync.valueOrNull ?? [];

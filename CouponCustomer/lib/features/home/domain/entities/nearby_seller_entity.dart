@@ -1,11 +1,12 @@
 // lib/features/home/domain/entities/nearby_seller_entity.dart
 import 'package:equatable/equatable.dart';
+import '../../../../core/models/category_item.dart';
 import 'seller_media_entity.dart';
 
 class NearbySellerEntity extends Equatable {
   final String id;
   final String name;
-  final String category;
+  final CategoryItem category;
   final String area;
   final double lat;
   final double lng;
@@ -28,7 +29,7 @@ class NearbySellerEntity extends Equatable {
   NearbySellerEntity copyWith({
     String? id,
     String? name,
-    String? category,
+    CategoryItem? category,
     String? area,
     double? lat,
     double? lng,

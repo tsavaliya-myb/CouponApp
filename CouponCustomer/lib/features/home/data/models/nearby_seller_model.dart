@@ -3,6 +3,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/nearby_seller_entity.dart';
 import '../../domain/entities/seller_media_entity.dart';
 
+import '../../../../core/models/category_item.dart';
+
 part 'nearby_seller_model.freezed.dart';
 part 'nearby_seller_model.g.dart';
 
@@ -37,7 +39,7 @@ class NearbySellerModel with _$NearbySellerModel {
   const factory NearbySellerModel({
     required String id,
     required String businessName,
-    required String category,
+    required CategoryItem category,
     required String area,
     required double lat,
     required double lng,

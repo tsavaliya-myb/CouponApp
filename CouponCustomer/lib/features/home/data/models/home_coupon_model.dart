@@ -1,6 +1,7 @@
 // lib/features/home/data/models/home_coupon_model.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/home_coupon_entity.dart';
+import '../../../../core/models/category_item.dart';
 
 part 'home_coupon_model.freezed.dart';
 part 'home_coupon_model.g.dart';
@@ -21,7 +22,7 @@ class CouponSellerModel with _$CouponSellerModel {
   const factory CouponSellerModel({
     required String id,
     required String businessName,
-    required String category,
+    required CategoryItem category,
     required SellerAreaModel area,
   }) = _CouponSellerModel;
 

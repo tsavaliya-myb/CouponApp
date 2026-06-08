@@ -33,4 +33,18 @@ router.post(
   paymentController.webhook,
 );
 
+/**
+ * @route   POST /api/v1/payments/cancel-autopay
+ * @desc    Cancel the UPI autopay mandate securely via PayU API
+ * @access  Private (Customer)
+ */
+router.post('/cancel-autopay', authenticate, paymentController.cancelAutopay);
+
+/**
+ * @route   GET /api/v1/payments/history
+ * @desc    Fetch successful payment history and current subscription details
+ * @access  Private (Customer)
+ */
+router.get('/history', authenticate, paymentController.getPaymentHistory);
+
 export { router as paymentsRouter };

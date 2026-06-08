@@ -389,30 +389,6 @@ class _BannerPlaceholder extends StatelessWidget {
 class _CategoryTabs extends ConsumerWidget {
   const _CategoryTabs();
 
-  static const _cardColor = {
-    'all': Color(0xFFDEB86A),
-    'food': Color(0xFFB35227),
-    'cafe': Color(0xFF2F6120),
-    'salon': Color(0xFF70586F),
-    'spa': Color(0xFF179156),
-    'theater': Color(0xFF82A346),
-    'default': Color(0xFFB1BAAE),
-  };
-
-  static const _subtitles = {
-    'all': 'Browse everything',
-    'food': 'Restaurants & more',
-    'cafe': 'Coffee & drinks',
-    'salon': 'Hair & beauty',
-    'spa': 'Relax & unwind',
-    'theater': 'Movies & shows',
-    'default': 'Explore deals',
-  };
-
-  Color _colorFor(String slug) => _cardColor[slug] ?? _cardColor['default']!;
-  String _subtitleFor(String slug) =>
-      _subtitles[slug] ?? _subtitles['default']!;
-
   // Dark text for light cards, white for dark cards
   Color _textColorFor(Color card) =>
       card.computeLuminance() > 0.3 ? const Color(0xFF1C1A18) : Colors.white;
@@ -454,10 +430,10 @@ class _CategoryTabs extends ConsumerWidget {
               final label = isAll ? 'All' : item!.name;
               final slug = isAll ? 'all' : item!.slug;
               final icon =
-                  isAll ? Icons.grid_view_rounded : CategoryUtils.getIcon(slug);
-              final cardColor = _colorFor(slug);
+                  isAll ? Icons.grid_view_rounded : CategoryUtils.getIcon(item);
+              final cardColor = isAll ? const Color(0xFF0F0E0E) : CategoryUtils.getBaseColor(item);
               final textColor = _textColorFor(cardColor);
-              final subtitle = _subtitleFor(slug);
+              final subtitle = isAll ? 'Browse everything' : (item?.subtitle ?? 'Explore deals');
               final isLight = textColor != Colors.white;
 
               return GestureDetector(
