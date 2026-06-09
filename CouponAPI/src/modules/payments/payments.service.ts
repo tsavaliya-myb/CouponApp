@@ -224,6 +224,55 @@ export class PaymentService {
           where: { id: userId },
           data:  { coinBalance: { increment: coinsToAward } },
         });
+
+        // ─── Referral Fulfillment ────────────────────────────────────
+        const pendingReferral = await tx.referral.findUnique({
+          where: { referredId: userId }
+        });
+
+        if (pendingReferral && pendingReferral.status === 'PENDING') {
+          const [maxLimitSetting, referrerRewardSetting, referredRewardSetting] = await Promise.all([
+            tx.appSetting.findUnique({ where: { key: 'max_referrals' } }),
+            tx.appSetting.findUnique({ where: { key: 'referrer_coins' } }),
+            tx.appSetting.findUnique({ where: { key: 'referred_user_coins' } }),
+          ]);
+          
+          const maxLimit = maxLimitSetting ? parseInt(maxLimitSetting.value, 10) : 10;
+          const referrerReward = referrerRewardSetting ? parseInt(referrerRewardSetting.value, 10) : 5;
+          const referredReward = referredRewardSetting ? parseInt(referredRewardSetting.value, 10) : 5;
+
+          const successfulCount = await tx.referral.count({
+            where: {
+              referrerId: pendingReferral.referrerId,
+              status: 'SUCCESSFUL',
+            }
+          });
+
+          if (successfulCount < maxLimit) {
+            await tx.referral.update({
+              where: { id: pendingReferral.id },
+              data: { status: 'SUCCESSFUL' },
+            });
+
+            // Reward referrer
+            await tx.walletTransaction.create({
+              data: { userId: pendingReferral.referrerId, type: 'EARNED', amount: referrerReward, note: 'Referral Bonus (Referrer)' },
+            });
+            await tx.user.update({
+              where: { id: pendingReferral.referrerId },
+              data: { coinBalance: { increment: referrerReward } },
+            });
+
+            // Reward referred user
+            await tx.walletTransaction.create({
+              data: { userId: pendingReferral.referredId, type: 'EARNED', amount: referredReward, note: 'Referral Bonus (Referred)' },
+            });
+            await tx.user.update({
+              where: { id: pendingReferral.referredId },
+              data: { coinBalance: { increment: referredReward } },
+            });
+          }
+        }
       });
     } catch (err) {
       log.error('fulfillSubscription: DB transaction failed', { userId, payuPaymentId, err });

@@ -164,8 +164,9 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(
-                    height: 140), // Buffer for the glassmorphic bottom nav
+                const SizedBox(height: 24),
+                const _ReferAndEarnBlock(),
+                const SizedBox(height: 140), // Buffer for the glassmorphic bottom nav
               ],
             ),
           ),
@@ -223,6 +224,69 @@ class _MenuTile extends StatelessWidget {
               size: 24,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReferAndEarnBlock extends StatelessWidget {
+  const _ReferAndEarnBlock();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: GestureDetector(
+        onTap: () => context.push('/refer-and-earn'),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppColors.dsPrimary, AppColors.dsPrimaryContainer],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.dsPrimary.withOpacity(0.3),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.card_giftcard_rounded, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Refer & Earn Coins',
+                      style: AppTextStyles.dsTitleLg.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Invite friends and earn rewards!',
+                      style: AppTextStyles.dsBodyMd.copyWith(color: Colors.white.withOpacity(0.9), fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
+            ],
+          ),
         ),
       ),
     );

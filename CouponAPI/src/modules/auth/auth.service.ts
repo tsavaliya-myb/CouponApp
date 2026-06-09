@@ -68,8 +68,13 @@ export class AuthService {
 
     let isNewUser = false;
     if (!user) {
+      // Generate an 8-character unique referral code
+      const referralCode = crypto.randomBytes(4).toString('hex').toUpperCase();
       user = await prisma.user.create({
-        data: { phone: dto.phone },
+        data: { 
+          phone: dto.phone,
+          referralCode 
+        },
         include: {
           subscription: { select: { status: true, endDate: true } },
         },

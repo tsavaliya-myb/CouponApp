@@ -22,6 +22,9 @@ export default function SettingsPage() {
     book_validity_days: "",
     coins_per_subscription: "",
     max_coins_per_transaction: "",
+    referrer_coins: "",
+    referred_user_coins: "",
+    max_referrals: "",
     expiry_reminder_7d_title: "",
     expiry_reminder_7d_body: "",
     expiry_reminder_2d_title: "",
@@ -96,6 +99,31 @@ export default function SettingsPage() {
             <div>
               <Label className="text-xs text-muted-foreground">Max Coins per Transaction</Label>
               <Input type="number" value={formData.max_coins_per_transaction} onChange={(e) => handleChange("max_coins_per_transaction", e.target.value)} className="rounded-lg mt-1" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Refer & Earn Settings */}
+      <Card className="border-0 shadow-sm animate-in-view" style={{ animationDelay: "150ms" }}>
+        <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Coins className="h-4 w-4" /> Refer & Earn Rules
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div>
+              <Label className="text-xs text-muted-foreground">Referrer Coins</Label>
+              <Input type="number" value={formData.referrer_coins} onChange={(e) => handleChange("referrer_coins", e.target.value)} className="rounded-lg mt-1" placeholder="e.g. 5" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Referred User Coins</Label>
+              <Input type="number" value={formData.referred_user_coins} onChange={(e) => handleChange("referred_user_coins", e.target.value)} className="rounded-lg mt-1" placeholder="e.g. 5" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Max Referrals</Label>
+              <Input type="number" value={formData.max_referrals} onChange={(e) => handleChange("max_referrals", e.target.value)} className="rounded-lg mt-1" placeholder="e.g. 10" />
             </div>
           </div>
         </CardContent>

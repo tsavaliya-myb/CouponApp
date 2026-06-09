@@ -14,6 +14,7 @@ import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/otp_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/profile/presentation/screens/account_settings_screen.dart';
+import 'features/profile/presentation/screens/refer_and_earn_screen.dart';
 import 'features/profile/presentation/screens/support_screen.dart';
 import 'features/profile/presentation/screens/about_us_screen.dart';
 import 'features/sellers/presentation/screens/sellers_screen.dart';
@@ -148,6 +149,11 @@ final _router = GoRouter(
       path: '/account-settings',
       name: 'account-settings',
       builder: (_, __) => const AccountSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/refer-and-earn',
+      name: 'refer-and-earn',
+      builder: (_, __) => const ReferAndEarnScreen(),
     ),
     GoRoute(
       path: '/support',

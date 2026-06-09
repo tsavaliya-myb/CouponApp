@@ -20,6 +20,7 @@ class _AccountSettingsScreenState extends ConsumerState<AccountSettingsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _referralController = TextEditingController();
 
   String? _selectedCityId;
   String? _selectedAreaId;
@@ -36,6 +37,7 @@ class _AccountSettingsScreenState extends ConsumerState<AccountSettingsScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _referralController.dispose();
     super.dispose();
   }
 
@@ -131,6 +133,8 @@ class _AccountSettingsScreenState extends ConsumerState<AccountSettingsScreen> {
         if (user.cityId == null && _selectedCityId != null)
           'cityId': _selectedCityId,
         if (_selectedAreaId != null) 'areaId': _selectedAreaId,
+        if (user.name == null && _referralController.text.trim().isNotEmpty)
+          'referralCode': _referralController.text.trim(),
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -446,7 +450,29 @@ class _AccountSettingsScreenState extends ConsumerState<AccountSettingsScreen> {
                               icon: Icons.info_outline_rounded,
                               message: 'Select a city first to see areas'),
 
-                        const SizedBox(height: 48),
+                        const SizedBox(height: 20),
+
+                        // ── Referral Code (Only for new users) ───────
+                        if (user.name == null) ...[
+                          _Label('Referral Code (Optional)'),
+                          TextFormField(
+                            controller: _referralController,
+                            decoration: _inputDecoration(Icons.card_giftcard_rounded),
+                            style: AppTextStyles.dsBodyMd,
+                            textCapitalization: TextCapitalization.characters,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Enter a friend\'s code to get rewards on your first subscription!',
+                            style: AppTextStyles.dsBodyMd.copyWith(
+                              color: AppColors.dsOnSurface.withOpacity(0.5),
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+
+                        const SizedBox(height: 28),
 
                         // ── Save Button ──────────────────────────────
                         AnimatedOpacity(

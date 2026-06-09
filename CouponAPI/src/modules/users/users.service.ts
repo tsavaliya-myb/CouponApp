@@ -115,9 +115,39 @@ export class UsersService {
       if (emailTaken) throw ConflictError('Email is already in use by another account');
     }
 
+    // Handle Referral Code processing during profile completion
+    if (dto.referralCode && dto.referralCode !== user.referralCode) {
+      // Ensure user hasn't already been referred
+      const existingReferral = await prisma.referral.findFirst({
+        where: { referredId: userId },
+      });
+      if (!existingReferral) {
+        // Find referrer by code
+        const referrer = await prisma.user.findUnique({
+          where: { referralCode: dto.referralCode },
+        });
+        
+        if (referrer && referrer.id !== userId) {
+          // Check limits from settings or enforce later during subscription purchase
+          // We'll create the PENDING referral here.
+          await prisma.referral.create({
+            data: {
+              referrerId: referrer.id,
+              referredId: userId,
+              status: 'PENDING',
+            },
+          });
+        }
+      }
+    }
+
+    // Extract referralCode from dto so we don't try to update the user with it 
+    // (since it belongs to the referrer, or if we do want to store it, we shouldn't overwrite the user's own code)
+    const { referralCode, ...updateData } = dto;
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: dto,
+      data: updateData,
       include: {
         city: { select: { id: true, name: true } },
         area: { select: { id: true, name: true } },
@@ -154,6 +184,36 @@ export class UsersService {
       bookValidityDays: parseInt(map['book_validity_days'] ?? '30', 10),
       maxCoinsPerTransaction: parseInt(map['MAX_COINS_PER_TRANSACTION'] ?? '0', 10),
       totalActiveCoupons,
+    };
+  }
+
+  // ─── Referral Stats ────────────────────────────────────────────────────────────
+
+  async getReferralStats(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { referralCode: true }
+    });
+
+    if (!user) throw NotFoundError('User not found');
+
+    const successfulReferrals = await prisma.referral.count({
+      where: { referrerId: userId, status: 'SUCCESSFUL' }
+    });
+
+    const maxLimitSetting = await prisma.appSetting.findUnique({ where: { key: 'max_referrals' } });
+    const maxLimit = maxLimitSetting ? parseInt(maxLimitSetting.value, 10) : 10;
+
+    const rewardTxs = await prisma.walletTransaction.aggregate({
+      _sum: { amount: true },
+      where: { userId, note: { contains: 'Referral Bonus' } }
+    });
+
+    return {
+      referralCode: user.referralCode,
+      successfulReferrals,
+      maxLimit,
+      totalEarnedCoins: rewardTxs._sum.amount || 0,
     };
   }
 

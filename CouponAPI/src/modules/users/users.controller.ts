@@ -43,6 +43,15 @@ export class UsersController {
     }
   };
 
+  getReferralStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const stats = await usersService.getReferralStats(req.user!.userId);
+      sendSuccess(res, stats);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   getLeaderboard = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const type = req.query.type as string || 'savers';

@@ -76,6 +76,11 @@ enum NotificationTargetType {
   GLOBAL
 }
 
+enum ReferralStatus {
+  PENDING
+  SUCCESSFUL
+}
+
 // ─────────────────────────────────────────
 // GEOGRAPHY
 // ─────────────────────────────────────────
@@ -144,6 +149,12 @@ model User {
   onesignalPlayerId String?
   // User's cached coin balance (1 coin = ₹1)
   coinBalance       Int        @default(0)
+  
+  // Referral System
+  referralCode      String?    @unique
+  referralsMade     Referral[] @relation("Referrer")
+  referredBy        Referral?  @relation("Referred")
+  
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
@@ -155,6 +166,20 @@ model User {
   paymentAttempts PaymentAttempt[]
 
   @@map("users")
+}
+
+model Referral {
+  id            String         @id @default(uuid())
+  referrerId    String
+  referredId    String         @unique
+  status        ReferralStatus @default(PENDING)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  referrer      User           @relation("Referrer", fields: [referrerId], references: [id])
+  referred      User           @relation("Referred", fields: [referredId], references: [id])
+
+  @@map("referrals")
 }
 
 model Subscription {

@@ -3,6 +3,7 @@ import '../models/user_model.dart';
 import '../models/area_model.dart';
 import '../models/user_settings_model.dart';
 import '../models/leaderboard_user_model.dart';
+import '../models/referral_stats_model.dart';
 
 abstract class ProfileRemoteDataSource {
   Future<UserModel> getUser();
@@ -14,6 +15,7 @@ abstract class ProfileRemoteDataSource {
     required String type,
     required String timeFrame,
   });
+  Future<ReferralStatsModel> getReferralStats();
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -64,5 +66,11 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     );
     final list = response.data['data'] as List;
     return list.map((e) => LeaderboardUserModel.fromJson(e)).toList();
+  }
+
+  @override
+  Future<ReferralStatsModel> getReferralStats() async {
+    final response = await _apiClient.client.get('/users/me/referrals');
+    return ReferralStatsModel.fromJson(response.data['data']);
   }
 }

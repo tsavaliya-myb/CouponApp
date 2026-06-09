@@ -5,6 +5,8 @@ import '../../data/models/area_model.dart';
 import '../../data/models/user_settings_model.dart';
 import '../../data/models/leaderboard_user_model.dart';
 
+import '../../data/models/referral_stats_model.dart';
+
 abstract class ProfileRepository {
   Future<Either<Failure, UserModel>> getUser();
   Future<Either<Failure, UserModel>> updateUser(Map<String, dynamic> data);
@@ -15,4 +17,5 @@ abstract class ProfileRepository {
     required String type,
     required String timeFrame,
   });
+  Future<Either<Failure, ReferralStatsModel>> getReferralStats();
 }
