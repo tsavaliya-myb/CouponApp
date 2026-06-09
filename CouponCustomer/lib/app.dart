@@ -25,6 +25,7 @@ import 'features/home/presentation/screens/search_screen.dart';
 import 'features/subscription/presentation/screens/purchase_screen.dart';
 import 'features/subscription/presentation/screens/subscription_success_screen.dart';
 import 'features/subscription/presentation/my_subscriptions_screen.dart';
+import 'features/profile/presentation/screens/leaderboard_screen.dart';
 import 'services/notification_service.dart';
 
 // ---------------------------------------------------------------------------
@@ -178,6 +179,11 @@ final _router = GoRouter(
       path: '/my-subscriptions',
       name: 'my-subscriptions',
       builder: (_, __) => const MySubscriptionsScreen(),
+    ),
+    GoRoute(
+      path: '/leaderboard',
+      name: 'leaderboard',
+      builder: (_, __) => const LeaderboardScreen(),
     ),
   ],
 );

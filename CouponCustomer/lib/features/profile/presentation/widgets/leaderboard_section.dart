@@ -15,15 +15,6 @@ class LeaderboardSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Text(
-            '🏆 Community Leaderboard',
-            style: AppTextStyles.dsTitleLg.copyWith(fontSize: 18),
-          ),
-        ),
-        const SizedBox(height: 16),
-        
         // --- Segmented Control for Type ---
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -39,20 +30,20 @@ class LeaderboardSection extends ConsumerWidget {
                   child: _TypeButton(
                     title: 'Top Savers',
                     isSelected: filter.type == 'savers',
-                    onTap: () => ref
-                        .read(leaderboardFilterProvider.notifier)
-                        .state = LeaderboardFilter(
-                            type: 'savers', timeFrame: filter.timeFrame),
+                    onTap: () =>
+                        ref.read(leaderboardFilterProvider.notifier).state =
+                            LeaderboardFilter(
+                                type: 'savers', timeFrame: filter.timeFrame),
                   ),
                 ),
                 Expanded(
                   child: _TypeButton(
                     title: 'Top Spenders',
                     isSelected: filter.type == 'spenders',
-                    onTap: () => ref
-                        .read(leaderboardFilterProvider.notifier)
-                        .state = LeaderboardFilter(
-                            type: 'spenders', timeFrame: filter.timeFrame),
+                    onTap: () =>
+                        ref.read(leaderboardFilterProvider.notifier).state =
+                            LeaderboardFilter(
+                                type: 'spenders', timeFrame: filter.timeFrame),
                   ),
                 ),
               ],
@@ -62,38 +53,40 @@ class LeaderboardSection extends ConsumerWidget {
         const SizedBox(height: 16),
 
         // --- Time Filter Chips ---
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
+        Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            children: [
-              _TimeChip(
-                title: 'This Week',
-                isSelected: filter.timeFrame == 'week',
-                onTap: () => ref
-                    .read(leaderboardFilterProvider.notifier)
-                    .state = LeaderboardFilter(
-                        type: filter.type, timeFrame: 'week'),
-              ),
-              const SizedBox(width: 8),
-              _TimeChip(
-                title: 'This Month',
-                isSelected: filter.timeFrame == 'month',
-                onTap: () => ref
-                    .read(leaderboardFilterProvider.notifier)
-                    .state = LeaderboardFilter(
-                        type: filter.type, timeFrame: 'month'),
-              ),
-              const SizedBox(width: 8),
-              _TimeChip(
-                title: 'All Time',
-                isSelected: filter.timeFrame == 'all_time',
-                onTap: () => ref
-                    .read(leaderboardFilterProvider.notifier)
-                    .state = LeaderboardFilter(
-                        type: filter.type, timeFrame: 'all_time'),
-              ),
-            ],
+          child: Center(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _TimeChip(
+                  title: 'This Week',
+                  isSelected: filter.timeFrame == 'week',
+                  onTap: () => ref
+                          .read(leaderboardFilterProvider.notifier)
+                          .state =
+                      LeaderboardFilter(type: filter.type, timeFrame: 'week'),
+                ),
+                _TimeChip(
+                  title: 'This Month',
+                  isSelected: filter.timeFrame == 'month',
+                  onTap: () => ref
+                          .read(leaderboardFilterProvider.notifier)
+                          .state =
+                      LeaderboardFilter(type: filter.type, timeFrame: 'month'),
+                ),
+                _TimeChip(
+                  title: 'All Time',
+                  isSelected: filter.timeFrame == 'all_time',
+                  onTap: () =>
+                      ref.read(leaderboardFilterProvider.notifier).state =
+                          LeaderboardFilter(
+                              type: filter.type, timeFrame: 'all_time'),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 24),
@@ -176,7 +169,9 @@ class _TypeButton extends StatelessWidget {
             title,
             style: AppTextStyles.dsLabelMd.copyWith(
               fontSize: 14,
-              color: isSelected ? AppColors.dsSurfaceContainerLowest : AppColors.dsOnSurface,
+              color: isSelected
+                  ? AppColors.dsSurfaceContainerLowest
+                  : AppColors.dsOnSurface,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
@@ -218,7 +213,9 @@ class _TimeChip extends StatelessWidget {
         child: Text(
           title,
           style: AppTextStyles.dsLabelMd.copyWith(
-            color: isSelected ? AppColors.dsOnSurface : AppColors.dsOnSurface.withOpacity(0.6),
+            color: isSelected
+                ? AppColors.dsOnSurface
+                : AppColors.dsOnSurface.withOpacity(0.6),
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
@@ -236,11 +233,11 @@ class _LeaderboardRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isTop3 = user.rank <= 3;
-    
+
     // Aesthetic handling for top 3 using AppColors
     Color bgColor = AppColors.dsSurfaceContainerLowest;
     Color rankColor = AppColors.dsOnSurface.withOpacity(0.5);
-    
+
     if (user.rank == 1) {
       bgColor = AppColors.dsPrimaryContainer.withOpacity(0.3);
       rankColor = AppColors.dsPrimary;
@@ -276,7 +273,8 @@ class _LeaderboardRow extends StatelessWidget {
           CircleAvatar(
             radius: 18,
             backgroundColor: AppColors.dsPrimary.withOpacity(0.1),
-            backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+            backgroundImage:
+                user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
             child: user.avatarUrl == null
                 ? Icon(Icons.person, color: AppColors.dsPrimary, size: 20)
                 : null,
@@ -295,7 +293,9 @@ class _LeaderboardRow extends StatelessWidget {
           Text(
             '₹${user.metricValue.toStringAsFixed(0)}',
             style: AppTextStyles.dsBodyMd.copyWith(
-              color: filterType == 'savers' ? AppColors.dsSecondaryMint : AppColors.dsPrimary,
+              color: filterType == 'savers'
+                  ? AppColors.dsSecondaryMint
+                  : AppColors.dsPrimary,
               fontWeight: FontWeight.w700,
             ),
           ),
