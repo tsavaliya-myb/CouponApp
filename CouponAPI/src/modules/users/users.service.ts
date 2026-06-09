@@ -190,12 +190,21 @@ export class UsersService {
   // ─── Referral Stats ────────────────────────────────────────────────────────────
 
   async getReferralStats(userId: string) {
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: userId },
       select: { referralCode: true }
     });
 
     if (!user) throw NotFoundError('User not found');
+
+    if (!user.referralCode) {
+      const newReferralCode = crypto.randomBytes(4).toString('hex').toUpperCase();
+      await prisma.user.update({
+        where: { id: userId },
+        data: { referralCode: newReferralCode }
+      });
+      user.referralCode = newReferralCode;
+    }
 
     const successfulReferrals = await prisma.referral.count({
       where: { referrerId: userId, status: 'SUCCESSFUL' }

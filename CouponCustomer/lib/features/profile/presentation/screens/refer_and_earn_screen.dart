@@ -82,7 +82,7 @@ class ReferAndEarnScreen extends ConsumerWidget {
                       const SizedBox(height: 40),
 
                       // Referral Code Box
-                      if (stats.referralCode != null) ...[
+                      if (stats.referralCode != null && stats.referralCode!.isNotEmpty) ...[
                         Text(
                           'Your Referral Code',
                           style: AppTextStyles.heading2,
@@ -141,6 +141,17 @@ class ReferAndEarnScreen extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(16),
                             ),
                           ),
+                        ),
+                        const SizedBox(height: 40),
+                      ] else ...[
+                        const Center(
+                          child: CircularProgressIndicator(color: AppColors.primary),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Generating your unique code...',
+                          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 40),
                       ],

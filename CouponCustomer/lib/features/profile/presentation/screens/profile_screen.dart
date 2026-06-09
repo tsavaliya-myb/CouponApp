@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
-import '../../../../core/widgets/app_header.dart';
 import '../providers/profile_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -166,7 +165,8 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 const _ReferAndEarnBlock(),
-                const SizedBox(height: 140), // Buffer for the glassmorphic bottom nav
+                const SizedBox(
+                    height: 140), // Buffer for the glassmorphic bottom nav
               ],
             ),
           ),
@@ -241,50 +241,100 @@ class _ReferAndEarnBlock extends StatelessWidget {
         onTap: () => context.push('/refer-and-earn'),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
+          height: 120,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [AppColors.dsPrimary, AppColors.dsPrimaryContainer],
+              colors: [Color(0xFFFEF3C7), Color(0xFFFDE68A)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFFCD34D), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: AppColors.dsPrimary.withOpacity(0.3),
+                color: const Color(0xFFF59E0B).withOpacity(0.2),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               ),
             ],
           ),
-          child: Row(
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
+              // Background decoration
+              Positioned(
+                right: -20,
+                bottom: -20,
+                child: Icon(
+                  Icons.monetization_on_rounded,
+                  size: 100,
+                  color: const Color(0xFFF59E0B).withOpacity(0.15),
                 ),
-                child: const Icon(Icons.card_giftcard_rounded, color: Colors.white, size: 28),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
                   children: [
-                    Text(
-                      'Refer & Earn Coins',
-                      style: AppTextStyles.dsTitleLg.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.volunteer_activism_rounded,
+                          color: Color(0xFFD97706), size: 28),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Invite friends and earn rewards!',
-                      style: AppTextStyles.dsBodyMd.copyWith(color: Colors.white.withOpacity(0.9), fontSize: 13),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Refer & Earn',
+                                style: AppTextStyles.dsTitleLg.copyWith(
+                                    color: const Color(0xFF92400E),
+                                    fontWeight: FontWeight.w800),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDC2626),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'HOT',
+                                  style: AppTextStyles.dsLabelMd.copyWith(
+                                      color: Colors.white, fontWeight: FontWeight.bold, fontSize: 9),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Invite friends, get free coins!',
+                            style: AppTextStyles.dsBodyMd.copyWith(
+                                color: const Color(0xFFB45309), fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
                     ),
+                    const Icon(Icons.arrow_forward_ios_rounded,
+                        color: Color(0xFFD97706), size: 16),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
             ],
           ),
         ),
