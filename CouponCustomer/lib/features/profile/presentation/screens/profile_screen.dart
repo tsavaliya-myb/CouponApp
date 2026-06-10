@@ -263,8 +263,8 @@ class _ReferAndEarnBlock extends StatelessWidget {
             children: [
               // Background decoration
               Positioned(
-                right: -20,
-                bottom: -20,
+                right: -5,
+                bottom: 5,
                 child: Icon(
                   Icons.monetization_on_rounded,
                   size: 100,

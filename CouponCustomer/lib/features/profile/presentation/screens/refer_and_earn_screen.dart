@@ -127,7 +127,7 @@ class ReferAndEarnScreen extends ConsumerWidget {
                         ElevatedButton.icon(
                           onPressed: () {
                             Share.share(
-                              'Use my referral code ${stats.referralCode} to get rewards when you join the app!',
+                              'Use my referral code ${stats.referralCode} to get rewards when you join the Coupo360 app!',
                             );
                           },
                           icon: const Icon(Icons.share_rounded),
