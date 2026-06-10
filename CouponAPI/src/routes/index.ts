@@ -82,3 +82,7 @@ apiRouter.use('/sellers/me/dashboard', sellerDashboardRouter);
 // Phase 14: Banner Ads
 import { adsRouter } from '../modules/ads/ads.routes';
 apiRouter.use('/ads', adsRouter);
+
+// Webhooks
+import { leegalityWebhookRouter } from '../modules/sellers/leegality-webhook.routes';
+apiRouter.use('/webhooks/leegality', leegalityWebhookRouter);

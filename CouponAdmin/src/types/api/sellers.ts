@@ -32,6 +32,14 @@ export interface Seller {
   area: {
     name: string;
   };
+  sellerAgreement?: {
+    id: string;
+    status: string;
+    leegalityDocumentId: string | null;
+    signedDocumentUrl: string | null;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
 }
 
 export interface SellersResponse {

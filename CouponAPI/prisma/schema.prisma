@@ -32,6 +32,14 @@ enum SellerStatus {
   REJECTED
 }
 
+enum AgreementStatus {
+  PENDING
+  INITIATED
+  AADHAAR_SIGNED
+  COMPLETED
+  FAILED
+}
+
 enum CouponType {
   STANDARD
   BOGO // Buy One Get One
@@ -306,6 +314,7 @@ model Seller {
   settlements Settlement[]
   media       SellerMedia?
   bannerAds   BannerAd[]
+  agreement   SellerAgreement?
 
   @@map("sellers")
 }
@@ -543,4 +552,23 @@ model AppSetting {
   updatedAt DateTime @updatedAt
 
   @@map("app_settings")
+}
+
+// ─────────────────────────────────────────
+// SELLER AGREEMENTS (Leegality Integration)
+// ─────────────────────────────────────────
+
+model SellerAgreement {
+  id                  String          @id @default(uuid())
+  sellerId            String          @unique
+  leegalityDocumentId String?         @unique
+  status              AgreementStatus @default(PENDING)
+  signUrl             String?         // General signing link for the invitee workflow
+  signedDocumentUrl   String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@map("seller_agreements")
 }

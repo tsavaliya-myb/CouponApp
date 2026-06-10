@@ -346,6 +346,23 @@ export default function SellersPage() {
                     <p className="text-muted-foreground text-xs font-medium">Email Address</p>
                     <p className="font-semibold mt-0.5">{selectedSeller.email || "No email provided"}</p>
                   </div>
+                  <div className="rounded-xl bg-muted/50 p-3.5 col-span-2">
+                    <p className="text-muted-foreground text-xs font-medium">Agreement Status</p>
+                    <div className="flex items-center justify-between mt-0.5">
+                      <p className="font-semibold capitalize">
+                        {selectedSeller.sellerAgreement?.status || "Not Initiated"}
+                      </p>
+                      {selectedSeller.sellerAgreement?.signedDocumentUrl && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => window.open(selectedSeller.sellerAgreement!.signedDocumentUrl!, '_blank')}
+                        >
+                          View Agreement
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="pt-4">

@@ -7,4 +7,6 @@ abstract class AuthRepository {
   Future<Either<Failure, String>> sendOtp({required String phone});
   Future<Either<Failure, AuthResultEntity>> verifyOtp({required String phone, required String otp});
   Future<Either<Failure, SellerEntity>> registerSeller(RegisterSellerParams params);
+  Future<Either<Failure, String>> initiateAgreement();
+  Future<Either<Failure, String>> checkAgreementStatus();
 }

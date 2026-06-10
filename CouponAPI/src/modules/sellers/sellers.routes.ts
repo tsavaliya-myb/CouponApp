@@ -59,6 +59,10 @@ sellerOnlyRouter.get('/me', controller.getProfile);
 sellerOnlyRouter.patch('/me', validate(updateSellerSchema), controller.updateProfile);
 sellerOnlyRouter.get('/me/dashboard', controller.getDashboard);
 
+// Agreement (Leegality)
+sellerOnlyRouter.post('/me/agreement/initiate', controller.initiateAgreement);
+sellerOnlyRouter.get('/me/agreement/status', controller.getAgreementStatus);
+
 // Logo upload — presign then confirm (Flutter uploads directly to iDrive E2)
 sellerOnlyRouter.post('/me/logo/presign', validate(presignLogoSchema), controller.presignLogo);
 sellerOnlyRouter.post('/me/logo/confirm', validate(confirmLogoSchema), controller.confirmLogo);

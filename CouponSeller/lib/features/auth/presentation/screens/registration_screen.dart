@@ -383,7 +383,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         .registerSeller(params);
 
     if (success && mounted) {
-      context.go('/approval-pending');
+      context.go('/agreement-signing');
     } else if (mounted) {
       final errorStream = ref.read(authNotifierProvider).error;
       if (errorStream != null) {

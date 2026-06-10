@@ -100,4 +100,28 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, String>> initiateAgreement() async {
+    try {
+      final signUrl = await _remoteDatasource.initiateAgreement();
+      return Right(signUrl);
+    } on DioException catch (e) {
+      return Left(mapDioExceptionToFailure(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> checkAgreementStatus() async {
+    try {
+      final status = await _remoteDatasource.checkAgreementStatus();
+      return Right(status);
+    } on DioException catch (e) {
+      return Left(mapDioExceptionToFailure(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }
