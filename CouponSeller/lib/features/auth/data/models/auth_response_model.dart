@@ -41,6 +41,7 @@ class VerifyOtpData with _$VerifyOtpData {
     required bool isRegistered,
     String? registrationToken,
     String? status,
+    String? agreementStatus,
     String? accessToken,
     String? refreshToken,
   }) = _VerifyOtpData;
@@ -78,12 +79,14 @@ class SellerModel with _$SellerModel {
   const factory SellerModel({
     required String id,
     required String phone,
+    String? fullName,
     required String businessName,
     required String category,
     required String cityId,
     required String areaId,
     required String status,
     required String address,
+    String? pincode,
     required String email,
     required String upiId,
     required double lat,

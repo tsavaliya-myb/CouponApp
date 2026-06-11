@@ -289,6 +289,8 @@ export default function SellersPage() {
                     <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg hover:bg-accent" title="Edit Seller" onClick={() => { 
                       setEditSeller(s); 
                       setEditForm({
+                        fullName: s.fullName || undefined,
+                        pincode: s.pincode || undefined,
                         businessName: s.businessName,
                         category: s.category?.name,
                         cityId: s.cityId,
@@ -343,6 +345,14 @@ export default function SellersPage() {
                     <p className="font-semibold mt-0.5">{format(new Date(selectedSeller.createdAt), "dd MMM, yyyy")}</p>
                   </div>
                   <div className="rounded-xl bg-muted/50 p-3.5 col-span-2">
+                    <p className="text-muted-foreground text-xs font-medium">Full Name (Owner)</p>
+                    <p className="font-semibold mt-0.5">{selectedSeller.fullName || "Not provided"}</p>
+                  </div>
+                  <div className="rounded-xl bg-muted/50 p-3.5 col-span-2">
+                    <p className="text-muted-foreground text-xs font-medium">Pincode</p>
+                    <p className="font-semibold mt-0.5">{selectedSeller.pincode || "Not provided"}</p>
+                  </div>
+                  <div className="rounded-xl bg-muted/50 p-3.5 col-span-2">
                     <p className="text-muted-foreground text-xs font-medium">Email Address</p>
                     <p className="font-semibold mt-0.5">{selectedSeller.email || "No email provided"}</p>
                   </div>
@@ -394,6 +404,14 @@ export default function SellersPage() {
             <DialogTitle>Edit Seller — {editSeller?.businessName}</DialogTitle>
           </DialogHeader>
           <div className="py-2 space-y-4">
+            <div>
+              <Label className="text-sm font-medium">Full Name (Owner)</Label>
+              <Input value={editForm.fullName || ""} onChange={(e) => setEditForm(prev => ({ ...prev, fullName: e.target.value }))} placeholder="e.g. Ramesh Kumar" className="mt-1.5 rounded-lg" />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Pincode</Label>
+              <Input value={editForm.pincode || ""} onChange={(e) => setEditForm(prev => ({ ...prev, pincode: e.target.value }))} placeholder="e.g. 400001" maxLength={6} className="mt-1.5 rounded-lg" />
+            </div>
             <div>
               <Label className="text-sm font-medium">Business Name</Label>
               <Input value={editForm.businessName || ""} onChange={(e) => setEditForm(prev => ({ ...prev, businessName: e.target.value }))} className="mt-1.5 rounded-lg" />

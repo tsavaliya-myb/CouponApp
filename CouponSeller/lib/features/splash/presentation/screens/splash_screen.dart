@@ -101,7 +101,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 ),
                 const SizedBox(height: 28),
                 Text(
-                  'CouponCode',
+                  'Coupon360',
                   style: AppTextStyles.headlineLG.copyWith(
                     color: Colors.white,
                     fontSize: 30,

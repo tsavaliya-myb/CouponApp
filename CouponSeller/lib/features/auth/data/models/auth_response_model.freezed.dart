@@ -562,6 +562,7 @@ mixin _$VerifyOtpData {
   bool get isRegistered => throw _privateConstructorUsedError;
   String? get registrationToken => throw _privateConstructorUsedError;
   String? get status => throw _privateConstructorUsedError;
+  String? get agreementStatus => throw _privateConstructorUsedError;
   String? get accessToken => throw _privateConstructorUsedError;
   String? get refreshToken => throw _privateConstructorUsedError;
 
@@ -586,6 +587,7 @@ abstract class $VerifyOtpDataCopyWith<$Res> {
     bool isRegistered,
     String? registrationToken,
     String? status,
+    String? agreementStatus,
     String? accessToken,
     String? refreshToken,
   });
@@ -609,6 +611,7 @@ class _$VerifyOtpDataCopyWithImpl<$Res, $Val extends VerifyOtpData>
     Object? isRegistered = null,
     Object? registrationToken = freezed,
     Object? status = freezed,
+    Object? agreementStatus = freezed,
     Object? accessToken = freezed,
     Object? refreshToken = freezed,
   }) {
@@ -625,6 +628,10 @@ class _$VerifyOtpDataCopyWithImpl<$Res, $Val extends VerifyOtpData>
             status: freezed == status
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            agreementStatus: freezed == agreementStatus
+                ? _value.agreementStatus
+                : agreementStatus // ignore: cast_nullable_to_non_nullable
                       as String?,
             accessToken: freezed == accessToken
                 ? _value.accessToken
@@ -653,6 +660,7 @@ abstract class _$$VerifyOtpDataImplCopyWith<$Res>
     bool isRegistered,
     String? registrationToken,
     String? status,
+    String? agreementStatus,
     String? accessToken,
     String? refreshToken,
   });
@@ -675,6 +683,7 @@ class __$$VerifyOtpDataImplCopyWithImpl<$Res>
     Object? isRegistered = null,
     Object? registrationToken = freezed,
     Object? status = freezed,
+    Object? agreementStatus = freezed,
     Object? accessToken = freezed,
     Object? refreshToken = freezed,
   }) {
@@ -691,6 +700,10 @@ class __$$VerifyOtpDataImplCopyWithImpl<$Res>
         status: freezed == status
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        agreementStatus: freezed == agreementStatus
+            ? _value.agreementStatus
+            : agreementStatus // ignore: cast_nullable_to_non_nullable
                   as String?,
         accessToken: freezed == accessToken
             ? _value.accessToken
@@ -712,6 +725,7 @@ class _$VerifyOtpDataImpl implements _VerifyOtpData {
     required this.isRegistered,
     this.registrationToken,
     this.status,
+    this.agreementStatus,
     this.accessToken,
     this.refreshToken,
   });
@@ -726,13 +740,15 @@ class _$VerifyOtpDataImpl implements _VerifyOtpData {
   @override
   final String? status;
   @override
+  final String? agreementStatus;
+  @override
   final String? accessToken;
   @override
   final String? refreshToken;
 
   @override
   String toString() {
-    return 'VerifyOtpData(isRegistered: $isRegistered, registrationToken: $registrationToken, status: $status, accessToken: $accessToken, refreshToken: $refreshToken)';
+    return 'VerifyOtpData(isRegistered: $isRegistered, registrationToken: $registrationToken, status: $status, agreementStatus: $agreementStatus, accessToken: $accessToken, refreshToken: $refreshToken)';
   }
 
   @override
@@ -745,6 +761,8 @@ class _$VerifyOtpDataImpl implements _VerifyOtpData {
             (identical(other.registrationToken, registrationToken) ||
                 other.registrationToken == registrationToken) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.agreementStatus, agreementStatus) ||
+                other.agreementStatus == agreementStatus) &&
             (identical(other.accessToken, accessToken) ||
                 other.accessToken == accessToken) &&
             (identical(other.refreshToken, refreshToken) ||
@@ -758,6 +776,7 @@ class _$VerifyOtpDataImpl implements _VerifyOtpData {
     isRegistered,
     registrationToken,
     status,
+    agreementStatus,
     accessToken,
     refreshToken,
   );
@@ -781,6 +800,7 @@ abstract class _VerifyOtpData implements VerifyOtpData {
     required final bool isRegistered,
     final String? registrationToken,
     final String? status,
+    final String? agreementStatus,
     final String? accessToken,
     final String? refreshToken,
   }) = _$VerifyOtpDataImpl;
@@ -794,6 +814,8 @@ abstract class _VerifyOtpData implements VerifyOtpData {
   String? get registrationToken;
   @override
   String? get status;
+  @override
+  String? get agreementStatus;
   @override
   String? get accessToken;
   @override
@@ -1264,12 +1286,14 @@ SellerModel _$SellerModelFromJson(Map<String, dynamic> json) {
 mixin _$SellerModel {
   String get id => throw _privateConstructorUsedError;
   String get phone => throw _privateConstructorUsedError;
+  String? get fullName => throw _privateConstructorUsedError;
   String get businessName => throw _privateConstructorUsedError;
   String get category => throw _privateConstructorUsedError;
   String get cityId => throw _privateConstructorUsedError;
   String get areaId => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
+  String? get pincode => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
   String get upiId => throw _privateConstructorUsedError;
   double get lat => throw _privateConstructorUsedError;
@@ -1295,12 +1319,14 @@ abstract class $SellerModelCopyWith<$Res> {
   $Res call({
     String id,
     String phone,
+    String? fullName,
     String businessName,
     String category,
     String cityId,
     String areaId,
     String status,
     String address,
+    String? pincode,
     String email,
     String upiId,
     double lat,
@@ -1325,12 +1351,14 @@ class _$SellerModelCopyWithImpl<$Res, $Val extends SellerModel>
   $Res call({
     Object? id = null,
     Object? phone = null,
+    Object? fullName = freezed,
     Object? businessName = null,
     Object? category = null,
     Object? cityId = null,
     Object? areaId = null,
     Object? status = null,
     Object? address = null,
+    Object? pincode = freezed,
     Object? email = null,
     Object? upiId = null,
     Object? lat = null,
@@ -1346,6 +1374,10 @@ class _$SellerModelCopyWithImpl<$Res, $Val extends SellerModel>
                 ? _value.phone
                 : phone // ignore: cast_nullable_to_non_nullable
                       as String,
+            fullName: freezed == fullName
+                ? _value.fullName
+                : fullName // ignore: cast_nullable_to_non_nullable
+                      as String?,
             businessName: null == businessName
                 ? _value.businessName
                 : businessName // ignore: cast_nullable_to_non_nullable
@@ -1370,6 +1402,10 @@ class _$SellerModelCopyWithImpl<$Res, $Val extends SellerModel>
                 ? _value.address
                 : address // ignore: cast_nullable_to_non_nullable
                       as String,
+            pincode: freezed == pincode
+                ? _value.pincode
+                : pincode // ignore: cast_nullable_to_non_nullable
+                      as String?,
             email: null == email
                 ? _value.email
                 : email // ignore: cast_nullable_to_non_nullable
@@ -1404,12 +1440,14 @@ abstract class _$$SellerModelImplCopyWith<$Res>
   $Res call({
     String id,
     String phone,
+    String? fullName,
     String businessName,
     String category,
     String cityId,
     String areaId,
     String status,
     String address,
+    String? pincode,
     String email,
     String upiId,
     double lat,
@@ -1433,12 +1471,14 @@ class __$$SellerModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? phone = null,
+    Object? fullName = freezed,
     Object? businessName = null,
     Object? category = null,
     Object? cityId = null,
     Object? areaId = null,
     Object? status = null,
     Object? address = null,
+    Object? pincode = freezed,
     Object? email = null,
     Object? upiId = null,
     Object? lat = null,
@@ -1454,6 +1494,10 @@ class __$$SellerModelImplCopyWithImpl<$Res>
             ? _value.phone
             : phone // ignore: cast_nullable_to_non_nullable
                   as String,
+        fullName: freezed == fullName
+            ? _value.fullName
+            : fullName // ignore: cast_nullable_to_non_nullable
+                  as String?,
         businessName: null == businessName
             ? _value.businessName
             : businessName // ignore: cast_nullable_to_non_nullable
@@ -1478,6 +1522,10 @@ class __$$SellerModelImplCopyWithImpl<$Res>
             ? _value.address
             : address // ignore: cast_nullable_to_non_nullable
                   as String,
+        pincode: freezed == pincode
+            ? _value.pincode
+            : pincode // ignore: cast_nullable_to_non_nullable
+                  as String?,
         email: null == email
             ? _value.email
             : email // ignore: cast_nullable_to_non_nullable
@@ -1505,12 +1553,14 @@ class _$SellerModelImpl implements _SellerModel {
   const _$SellerModelImpl({
     required this.id,
     required this.phone,
+    this.fullName,
     required this.businessName,
     required this.category,
     required this.cityId,
     required this.areaId,
     required this.status,
     required this.address,
+    this.pincode,
     required this.email,
     required this.upiId,
     required this.lat,
@@ -1525,6 +1575,8 @@ class _$SellerModelImpl implements _SellerModel {
   @override
   final String phone;
   @override
+  final String? fullName;
+  @override
   final String businessName;
   @override
   final String category;
@@ -1537,6 +1589,8 @@ class _$SellerModelImpl implements _SellerModel {
   @override
   final String address;
   @override
+  final String? pincode;
+  @override
   final String email;
   @override
   final String upiId;
@@ -1547,7 +1601,7 @@ class _$SellerModelImpl implements _SellerModel {
 
   @override
   String toString() {
-    return 'SellerModel(id: $id, phone: $phone, businessName: $businessName, category: $category, cityId: $cityId, areaId: $areaId, status: $status, address: $address, email: $email, upiId: $upiId, lat: $lat, lng: $lng)';
+    return 'SellerModel(id: $id, phone: $phone, fullName: $fullName, businessName: $businessName, category: $category, cityId: $cityId, areaId: $areaId, status: $status, address: $address, pincode: $pincode, email: $email, upiId: $upiId, lat: $lat, lng: $lng)';
   }
 
   @override
@@ -1557,6 +1611,8 @@ class _$SellerModelImpl implements _SellerModel {
             other is _$SellerModelImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.fullName, fullName) ||
+                other.fullName == fullName) &&
             (identical(other.businessName, businessName) ||
                 other.businessName == businessName) &&
             (identical(other.category, category) ||
@@ -1565,6 +1621,7 @@ class _$SellerModelImpl implements _SellerModel {
             (identical(other.areaId, areaId) || other.areaId == areaId) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.address, address) || other.address == address) &&
+            (identical(other.pincode, pincode) || other.pincode == pincode) &&
             (identical(other.email, email) || other.email == email) &&
             (identical(other.upiId, upiId) || other.upiId == upiId) &&
             (identical(other.lat, lat) || other.lat == lat) &&
@@ -1577,12 +1634,14 @@ class _$SellerModelImpl implements _SellerModel {
     runtimeType,
     id,
     phone,
+    fullName,
     businessName,
     category,
     cityId,
     areaId,
     status,
     address,
+    pincode,
     email,
     upiId,
     lat,
@@ -1607,12 +1666,14 @@ abstract class _SellerModel implements SellerModel {
   const factory _SellerModel({
     required final String id,
     required final String phone,
+    final String? fullName,
     required final String businessName,
     required final String category,
     required final String cityId,
     required final String areaId,
     required final String status,
     required final String address,
+    final String? pincode,
     required final String email,
     required final String upiId,
     required final double lat,
@@ -1627,6 +1688,8 @@ abstract class _SellerModel implements SellerModel {
   @override
   String get phone;
   @override
+  String? get fullName;
+  @override
   String get businessName;
   @override
   String get category;
@@ -1638,6 +1701,8 @@ abstract class _SellerModel implements SellerModel {
   String get status;
   @override
   String get address;
+  @override
+  String? get pincode;
   @override
   String get email;
   @override

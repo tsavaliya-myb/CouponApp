@@ -17,10 +17,12 @@ export const adminSellersQuerySchema = z.object({
 
 // ─── Body Validation for Admin Seller Edit ────────────────────────────────────
 export const adminUpdateSellerSchema = z.object({
+  fullName: z.string().min(2).max(150).optional(),
   businessName: z.string().min(2).max(150).optional(),
   categoryId: z.string().uuid('Invalid Category ID').optional(),
   cityId: z.string().uuid().optional(),
   areaId: z.string().uuid().optional(),
+  pincode: z.string().min(6).max(6).optional(),
   upiId: z.string().max(100).optional(),
   lat: z.number().min(-90).max(90).optional(),
   lng: z.number().min(-180).max(180).optional(),
@@ -32,6 +34,8 @@ export const adminUpdateSellerSchema = z.object({
 export const baseSellerResponseSchema = z.object({
   id: z.string().uuid(),
   businessName: z.string(),
+  fullName: z.string().nullable().optional(),
+  pincode: z.string().nullable().optional(),
   phone: z.string(),
   email: z.string().nullable(),
   categoryId: z.string().uuid(),

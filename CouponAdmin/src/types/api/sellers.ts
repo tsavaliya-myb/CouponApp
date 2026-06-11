@@ -10,6 +10,8 @@ export interface SellerCategory {
 export interface Seller {
   id: string;
   businessName: string;
+  fullName: string | null;
+  pincode: string | null;
   category: SellerCategory;
   categoryId: string;
   cityId: string;
@@ -54,6 +56,8 @@ export interface SellerStatusResponse {
 }
 
 export interface UpdateSellerParams {
+  fullName?: string;
+  pincode?: string;
   businessName?: string;
   category?: string;
   cityId?: string;

@@ -95,6 +95,7 @@ export const sellerVerifyOtpResponseSchema = z.union([
   z.object({
     isRegistered: z.literal(true),
     status: z.string(),
+    agreementStatus: z.string().nullable(),
     accessToken: z.string(),
     refreshToken: z.string(),
   }),
@@ -103,6 +104,7 @@ export const sellerVerifyOtpResponseSchema = z.union([
     registrationToken: z.string(),
   }),
 ]);
+
 
 export type AdminLoginResponse = z.infer<typeof adminLoginResponseSchema>;
 export type RefreshResponse = z.infer<typeof refreshResponseSchema>;

@@ -286,6 +286,8 @@ model Category {
 model Seller {
   id                String       @id @default(uuid())
   businessName      String
+  fullName          String?
+  pincode           String?
   categoryId        String
   cityId            String
   areaId            String

@@ -53,6 +53,7 @@ class AuthRepositoryImpl implements AuthRepository {
           isRegistered: data.isRegistered,
           registrationToken: data.registrationToken,
           status: data.status,
+          agreementStatus: data.agreementStatus,
         ));
       } else {
         return Left(ServerFailure(message: 'Failed to verify OTP'));

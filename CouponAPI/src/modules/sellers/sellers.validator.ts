@@ -4,11 +4,13 @@ import { PAGINATION } from '../../shared/constants';
 
 // ─── Seller Registration ──────────────────────────────────────────────────────
 export const registerSellerSchema = z.object({
+  fullName: z.string().min(2, 'Full name is required').max(150),
   businessName: z.string().min(2, 'Business name is required').max(150),
   categoryId: z.string().uuid('Invalid Category ID'),
   cityId: z.string().uuid('Invalid City ID'),
   areaId: z.string().uuid('Invalid Area ID'),
   address: z.string().min(5, 'Address is required'),
+  pincode: z.string().min(6, 'Pincode must be 6 digits').max(6, 'Pincode must be 6 digits'),
   email: z.string().email('Invalid email address'),
   upiId: z.string().min(3, 'UPI ID is required').max(100),
   lat: z.number().min(-90).max(90),
@@ -17,10 +19,12 @@ export const registerSellerSchema = z.object({
 
 // ─── Seller Profile Update ────────────────────────────────────────────────────
 export const updateSellerSchema = z.object({
+  fullName: z.string().min(2).max(150).optional(),
   businessName: z.string().min(2).max(150).optional(),
   categoryId: z.string().uuid('Invalid Category ID').optional(),
   cityId: z.string().uuid().optional(),
   areaId: z.string().uuid().optional(),
+  pincode: z.string().min(6).max(6).optional(),
   upiId: z.string().max(100).optional(),
   lat: z.number().min(-90).max(90).optional(),
   lng: z.number().min(-180).max(180).optional(),
@@ -96,6 +100,7 @@ const categoryShapeSchema = z.object({ id: z.string().uuid(), name: z.string(), 
 export const baseSellerResponseSchema = z.object({
   id: z.string().uuid(),
   phone: z.string(),
+  fullName: z.string().nullable().optional(),
   businessName: z.string(),
   categoryId: z.string().uuid(),
   category: categoryShapeSchema.optional(),
@@ -103,6 +108,7 @@ export const baseSellerResponseSchema = z.object({
   areaId: z.string().uuid(),
   status: z.nativeEnum(SellerStatus),
   address: z.string().nullable().optional(),
+  pincode: z.string().nullable().optional(),
   email: z.string().nullable().optional(),
   upiId: z.string().nullable().optional(),
   lat: z.number().nullable().optional(),

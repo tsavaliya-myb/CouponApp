@@ -39,6 +39,7 @@ _$VerifyOtpDataImpl _$$VerifyOtpDataImplFromJson(Map<String, dynamic> json) =>
       isRegistered: json['isRegistered'] as bool,
       registrationToken: json['registrationToken'] as String?,
       status: json['status'] as String?,
+      agreementStatus: json['agreementStatus'] as String?,
       accessToken: json['accessToken'] as String?,
       refreshToken: json['refreshToken'] as String?,
     );
@@ -48,6 +49,7 @@ Map<String, dynamic> _$$VerifyOtpDataImplToJson(_$VerifyOtpDataImpl instance) =>
       'isRegistered': instance.isRegistered,
       'registrationToken': instance.registrationToken,
       'status': instance.status,
+      'agreementStatus': instance.agreementStatus,
       'accessToken': instance.accessToken,
       'refreshToken': instance.refreshToken,
     };
@@ -85,14 +87,14 @@ _$SellerModelImpl _$$SellerModelImplFromJson(Map<String, dynamic> json) =>
     _$SellerModelImpl(
       id: json['id'] as String,
       phone: json['phone'] as String,
+      fullName: json['fullName'] as String?,
       businessName: json['businessName'] as String,
-      category: json['category'] is Map
-          ? (json['category'] as Map<String, dynamic>)['name'] as String? ?? ''
-          : json['category'] as String? ?? '',
+      category: json['category'] as String,
       cityId: json['cityId'] as String,
       areaId: json['areaId'] as String,
       status: json['status'] as String,
       address: json['address'] as String,
+      pincode: json['pincode'] as String?,
       email: json['email'] as String,
       upiId: json['upiId'] as String,
       lat: (json['lat'] as num).toDouble(),
@@ -103,12 +105,14 @@ Map<String, dynamic> _$$SellerModelImplToJson(_$SellerModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'phone': instance.phone,
+      'fullName': instance.fullName,
       'businessName': instance.businessName,
       'category': instance.category,
       'cityId': instance.cityId,
       'areaId': instance.areaId,
       'status': instance.status,
       'address': instance.address,
+      'pincode': instance.pincode,
       'email': instance.email,
       'upiId': instance.upiId,
       'lat': instance.lat,

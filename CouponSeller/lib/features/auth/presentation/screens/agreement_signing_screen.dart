@@ -1,3 +1,4 @@
+// lib/features/auth/presentation/screens/agreement_signing_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,8 @@ import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/di/injection.dart';
 import '../../domain/repositories/auth_repository.dart';
 
+/// The WebView screen that handles the actual Leegality signing flow.
+/// Navigated to from [AgreementIntroScreen] when the seller taps "Start Signing".
 class AgreementSigningScreen extends ConsumerStatefulWidget {
   const AgreementSigningScreen({super.key});
 
@@ -69,7 +72,7 @@ class _AgreementSigningScreenState
       final result = await repo.checkAgreementStatus();
       result.fold(
         (failure) {
-          // Ignore polling failures
+          // Ignore polling failures silently
         },
         (status) {
           if (status == 'COMPLETED') {
@@ -101,8 +104,7 @@ class _AgreementSigningScreenState
         backgroundColor: AppColors.surface,
         elevation: 0,
         centerTitle: true,
-        automaticallyImplyLeading:
-            false, // Prevent going back to bypass signing
+        automaticallyImplyLeading: false, // Prevent bypassing signing via back
       ),
       body: _buildBody(),
     );

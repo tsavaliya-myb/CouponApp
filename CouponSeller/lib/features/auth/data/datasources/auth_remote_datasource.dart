@@ -55,11 +55,13 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     final response = await _apiClient.client.post(
       '/sellers/register',
       data: {
+        "fullName": params.fullName,
         "businessName": params.businessName,
         "categoryId": params.categoryId,
         "cityId": params.cityId,
         "areaId": params.areaId,
         "address": params.address,
+        "pincode": params.pincode,
         "email": params.email,
         "upiId": params.upiId,
         "lat": params.lat,
