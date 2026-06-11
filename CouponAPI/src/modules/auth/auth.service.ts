@@ -149,7 +149,7 @@ export class AuthService {
 
     const seller = await prisma.seller.findUnique({
       where: { phone: dto.phone },
-      include: { sellerAgreement: true } as any,
+      include: { agreement: true },
     });
 
     if (!seller) {
@@ -182,7 +182,7 @@ export class AuthService {
     return {
       isRegistered: true,
       status: seller.status,
-      agreementStatus: (seller as any).sellerAgreement?.status ?? null,
+      agreementStatus: seller.agreement?.status ?? null,
       accessToken,
       refreshToken: fullRefreshToken,
     };
