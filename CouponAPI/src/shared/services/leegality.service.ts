@@ -2,8 +2,9 @@ import { prisma } from '../../config/db';
 import { AgreementStatus } from '@prisma/client';
 
 export class LeegalityService {
-  private static readonly API_URL = process.env.LEEGALITY_API_URL || '';
-  private static readonly API_KEY = process.env.LEEGALITY_API_KEY;
+  static get API_URL() { return process.env.LEEGALITY_API_URL || ''; }
+  static get API_KEY() { return process.env.LEEGALITY_API_KEY || ''; }
+  static get PROFILE_ID() { return process.env.LEEGALITY_PROFILE_ID || ''; }
 
   /**
    * Initiates the agreement signing process for a seller
@@ -36,7 +37,7 @@ export class LeegalityService {
     const cdateplus1 = `${dd1}/${mm1}/${yyyy1}`;
 
     const payload = {
-      profileId: process.env.LEEGALITY_PROFILE_ID || 'X1EXABF',
+      profileId: LeegalityService.PROFILE_ID,
       file: {
         name: `Seller Agreement - ${seller.businessName} - ${cdate}`,
         fields: [

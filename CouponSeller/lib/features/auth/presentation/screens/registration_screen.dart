@@ -58,7 +58,6 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
@@ -116,8 +115,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       const SizedBox(height: 16),
                       Consumer(
                         builder: (context, ref, child) {
-                          final categoriesAsync =
-                              ref.watch(categoriesProvider);
+                          final categoriesAsync = ref.watch(categoriesProvider);
                           return categoriesAsync.when(
                             data: (categories) => _buildDropdownField(
                               label: 'Business Category',
@@ -137,8 +135,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                               onChanged: (val) => setState(() {
                                 _selectedCategoryItem = val == null
                                     ? null
-                                    : categories.firstWhere(
-                                        (c) => c.id == val);
+                                    : categories.firstWhere((c) => c.id == val);
                               }),
                             ),
                             loading: () => const Center(

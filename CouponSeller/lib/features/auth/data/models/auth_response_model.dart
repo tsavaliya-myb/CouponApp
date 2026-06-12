@@ -75,22 +75,36 @@ class RegisterSellerData with _$RegisterSellerData {
 }
 
 @freezed
+class SellerCategoryModel with _$SellerCategoryModel {
+  const factory SellerCategoryModel({
+    required String id,
+    required String name,
+    String? slug,
+    String? iconName,
+  }) = _SellerCategoryModel;
+
+  factory SellerCategoryModel.fromJson(Map<String, dynamic> json) =>
+      _$SellerCategoryModelFromJson(json);
+}
+
+@freezed
 class SellerModel with _$SellerModel {
   const factory SellerModel({
     required String id,
     required String phone,
     String? fullName,
     required String businessName,
-    required String category,
+    required SellerCategoryModel category,
+    required String categoryId,
     required String cityId,
     required String areaId,
     required String status,
     required String address,
     String? pincode,
     required String email,
-    required String upiId,
-    required double lat,
-    required double lng,
+    String? upiId,
+    double? lat,
+    double? lng,
   }) = _SellerModel;
 
   factory SellerModel.fromJson(Map<String, dynamic> json) =>

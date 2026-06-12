@@ -165,6 +165,57 @@ openApiRegistry.registerPath({
 });
 
 openApiRegistry.registerPath({
+  method: 'post',
+  path: '/sellers/me/agreement/initiate',
+  summary: 'Initiate Leegality Agreement',
+  description: 'Initiates a Leegality agreement for the authenticated seller. Returns a signing URL.',
+  tags: ['Sellers'],
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Success',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean().default(true),
+            data: z.object({
+              signUrl: z.string(),
+              status: z.string(),
+            }),
+          }),
+        },
+      },
+    },
+    400: { description: 'Bad Request', content: { 'application/json': { schema: errorResponse } } },
+    500: { description: 'Internal Server Error', content: { 'application/json': { schema: errorResponse } } },
+  },
+});
+
+openApiRegistry.registerPath({
+  method: 'get',
+  path: '/sellers/me/agreement/status',
+  summary: 'Get Agreement Status',
+  description: 'Fetches the current Leegality agreement status for the authenticated seller.',
+  tags: ['Sellers'],
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Success',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean().default(true),
+            data: z.object({
+              status: z.string(),
+            }).nullable(),
+          }),
+        },
+      },
+    },
+  },
+});
+
+openApiRegistry.registerPath({
   method: 'get',
   path: '/sellers',
   summary: 'Find Sellers Near Me',

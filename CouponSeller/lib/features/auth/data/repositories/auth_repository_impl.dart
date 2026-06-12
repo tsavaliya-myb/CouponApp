@@ -81,16 +81,18 @@ class AuthRepositoryImpl implements AuthRepository {
         return Right(SellerEntity(
           id: seller.id,
           phone: seller.phone,
+          fullName: seller.fullName,
           businessName: seller.businessName,
-          category: seller.category,
+          category: seller.category.name,
           cityId: seller.cityId,
           areaId: seller.areaId,
           status: seller.status,
-          address: seller.address,
+          address: seller.address ?? '',
+          pincode: seller.pincode,
           email: seller.email,
-          upiId: seller.upiId,
-          lat: seller.lat,
-          lng: seller.lng,
+          upiId: seller.upiId ?? '',
+          lat: seller.lat ?? 0.0,
+          lng: seller.lng ?? 0.0,
         ));
       } else {
         return Left(ServerFailure(message: 'Failed to register seller'));
