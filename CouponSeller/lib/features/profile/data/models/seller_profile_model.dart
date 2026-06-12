@@ -20,7 +20,7 @@ class SellerProfileModel with _$SellerProfileModel {
   const factory SellerProfileModel({
     required String id,
     required String businessName,
-    required String category,
+    required SellerCategoryModel category,
     required String cityId,
     required String areaId,
     String? address,
@@ -42,6 +42,17 @@ class SellerProfileModel with _$SellerProfileModel {
 
   factory SellerProfileModel.fromJson(Map<String, dynamic> json) =>
       _$SellerProfileModelFromJson(json);
+}
+
+@freezed
+class SellerCategoryModel with _$SellerCategoryModel {
+  const factory SellerCategoryModel({
+    required String id,
+    required String name,
+  }) = _SellerCategoryModel;
+
+  factory SellerCategoryModel.fromJson(Map<String, dynamic> json) =>
+      _$SellerCategoryModelFromJson(json);
 }
 
 @freezed
@@ -85,7 +96,7 @@ extension SellerProfileModelX on SellerProfileModel {
   SellerProfileEntity toEntity() => SellerProfileEntity(
         id: id,
         businessName: businessName,
-        category: category,
+        category: category.name,
         cityId: cityId,
         areaId: areaId,
         address: address,

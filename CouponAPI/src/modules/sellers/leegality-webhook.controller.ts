@@ -4,12 +4,12 @@ import { sendSuccess } from '../../shared/utils/response';
 import crypto from 'crypto';
 import { env } from '../../config/env';
 export class LeegalityWebhookController {
-  
+
   handleWebhook = async (req: Request, res: Response): Promise<void> => {
     try {
       const payload = req.body;
-      console.log('--- LEEGALITY WEBHOOK RECEIVED ---');
-      console.log(JSON.stringify(payload, null, 2));
+      // console.log('--- LEEGALITY WEBHOOK RECEIVED ---');
+      // console.log(JSON.stringify(payload, null, 2));
 
       const documentId = payload.documentId;
       const requestData = payload.request || {};
@@ -63,13 +63,13 @@ export class LeegalityWebhookController {
             where: { leegalityDocumentId: documentId },
             data: { status: 'COMPLETED' }
           });
-          
+
           // Also update Seller status to ACTIVE if it was PENDING
           if (agreement.sellerId) {
-              await (prisma as any).seller.update({
-                  where: { id: agreement.sellerId },
-                  data: { status: 'ACTIVE' }
-              });
+            await (prisma as any).seller.update({
+              where: { id: agreement.sellerId },
+              data: { status: 'ACTIVE' }
+            });
           }
         }
       }

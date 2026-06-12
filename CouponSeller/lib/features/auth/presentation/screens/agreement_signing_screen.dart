@@ -92,19 +92,28 @@ class _AgreementSigningScreenState
   }
 
   bool _isVirtualSignLoaded = false;
+  bool _isHandlingCompletion = false;
 
   void _handleCompletion() {
+    if (_isHandlingCompletion) return;
+    _isHandlingCompletion = true;
     _pollingTimer?.cancel();
+
     if (mounted) {
-      ref.read(profileNotifierProvider.notifier).refresh().then((_) {
+      // Add a 2-second delay to ensure backend webhook database transaction is fully committed
+      Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
-          final profile = ref.read(profileNotifierProvider).value;
-          final userStatus = profile?.status ?? 'PENDING';
-          if (userStatus == 'ACTIVE') {
-            context.go('/dashboard');
-          } else {
-            context.go('/approval-pending', extra: userStatus);
-          }
+          ref.read(profileNotifierProvider.notifier).refresh().then((_) {
+            if (mounted) {
+              final profile = ref.read(profileNotifierProvider).value;
+              final userStatus = profile?.status ?? 'PENDING';
+              if (userStatus == 'ACTIVE') {
+                context.go('/dashboard');
+              } else {
+                context.go('/approval-pending', extra: userStatus);
+              }
+            }
+          });
         }
       });
     }

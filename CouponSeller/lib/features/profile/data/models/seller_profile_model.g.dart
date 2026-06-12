@@ -22,7 +22,9 @@ _$SellerProfileModelImpl _$$SellerProfileModelImplFromJson(
 ) => _$SellerProfileModelImpl(
   id: json['id'] as String,
   businessName: json['businessName'] as String,
-  category: json['category'] as String,
+  category: SellerCategoryModel.fromJson(
+    json['category'] as Map<String, dynamic>,
+  ),
   cityId: json['cityId'] as String,
   areaId: json['areaId'] as String,
   address: json['address'] as String?,
@@ -68,6 +70,17 @@ Map<String, dynamic> _$$SellerProfileModelImplToJson(
   'area': instance.area,
   'media': instance.media,
 };
+
+_$SellerCategoryModelImpl _$$SellerCategoryModelImplFromJson(
+  Map<String, dynamic> json,
+) => _$SellerCategoryModelImpl(
+  id: json['id'] as String,
+  name: json['name'] as String,
+);
+
+Map<String, dynamic> _$$SellerCategoryModelImplToJson(
+  _$SellerCategoryModelImpl instance,
+) => <String, dynamic>{'id': instance.id, 'name': instance.name};
 
 _$SellerCityModelImpl _$$SellerCityModelImplFromJson(
   Map<String, dynamic> json,
