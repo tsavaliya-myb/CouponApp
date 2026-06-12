@@ -95,6 +95,12 @@ class NotificationService {
     _log.i('[NotificationService] OneSignal user logged out');
   }
 
+  /// Add SMS (phone number) identity for the user
+  Future<void> setPhoneNumber(String phone) async {
+    OneSignal.User.addSms(phone);
+    _log.i('[NotificationService] Phone number added to OneSignal');
+  }
+
   // ---------------------------------------------------------------------------
   // Segmentation tags
   // ---------------------------------------------------------------------------

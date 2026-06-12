@@ -35,7 +35,9 @@ class VerifyOtpUsecase {
       (user) async {
         final notifService = GetIt.I<NotificationService>();
         await notifService.identifyUser(user.id);
+        await notifService.setPhoneNumber(user.phone);
         await notifService.setUserTags({
+          'phone': user.phone,
           'subscription_status': user.subscriptionStatus.toLowerCase(),
           'has_redeemed': 'false',
           'env': 'dev', // switch to 'prod' via dart-define if needed

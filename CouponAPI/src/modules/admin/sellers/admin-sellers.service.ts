@@ -40,7 +40,7 @@ export class AdminSellersService {
           category: true,
           city: { select: { name: true } },
           area: { select: { name: true } },
-          sellerAgreement: true,
+          agreement: true,
         } as any,
       }) as any,
       prisma.seller.count({ where }),
