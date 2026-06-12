@@ -7,6 +7,9 @@ export class LeegalityWebhookController {
   handleWebhook = async (req: Request, res: Response): Promise<void> => {
     try {
       const payload = req.body;
+      console.log('--- LEEGALITY WEBHOOK RECEIVED ---');
+      console.log(JSON.stringify(payload, null, 2));
+
       const documentId = payload.documentId;
       const eventName = payload.event; // Typically 'document_completed', 'invitee_signed', etc.
 

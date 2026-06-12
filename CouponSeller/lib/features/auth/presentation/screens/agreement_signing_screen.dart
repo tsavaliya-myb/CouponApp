@@ -43,7 +43,7 @@ class _AgreementSigningScreenState
           },
           onNavigationRequest: (NavigationRequest request) {
             if (request.url.startsWith(
-              'https://coupocode360.com/leegality/success/1',
+              'https://couponcode360.com/leegality/success/1',
             )) {
               // First sign completed, navigate to virtual sign if available
               if (_virtualSignUrl != null) {
@@ -52,7 +52,7 @@ class _AgreementSigningScreenState
               }
               return NavigationDecision.prevent;
             } else if (request.url.startsWith(
-              'https://coupocode360.com/leegality/success/2',
+              'https://couponcode360.com/leegality/success/2',
             )) {
               // Second sign completed, redirect to success/dashboard
               _handleCompletion();
@@ -86,7 +86,7 @@ class _AgreementSigningScreenState
         if (signUrl != null) {
           _controller.loadRequest(Uri.parse(signUrl));
         }
-        _startPolling();
+        // _startPolling();
       },
     );
   }
