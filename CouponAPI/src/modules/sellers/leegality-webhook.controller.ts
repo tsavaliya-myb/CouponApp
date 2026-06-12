@@ -12,7 +12,9 @@ export class LeegalityWebhookController {
       console.log(JSON.stringify(payload, null, 2));
 
       const documentId = payload.documentId;
-      const eventName = payload.event; // Typically 'document_completed', 'invitee_signed', etc.
+      const requestData = payload.request || {};
+      const signType = requestData.signType;
+      const isSigned = requestData.signed === true;
       const providedMac = payload.mac;
 
       if (!documentId) {
@@ -47,31 +49,28 @@ export class LeegalityWebhookController {
         return;
       }
 
-      // Handle events
-      if (eventName === 'invitee_signed') {
-        // One of the signers has signed
-        await (prisma as any).sellerAgreement.update({
-          where: { leegalityDocumentId: documentId },
-          data: { status: 'AADHAAR_SIGNED' } // or intermediate status
-        });
-      } else if (eventName === 'document_completed') {
-        // Both have signed
-        const signedDocUrl = payload.documentUrl || ''; // Based on actual Leegality spec
-        
-        await (prisma as any).sellerAgreement.update({
-          where: { leegalityDocumentId: documentId },
-          data: { 
-            status: 'COMPLETED',
-            signedDocumentUrl: signedDocUrl
+      // Handle events based on signType
+      if (isSigned) {
+        if (signType === 'AADHAAR') {
+          // First signer (Aadhaar) has signed
+          await (prisma as any).sellerAgreement.update({
+            where: { leegalityDocumentId: documentId },
+            data: { status: 'AADHAAR_SIGNED' }
+          });
+        } else if (signType === 'VIRTUAL_SIGN') {
+          // Second signer (Virtual) has signed -> Document is completed
+          await (prisma as any).sellerAgreement.update({
+            where: { leegalityDocumentId: documentId },
+            data: { status: 'COMPLETED' }
+          });
+          
+          // Also update Seller status to ACTIVE if it was PENDING
+          if (agreement.sellerId) {
+              await (prisma as any).seller.update({
+                  where: { id: agreement.sellerId },
+                  data: { status: 'ACTIVE' }
+              });
           }
-        });
-        
-        // Also update Seller status to ACTIVE if it was PENDING
-        if (agreement.sellerId) {
-            await (prisma as any).seller.update({
-                where: { id: agreement.sellerId },
-                data: { status: 'ACTIVE' } // Example: mark as active or leave it for manual admin approval as per plan
-            });
         }
       }
 
