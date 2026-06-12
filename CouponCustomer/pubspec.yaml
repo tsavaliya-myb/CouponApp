@@ -2,7 +2,7 @@ name: couponcode
 description: "Customer App for the CouponApp platform — ₹1000 subscription, coupon book, QR redemption."
 publish_to: 'none'
 
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ^3.5.0
