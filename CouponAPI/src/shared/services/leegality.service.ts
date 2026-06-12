@@ -101,18 +101,21 @@ export class LeegalityService {
       const responseData = await response.json() as any;
       const { data } = responseData;
 
+      // Extract signUrl from the first invitee
+      const signUrl = data.invitees?.[0]?.signUrl || '';
+
       // Upsert the SellerAgreement record
       const agreement = await (prisma as any).sellerAgreement.upsert({
         where: { sellerId },
         update: {
           leegalityDocumentId: data.documentId,
-          signUrl: data.signUrl,
+          signUrl: signUrl,
           status: AgreementStatus.INITIATED,
         },
         create: {
           sellerId,
           leegalityDocumentId: data.documentId,
-          signUrl: data.signUrl,
+          signUrl: signUrl,
           status: AgreementStatus.INITIATED,
         },
       });
