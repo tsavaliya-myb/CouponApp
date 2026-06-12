@@ -562,6 +562,7 @@ mixin _$VerifyOtpData {
   bool get isRegistered => throw _privateConstructorUsedError;
   String? get registrationToken => throw _privateConstructorUsedError;
   String? get status => throw _privateConstructorUsedError;
+  String? get agreementStatus => throw _privateConstructorUsedError;
   String? get accessToken => throw _privateConstructorUsedError;
   String? get refreshToken => throw _privateConstructorUsedError;
 
@@ -586,6 +587,7 @@ abstract class $VerifyOtpDataCopyWith<$Res> {
     bool isRegistered,
     String? registrationToken,
     String? status,
+    String? agreementStatus,
     String? accessToken,
     String? refreshToken,
   });
@@ -609,6 +611,7 @@ class _$VerifyOtpDataCopyWithImpl<$Res, $Val extends VerifyOtpData>
     Object? isRegistered = null,
     Object? registrationToken = freezed,
     Object? status = freezed,
+    Object? agreementStatus = freezed,
     Object? accessToken = freezed,
     Object? refreshToken = freezed,
   }) {
@@ -625,6 +628,10 @@ class _$VerifyOtpDataCopyWithImpl<$Res, $Val extends VerifyOtpData>
             status: freezed == status
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            agreementStatus: freezed == agreementStatus
+                ? _value.agreementStatus
+                : agreementStatus // ignore: cast_nullable_to_non_nullable
                       as String?,
             accessToken: freezed == accessToken
                 ? _value.accessToken
@@ -653,6 +660,7 @@ abstract class _$$VerifyOtpDataImplCopyWith<$Res>
     bool isRegistered,
     String? registrationToken,
     String? status,
+    String? agreementStatus,
     String? accessToken,
     String? refreshToken,
   });
@@ -675,6 +683,7 @@ class __$$VerifyOtpDataImplCopyWithImpl<$Res>
     Object? isRegistered = null,
     Object? registrationToken = freezed,
     Object? status = freezed,
+    Object? agreementStatus = freezed,
     Object? accessToken = freezed,
     Object? refreshToken = freezed,
   }) {
@@ -691,6 +700,10 @@ class __$$VerifyOtpDataImplCopyWithImpl<$Res>
         status: freezed == status
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        agreementStatus: freezed == agreementStatus
+            ? _value.agreementStatus
+            : agreementStatus // ignore: cast_nullable_to_non_nullable
                   as String?,
         accessToken: freezed == accessToken
             ? _value.accessToken
@@ -712,6 +725,7 @@ class _$VerifyOtpDataImpl implements _VerifyOtpData {
     required this.isRegistered,
     this.registrationToken,
     this.status,
+    this.agreementStatus,
     this.accessToken,
     this.refreshToken,
   });
@@ -726,13 +740,15 @@ class _$VerifyOtpDataImpl implements _VerifyOtpData {
   @override
   final String? status;
   @override
+  final String? agreementStatus;
+  @override
   final String? accessToken;
   @override
   final String? refreshToken;
 
   @override
   String toString() {
-    return 'VerifyOtpData(isRegistered: $isRegistered, registrationToken: $registrationToken, status: $status, accessToken: $accessToken, refreshToken: $refreshToken)';
+    return 'VerifyOtpData(isRegistered: $isRegistered, registrationToken: $registrationToken, status: $status, agreementStatus: $agreementStatus, accessToken: $accessToken, refreshToken: $refreshToken)';
   }
 
   @override
@@ -745,6 +761,8 @@ class _$VerifyOtpDataImpl implements _VerifyOtpData {
             (identical(other.registrationToken, registrationToken) ||
                 other.registrationToken == registrationToken) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.agreementStatus, agreementStatus) ||
+                other.agreementStatus == agreementStatus) &&
             (identical(other.accessToken, accessToken) ||
                 other.accessToken == accessToken) &&
             (identical(other.refreshToken, refreshToken) ||
@@ -758,6 +776,7 @@ class _$VerifyOtpDataImpl implements _VerifyOtpData {
     isRegistered,
     registrationToken,
     status,
+    agreementStatus,
     accessToken,
     refreshToken,
   );
@@ -781,6 +800,7 @@ abstract class _VerifyOtpData implements VerifyOtpData {
     required final bool isRegistered,
     final String? registrationToken,
     final String? status,
+    final String? agreementStatus,
     final String? accessToken,
     final String? refreshToken,
   }) = _$VerifyOtpDataImpl;
@@ -794,6 +814,8 @@ abstract class _VerifyOtpData implements VerifyOtpData {
   String? get registrationToken;
   @override
   String? get status;
+  @override
+  String? get agreementStatus;
   @override
   String? get accessToken;
   @override
@@ -1256,6 +1278,223 @@ abstract class _RegisterSellerData implements RegisterSellerData {
       throw _privateConstructorUsedError;
 }
 
+SellerCategoryModel _$SellerCategoryModelFromJson(Map<String, dynamic> json) {
+  return _SellerCategoryModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SellerCategoryModel {
+  String get id => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String? get slug => throw _privateConstructorUsedError;
+  String? get iconName => throw _privateConstructorUsedError;
+
+  /// Serializes this SellerCategoryModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of SellerCategoryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SellerCategoryModelCopyWith<SellerCategoryModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SellerCategoryModelCopyWith<$Res> {
+  factory $SellerCategoryModelCopyWith(
+    SellerCategoryModel value,
+    $Res Function(SellerCategoryModel) then,
+  ) = _$SellerCategoryModelCopyWithImpl<$Res, SellerCategoryModel>;
+  @useResult
+  $Res call({String id, String name, String? slug, String? iconName});
+}
+
+/// @nodoc
+class _$SellerCategoryModelCopyWithImpl<$Res, $Val extends SellerCategoryModel>
+    implements $SellerCategoryModelCopyWith<$Res> {
+  _$SellerCategoryModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SellerCategoryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? slug = freezed,
+    Object? iconName = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            slug: freezed == slug
+                ? _value.slug
+                : slug // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            iconName: freezed == iconName
+                ? _value.iconName
+                : iconName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$SellerCategoryModelImplCopyWith<$Res>
+    implements $SellerCategoryModelCopyWith<$Res> {
+  factory _$$SellerCategoryModelImplCopyWith(
+    _$SellerCategoryModelImpl value,
+    $Res Function(_$SellerCategoryModelImpl) then,
+  ) = __$$SellerCategoryModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String id, String name, String? slug, String? iconName});
+}
+
+/// @nodoc
+class __$$SellerCategoryModelImplCopyWithImpl<$Res>
+    extends _$SellerCategoryModelCopyWithImpl<$Res, _$SellerCategoryModelImpl>
+    implements _$$SellerCategoryModelImplCopyWith<$Res> {
+  __$$SellerCategoryModelImplCopyWithImpl(
+    _$SellerCategoryModelImpl _value,
+    $Res Function(_$SellerCategoryModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of SellerCategoryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? slug = freezed,
+    Object? iconName = freezed,
+  }) {
+    return _then(
+      _$SellerCategoryModelImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        slug: freezed == slug
+            ? _value.slug
+            : slug // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        iconName: freezed == iconName
+            ? _value.iconName
+            : iconName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SellerCategoryModelImpl implements _SellerCategoryModel {
+  const _$SellerCategoryModelImpl({
+    required this.id,
+    required this.name,
+    this.slug,
+    this.iconName,
+  });
+
+  factory _$SellerCategoryModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SellerCategoryModelImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String name;
+  @override
+  final String? slug;
+  @override
+  final String? iconName;
+
+  @override
+  String toString() {
+    return 'SellerCategoryModel(id: $id, name: $name, slug: $slug, iconName: $iconName)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SellerCategoryModelImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.slug, slug) || other.slug == slug) &&
+            (identical(other.iconName, iconName) ||
+                other.iconName == iconName));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, name, slug, iconName);
+
+  /// Create a copy of SellerCategoryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SellerCategoryModelImplCopyWith<_$SellerCategoryModelImpl> get copyWith =>
+      __$$SellerCategoryModelImplCopyWithImpl<_$SellerCategoryModelImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SellerCategoryModelImplToJson(this);
+  }
+}
+
+abstract class _SellerCategoryModel implements SellerCategoryModel {
+  const factory _SellerCategoryModel({
+    required final String id,
+    required final String name,
+    final String? slug,
+    final String? iconName,
+  }) = _$SellerCategoryModelImpl;
+
+  factory _SellerCategoryModel.fromJson(Map<String, dynamic> json) =
+      _$SellerCategoryModelImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get name;
+  @override
+  String? get slug;
+  @override
+  String? get iconName;
+
+  /// Create a copy of SellerCategoryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SellerCategoryModelImplCopyWith<_$SellerCategoryModelImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 SellerModel _$SellerModelFromJson(Map<String, dynamic> json) {
   return _SellerModel.fromJson(json);
 }
@@ -1264,16 +1503,19 @@ SellerModel _$SellerModelFromJson(Map<String, dynamic> json) {
 mixin _$SellerModel {
   String get id => throw _privateConstructorUsedError;
   String get phone => throw _privateConstructorUsedError;
+  String? get fullName => throw _privateConstructorUsedError;
   String get businessName => throw _privateConstructorUsedError;
-  String get category => throw _privateConstructorUsedError;
+  SellerCategoryModel get category => throw _privateConstructorUsedError;
+  String get categoryId => throw _privateConstructorUsedError;
   String get cityId => throw _privateConstructorUsedError;
   String get areaId => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
+  String? get pincode => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
-  String get upiId => throw _privateConstructorUsedError;
-  double get lat => throw _privateConstructorUsedError;
-  double get lng => throw _privateConstructorUsedError;
+  String? get upiId => throw _privateConstructorUsedError;
+  double? get lat => throw _privateConstructorUsedError;
+  double? get lng => throw _privateConstructorUsedError;
 
   /// Serializes this SellerModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1295,17 +1537,22 @@ abstract class $SellerModelCopyWith<$Res> {
   $Res call({
     String id,
     String phone,
+    String? fullName,
     String businessName,
-    String category,
+    SellerCategoryModel category,
+    String categoryId,
     String cityId,
     String areaId,
     String status,
     String address,
+    String? pincode,
     String email,
-    String upiId,
-    double lat,
-    double lng,
+    String? upiId,
+    double? lat,
+    double? lng,
   });
+
+  $SellerCategoryModelCopyWith<$Res> get category;
 }
 
 /// @nodoc
@@ -1325,16 +1572,19 @@ class _$SellerModelCopyWithImpl<$Res, $Val extends SellerModel>
   $Res call({
     Object? id = null,
     Object? phone = null,
+    Object? fullName = freezed,
     Object? businessName = null,
     Object? category = null,
+    Object? categoryId = null,
     Object? cityId = null,
     Object? areaId = null,
     Object? status = null,
     Object? address = null,
+    Object? pincode = freezed,
     Object? email = null,
-    Object? upiId = null,
-    Object? lat = null,
-    Object? lng = null,
+    Object? upiId = freezed,
+    Object? lat = freezed,
+    Object? lng = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -1346,6 +1596,10 @@ class _$SellerModelCopyWithImpl<$Res, $Val extends SellerModel>
                 ? _value.phone
                 : phone // ignore: cast_nullable_to_non_nullable
                       as String,
+            fullName: freezed == fullName
+                ? _value.fullName
+                : fullName // ignore: cast_nullable_to_non_nullable
+                      as String?,
             businessName: null == businessName
                 ? _value.businessName
                 : businessName // ignore: cast_nullable_to_non_nullable
@@ -1353,6 +1607,10 @@ class _$SellerModelCopyWithImpl<$Res, $Val extends SellerModel>
             category: null == category
                 ? _value.category
                 : category // ignore: cast_nullable_to_non_nullable
+                      as SellerCategoryModel,
+            categoryId: null == categoryId
+                ? _value.categoryId
+                : categoryId // ignore: cast_nullable_to_non_nullable
                       as String,
             cityId: null == cityId
                 ? _value.cityId
@@ -1370,25 +1628,39 @@ class _$SellerModelCopyWithImpl<$Res, $Val extends SellerModel>
                 ? _value.address
                 : address // ignore: cast_nullable_to_non_nullable
                       as String,
+            pincode: freezed == pincode
+                ? _value.pincode
+                : pincode // ignore: cast_nullable_to_non_nullable
+                      as String?,
             email: null == email
                 ? _value.email
                 : email // ignore: cast_nullable_to_non_nullable
                       as String,
-            upiId: null == upiId
+            upiId: freezed == upiId
                 ? _value.upiId
                 : upiId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            lat: null == lat
+                      as String?,
+            lat: freezed == lat
                 ? _value.lat
                 : lat // ignore: cast_nullable_to_non_nullable
-                      as double,
-            lng: null == lng
+                      as double?,
+            lng: freezed == lng
                 ? _value.lng
                 : lng // ignore: cast_nullable_to_non_nullable
-                      as double,
+                      as double?,
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of SellerModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SellerCategoryModelCopyWith<$Res> get category {
+    return $SellerCategoryModelCopyWith<$Res>(_value.category, (value) {
+      return _then(_value.copyWith(category: value) as $Val);
+    });
   }
 }
 
@@ -1404,17 +1676,23 @@ abstract class _$$SellerModelImplCopyWith<$Res>
   $Res call({
     String id,
     String phone,
+    String? fullName,
     String businessName,
-    String category,
+    SellerCategoryModel category,
+    String categoryId,
     String cityId,
     String areaId,
     String status,
     String address,
+    String? pincode,
     String email,
-    String upiId,
-    double lat,
-    double lng,
+    String? upiId,
+    double? lat,
+    double? lng,
   });
+
+  @override
+  $SellerCategoryModelCopyWith<$Res> get category;
 }
 
 /// @nodoc
@@ -1433,16 +1711,19 @@ class __$$SellerModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? phone = null,
+    Object? fullName = freezed,
     Object? businessName = null,
     Object? category = null,
+    Object? categoryId = null,
     Object? cityId = null,
     Object? areaId = null,
     Object? status = null,
     Object? address = null,
+    Object? pincode = freezed,
     Object? email = null,
-    Object? upiId = null,
-    Object? lat = null,
-    Object? lng = null,
+    Object? upiId = freezed,
+    Object? lat = freezed,
+    Object? lng = freezed,
   }) {
     return _then(
       _$SellerModelImpl(
@@ -1454,6 +1735,10 @@ class __$$SellerModelImplCopyWithImpl<$Res>
             ? _value.phone
             : phone // ignore: cast_nullable_to_non_nullable
                   as String,
+        fullName: freezed == fullName
+            ? _value.fullName
+            : fullName // ignore: cast_nullable_to_non_nullable
+                  as String?,
         businessName: null == businessName
             ? _value.businessName
             : businessName // ignore: cast_nullable_to_non_nullable
@@ -1461,6 +1746,10 @@ class __$$SellerModelImplCopyWithImpl<$Res>
         category: null == category
             ? _value.category
             : category // ignore: cast_nullable_to_non_nullable
+                  as SellerCategoryModel,
+        categoryId: null == categoryId
+            ? _value.categoryId
+            : categoryId // ignore: cast_nullable_to_non_nullable
                   as String,
         cityId: null == cityId
             ? _value.cityId
@@ -1478,22 +1767,26 @@ class __$$SellerModelImplCopyWithImpl<$Res>
             ? _value.address
             : address // ignore: cast_nullable_to_non_nullable
                   as String,
+        pincode: freezed == pincode
+            ? _value.pincode
+            : pincode // ignore: cast_nullable_to_non_nullable
+                  as String?,
         email: null == email
             ? _value.email
             : email // ignore: cast_nullable_to_non_nullable
                   as String,
-        upiId: null == upiId
+        upiId: freezed == upiId
             ? _value.upiId
             : upiId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        lat: null == lat
+                  as String?,
+        lat: freezed == lat
             ? _value.lat
             : lat // ignore: cast_nullable_to_non_nullable
-                  as double,
-        lng: null == lng
+                  as double?,
+        lng: freezed == lng
             ? _value.lng
             : lng // ignore: cast_nullable_to_non_nullable
-                  as double,
+                  as double?,
       ),
     );
   }
@@ -1505,16 +1798,19 @@ class _$SellerModelImpl implements _SellerModel {
   const _$SellerModelImpl({
     required this.id,
     required this.phone,
+    this.fullName,
     required this.businessName,
     required this.category,
+    required this.categoryId,
     required this.cityId,
     required this.areaId,
     required this.status,
     required this.address,
+    this.pincode,
     required this.email,
-    required this.upiId,
-    required this.lat,
-    required this.lng,
+    this.upiId,
+    this.lat,
+    this.lng,
   });
 
   factory _$SellerModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -1525,9 +1821,13 @@ class _$SellerModelImpl implements _SellerModel {
   @override
   final String phone;
   @override
+  final String? fullName;
+  @override
   final String businessName;
   @override
-  final String category;
+  final SellerCategoryModel category;
+  @override
+  final String categoryId;
   @override
   final String cityId;
   @override
@@ -1537,17 +1837,19 @@ class _$SellerModelImpl implements _SellerModel {
   @override
   final String address;
   @override
+  final String? pincode;
+  @override
   final String email;
   @override
-  final String upiId;
+  final String? upiId;
   @override
-  final double lat;
+  final double? lat;
   @override
-  final double lng;
+  final double? lng;
 
   @override
   String toString() {
-    return 'SellerModel(id: $id, phone: $phone, businessName: $businessName, category: $category, cityId: $cityId, areaId: $areaId, status: $status, address: $address, email: $email, upiId: $upiId, lat: $lat, lng: $lng)';
+    return 'SellerModel(id: $id, phone: $phone, fullName: $fullName, businessName: $businessName, category: $category, categoryId: $categoryId, cityId: $cityId, areaId: $areaId, status: $status, address: $address, pincode: $pincode, email: $email, upiId: $upiId, lat: $lat, lng: $lng)';
   }
 
   @override
@@ -1557,14 +1859,19 @@ class _$SellerModelImpl implements _SellerModel {
             other is _$SellerModelImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.fullName, fullName) ||
+                other.fullName == fullName) &&
             (identical(other.businessName, businessName) ||
                 other.businessName == businessName) &&
             (identical(other.category, category) ||
                 other.category == category) &&
+            (identical(other.categoryId, categoryId) ||
+                other.categoryId == categoryId) &&
             (identical(other.cityId, cityId) || other.cityId == cityId) &&
             (identical(other.areaId, areaId) || other.areaId == areaId) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.address, address) || other.address == address) &&
+            (identical(other.pincode, pincode) || other.pincode == pincode) &&
             (identical(other.email, email) || other.email == email) &&
             (identical(other.upiId, upiId) || other.upiId == upiId) &&
             (identical(other.lat, lat) || other.lat == lat) &&
@@ -1577,12 +1884,15 @@ class _$SellerModelImpl implements _SellerModel {
     runtimeType,
     id,
     phone,
+    fullName,
     businessName,
     category,
+    categoryId,
     cityId,
     areaId,
     status,
     address,
+    pincode,
     email,
     upiId,
     lat,
@@ -1607,16 +1917,19 @@ abstract class _SellerModel implements SellerModel {
   const factory _SellerModel({
     required final String id,
     required final String phone,
+    final String? fullName,
     required final String businessName,
-    required final String category,
+    required final SellerCategoryModel category,
+    required final String categoryId,
     required final String cityId,
     required final String areaId,
     required final String status,
     required final String address,
+    final String? pincode,
     required final String email,
-    required final String upiId,
-    required final double lat,
-    required final double lng,
+    final String? upiId,
+    final double? lat,
+    final double? lng,
   }) = _$SellerModelImpl;
 
   factory _SellerModel.fromJson(Map<String, dynamic> json) =
@@ -1627,9 +1940,13 @@ abstract class _SellerModel implements SellerModel {
   @override
   String get phone;
   @override
+  String? get fullName;
+  @override
   String get businessName;
   @override
-  String get category;
+  SellerCategoryModel get category;
+  @override
+  String get categoryId;
   @override
   String get cityId;
   @override
@@ -1639,13 +1956,15 @@ abstract class _SellerModel implements SellerModel {
   @override
   String get address;
   @override
+  String? get pincode;
+  @override
   String get email;
   @override
-  String get upiId;
+  String? get upiId;
   @override
-  double get lat;
+  double? get lat;
   @override
-  double get lng;
+  double? get lng;
 
   /// Create a copy of SellerModel
   /// with the given fields replaced by the non-null parameter values.

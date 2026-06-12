@@ -37,7 +37,7 @@ class SellerDetailScreen extends ConsumerWidget {
   const SellerDetailScreen({super.key, required this.seller});
 
   Color get _accent => CategoryUtils.getBaseColor(seller.category);
-  String get _emoji => CategoryUtils.getEmoji(seller.category);
+  IconData get _icon => CategoryUtils.getIcon(seller.category);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -99,7 +99,7 @@ class SellerDetailScreen extends ConsumerWidget {
                     photoUrls: photoUrls,
                     accent: _accent,
                   )
-                : _SellerMediaPlaceholder(emoji: _emoji, accent: _accent),
+                : _SellerMediaPlaceholder(iconData: _icon, accent: _accent),
           ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
@@ -107,7 +107,7 @@ class SellerDetailScreen extends ConsumerWidget {
           // ── Seller Info Card ────────────────────────────────────────────
           SliverToBoxAdapter(
             child:
-                _SellerInfoCard(seller: seller, accent: _accent, emoji: _emoji),
+                _SellerInfoCard(seller: seller, accent: _accent, iconData: _icon),
           ),
 
           // ── Active Coupons label ───────────────────────────────────────
@@ -478,9 +478,9 @@ class _SliderVideoPageState extends State<_SliderVideoPage>
 // ─── Placeholder when no photos ──────────────────────────────────────────────
 
 class _SellerMediaPlaceholder extends StatelessWidget {
-  final String emoji;
+  final IconData iconData;
   final Color accent;
-  const _SellerMediaPlaceholder({required this.emoji, required this.accent});
+  const _SellerMediaPlaceholder({required this.iconData, required this.accent});
 
   @override
   Widget build(BuildContext context) {
@@ -499,7 +499,7 @@ class _SellerMediaPlaceholder extends StatelessWidget {
         ),
       ),
       child: Center(
-        child: Text(emoji, style: const TextStyle(fontSize: 72)),
+        child: Icon(iconData, size: 72, color: accent),
       ),
     );
   }
@@ -510,12 +510,12 @@ class _SellerMediaPlaceholder extends StatelessWidget {
 class _SellerInfoCard extends StatelessWidget {
   final NearbySellerEntity seller;
   final Color accent;
-  final String emoji;
+  final IconData iconData;
 
   const _SellerInfoCard({
     required this.seller,
     required this.accent,
-    required this.emoji,
+    required this.iconData,
   });
 
   @override
@@ -541,7 +541,7 @@ class _SellerInfoCard extends StatelessWidget {
             // ── Logo centred ──────────────────────────────────────────
             _SellerAvatar(
               logoUrl: seller.logoUrl ?? seller.media?.logoUrl,
-              emoji: emoji,
+              iconData: iconData,
               accent: accent,
             ),
             const SizedBox(height: 14),
@@ -563,7 +563,7 @@ class _SellerInfoCard extends StatelessWidget {
                   child: _InfoTile(
                     icon: Icons.category_rounded,
                     label: 'Category',
-                    value: seller.category,
+                    value: seller.category.name,
                     accent: accent,
                   ),
                 ),
@@ -597,11 +597,11 @@ class _SellerInfoCard extends StatelessWidget {
 
 class _SellerAvatar extends StatelessWidget {
   final String? logoUrl;
-  final String emoji;
+  final IconData iconData;
   final Color accent;
 
   const _SellerAvatar(
-      {required this.logoUrl, required this.emoji, required this.accent});
+      {required this.logoUrl, required this.iconData, required this.accent});
 
   @override
   Widget build(BuildContext context) {
@@ -623,15 +623,15 @@ class _SellerAvatar extends StatelessWidget {
                 color: AppColors.dsSurfaceContainerLow,
                 child: const Center(
                     child: CircularProgressIndicator(strokeWidth: 2))),
-            errorWidget: (_, __, ___) => _buildEmoji(),
+            errorWidget: (_, __, ___) => _buildIcon(),
           ),
         ),
       );
     }
-    return _buildEmoji();
+    return _buildIcon();
   }
 
-  Widget _buildEmoji() {
+  Widget _buildIcon() {
     return Container(
       width: 72,
       height: 72,
@@ -644,7 +644,7 @@ class _SellerAvatar extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: accent.withOpacity(0.15), width: 1),
       ),
-      child: Center(child: Text(emoji, style: const TextStyle(fontSize: 30))),
+      child: Center(child: Icon(iconData, size: 30, color: accent)),
     );
   }
 }

@@ -48,4 +48,26 @@ export class PaymentController {
       log.error('webhook: unhandled error in async processing', { txnid, mihpayid, err });
     });
   };
+
+  // POST /api/v1/payments/cancel-autopay
+  cancelAutopay = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      await paymentService.cancelAutopay(req.user!.userId);
+      sendSuccess(res, { message: 'Autopay successfully cancelled' });
+    } catch (err) {
+      log.error('cancelAutopay: unhandled error', { userId: req.user?.userId, err });
+      next(err);
+    }
+  };
+
+  // GET /api/v1/payments/history
+  getPaymentHistory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await paymentService.getPaymentHistory(req.user!.userId);
+      sendSuccess(res, result);
+    } catch (err) {
+      log.error('getPaymentHistory: unhandled error', { userId: req.user?.userId, err });
+      next(err);
+    }
+  };
 }

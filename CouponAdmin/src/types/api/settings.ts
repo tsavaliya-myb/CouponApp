@@ -3,6 +3,9 @@ export interface SystemSettings {
   book_validity_days: string;
   coins_per_subscription: string;
   max_coins_per_transaction: string;
+  referrer_coins: string;
+  referred_user_coins: string;
+  max_referrals: string;
   expiry_reminder_7d_title: string;
   expiry_reminder_7d_body: string;
   expiry_reminder_2d_title: string;

@@ -24,6 +24,16 @@ router.get(
   controller.getProfile
 );
 
+router.get(
+  '/leaderboard',
+  controller.getLeaderboard
+);
+
+router.get(
+  '/me/referrals',
+  controller.getReferralStats
+);
+
 router.patch(
   '/me',
   validate(updateUserSchema),

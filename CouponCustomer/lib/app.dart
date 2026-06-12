@@ -14,6 +14,7 @@ import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/otp_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/profile/presentation/screens/account_settings_screen.dart';
+import 'features/profile/presentation/screens/refer_and_earn_screen.dart';
 import 'features/profile/presentation/screens/support_screen.dart';
 import 'features/profile/presentation/screens/about_us_screen.dart';
 import 'features/sellers/presentation/screens/sellers_screen.dart';
@@ -24,6 +25,8 @@ import 'features/wallet/presentation/screens/wallet_ledger_screen.dart';
 import 'features/home/presentation/screens/search_screen.dart';
 import 'features/subscription/presentation/screens/purchase_screen.dart';
 import 'features/subscription/presentation/screens/subscription_success_screen.dart';
+import 'features/subscription/presentation/my_subscriptions_screen.dart';
+import 'features/profile/presentation/screens/leaderboard_screen.dart';
 import 'services/notification_service.dart';
 
 // ---------------------------------------------------------------------------
@@ -148,6 +151,11 @@ final _router = GoRouter(
       builder: (_, __) => const AccountSettingsScreen(),
     ),
     GoRoute(
+      path: '/refer-and-earn',
+      name: 'refer-and-earn',
+      builder: (_, __) => const ReferAndEarnScreen(),
+    ),
+    GoRoute(
       path: '/support',
       name: 'support',
       builder: (_, __) => const SupportScreen(),
@@ -172,6 +180,16 @@ final _router = GoRouter(
       path: '/subscription-success',
       name: 'subscription-success',
       builder: (_, __) => const SubscriptionSuccessScreen(),
+    ),
+    GoRoute(
+      path: '/my-subscriptions',
+      name: 'my-subscriptions',
+      builder: (_, __) => const MySubscriptionsScreen(),
+    ),
+    GoRoute(
+      path: '/leaderboard',
+      name: 'leaderboard',
+      builder: (_, __) => const LeaderboardScreen(),
     ),
   ],
 );

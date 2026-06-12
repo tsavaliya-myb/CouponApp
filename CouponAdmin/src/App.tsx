@@ -13,6 +13,7 @@ import WalletPage from "@/pages/admin/Wallet";
 import AnalyticsPage from "@/pages/admin/Analytics";
 import NotificationsPage from "@/pages/admin/Notifications";
 import CitiesAreasPage from "@/pages/admin/CitiesAreas";
+import CategoriesPage from "@/pages/admin/Categories";
 import SettingsPage from "@/pages/admin/Settings";
 import BannerAdsPage from "@/pages/admin/BannerAds";
 import NotFound from "./pages/NotFound.tsx";
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
                 <Route path="cities" element={<CitiesAreasPage />} />
+                <Route path="categories" element={<CategoriesPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="ads" element={<BannerAdsPage />} />
               </Route>

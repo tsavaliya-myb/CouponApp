@@ -15,6 +15,7 @@ export const updateUserSchema = z.object({
   email: z.string().email('Invalid email address').optional(),
   cityId: z.string().uuid('Invalid City ID').optional(),
   areaId: z.string().uuid('Invalid Area ID').optional(),
+  referralCode: z.string().optional(),
 });
 
 export type RegisterUserDto = z.infer<typeof registerUserSchema>;

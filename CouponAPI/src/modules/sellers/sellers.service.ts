@@ -47,11 +47,13 @@ export class SellersService {
     const seller = await prisma.seller.create({
       data: {
         phone,
+        fullName: dto.fullName,
         businessName: dto.businessName,
         categoryId: dto.categoryId,
         cityId: dto.cityId,
         areaId: dto.areaId,
         address: dto.address,
+        pincode: dto.pincode,
         email: dto.email,
         upiId: dto.upiId,
         latitude: dto.lat,
@@ -79,12 +81,14 @@ export class SellersService {
       seller: {
         id: seller.id,
         phone: seller.phone,
+        fullName: (seller as any).fullName,
         businessName: seller.businessName,
         categoryId: (seller as any).categoryId,
         category: (seller as any).category,
         cityId: seller.cityId,
         areaId: seller.areaId,
         address: seller.address,
+        pincode: (seller as any).pincode,
         email: seller.email,
         upiId: seller.upiId,
         lat: seller.latitude,

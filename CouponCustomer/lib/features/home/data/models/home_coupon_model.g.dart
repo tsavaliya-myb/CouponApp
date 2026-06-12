@@ -23,9 +23,7 @@ _$CouponSellerModelImpl _$$CouponSellerModelImplFromJson(
     _$CouponSellerModelImpl(
       id: json['id'] as String,
       businessName: json['businessName'] as String,
-      category: json['category'] is Map
-          ? (json['category'] as Map<String, dynamic>)['slug'] as String? ?? ''
-          : json['category'] as String? ?? '',
+      category: CategoryItem.fromJson(json['category'] as Map<String, dynamic>),
       area: SellerAreaModel.fromJson(json['area'] as Map<String, dynamic>),
     );
 

@@ -16,6 +16,7 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
       areaId: json['areaId'] as String?,
       status: json['status'] as String? ?? 'ACTIVE',
       subscriptionStatus: json['subscriptionStatus'] as String? ?? 'NONE',
+      referralCode: json['referralCode'] as String?,
       onesignalPlayerId: json['onesignalPlayerId'] as String?,
       coinBalance: (json['coinBalance'] as num?)?.toInt() ?? 0,
       createdAt: json['createdAt'] == null
@@ -42,6 +43,7 @@ Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
       'areaId': instance.areaId,
       'status': instance.status,
       'subscriptionStatus': instance.subscriptionStatus,
+      'referralCode': instance.referralCode,
       'onesignalPlayerId': instance.onesignalPlayerId,
       'coinBalance': instance.coinBalance,
       'createdAt': instance.createdAt?.toIso8601String(),

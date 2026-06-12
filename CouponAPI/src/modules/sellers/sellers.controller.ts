@@ -4,6 +4,7 @@ import { sendSuccess, sendCreated } from '../../shared/utils/response';
 import { verifyRegistrationToken } from '../../shared/utils/jwt';
 import { UnauthorizedError } from '../../shared/utils/AppError';
 import type { FindSellersDto, GetSellersByCityCategoryDto } from './sellers.validator';
+import { LeegalityService } from '../../shared/services/leegality.service';
 
 const sellersService = new SellersService();
 
@@ -176,6 +177,27 @@ export class SellersController {
       const { sellerId } = req.body;
       const media = await sellersService.getSellerMedia(sellerId);
       sendSuccess(res, media);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  // ─── Agreement (Leegality) ────────────────────────────────────────────────────
+  initiateAgreement = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const sellerId = req.user!.userId;
+      const agreement = await LeegalityService.initiateAgreement(sellerId);
+      sendSuccess(res, agreement);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  getAgreementStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const sellerId = req.user!.userId;
+      const status = await LeegalityService.checkStatus(sellerId);
+      sendSuccess(res, status);
     } catch (err) {
       next(err);
     }

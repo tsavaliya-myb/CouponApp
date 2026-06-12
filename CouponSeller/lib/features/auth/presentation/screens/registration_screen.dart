@@ -32,8 +32,10 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   String? _selectedArea;
   LatLng? _selectedLocation;
 
+  final _fullNameController = TextEditingController();
   final _businessNameController = TextEditingController();
   final _addressController = TextEditingController();
+  final _pincodeController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _upiIdController = TextEditingController();
@@ -46,8 +48,10 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
 
   @override
   void dispose() {
+    _fullNameController.dispose();
     _businessNameController.dispose();
     _addressController.dispose();
+    _pincodeController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
     _upiIdController.dispose();
@@ -96,6 +100,14 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       _buildSectionTitle('CORE IDENTITY'),
                       const SizedBox(height: 16),
                       _buildTextField(
+                        label: 'Full Name (Owner)',
+                        hint: 'e.g. Ramesh Kumar',
+                        controller: _fullNameController,
+                        keyboardType: TextInputType.name,
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
                         label: 'Business Name',
                         hint: 'e.g. LaPinoz Pizza',
                         controller: _businessNameController,
@@ -103,8 +115,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       const SizedBox(height: 16),
                       Consumer(
                         builder: (context, ref, child) {
-                          final categoriesAsync =
-                              ref.watch(categoriesProvider);
+                          final categoriesAsync = ref.watch(categoriesProvider);
                           return categoriesAsync.when(
                             data: (categories) => _buildDropdownField(
                               label: 'Business Category',
@@ -124,8 +135,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                               onChanged: (val) => setState(() {
                                 _selectedCategoryItem = val == null
                                     ? null
-                                    : categories.firstWhere(
-                                        (c) => c.id == val);
+                                    : categories.firstWhere((c) => c.id == val);
                               }),
                             ),
                             loading: () => const Center(
@@ -240,6 +250,14 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                         controller: _addressController,
                       ),
                       const SizedBox(height: 16),
+                      _buildTextField(
+                        label: 'Pincode',
+                        hint: '400001',
+                        keyboardType: TextInputType.number,
+                        controller: _pincodeController,
+                        textInputAction: TextInputAction.done,
+                      ),
+                      const SizedBox(height: 16),
                       _buildLocationPinButton(),
                       const SizedBox(height: 40),
 
@@ -335,14 +353,18 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
 
   void _submitRegistration() async {
     // Collect data
+    final fullName = _fullNameController.text.trim();
     final businessName = _businessNameController.text.trim();
     final address = _addressController.text.trim();
+    final pincode = _pincodeController.text.trim();
     final phone = _phoneController.text.trim();
     final email = _emailController.text.trim();
     final upiId = _upiIdController.text.trim();
 
-    if (businessName.isEmpty ||
+    if (fullName.isEmpty ||
+        businessName.isEmpty ||
         address.isEmpty ||
+        pincode.isEmpty ||
         phone.isEmpty ||
         email.isEmpty ||
         upiId.isEmpty ||
@@ -367,11 +389,13 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
 
     final params = RegisterSellerParams(
       registrationToken: widget.registrationToken,
+      fullName: fullName,
       businessName: businessName,
       categoryId: _selectedCategoryItem!.id,
       cityId: _selectedCity!,
       areaId: _selectedArea!,
       address: address,
+      pincode: pincode,
       email: email,
       upiId: upiId,
       lat: _selectedLocation!.latitude,
@@ -383,7 +407,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         .registerSeller(params);
 
     if (success && mounted) {
-      context.go('/approval-pending');
+      context.go('/agreement-signing');
     } else if (mounted) {
       final errorStream = ref.read(authNotifierProvider).error;
       if (errorStream != null) {

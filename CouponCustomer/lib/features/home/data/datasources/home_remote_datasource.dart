@@ -46,8 +46,6 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
     final List data = response.data['data'] as List;
     return data.map((e) {
       final map = Map<String, dynamic>.from(e as Map);
-      final cat = map['category'];
-      if (cat is Map) map['category'] = cat['slug'] as String;
       return NearbySellerModel.fromJson(map);
     }).toList();
   }

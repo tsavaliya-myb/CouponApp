@@ -32,6 +32,14 @@ enum SellerStatus {
   REJECTED
 }
 
+enum AgreementStatus {
+  PENDING
+  INITIATED
+  AADHAAR_SIGNED
+  COMPLETED
+  FAILED
+}
+
 enum CouponType {
   STANDARD
   BOGO // Buy One Get One
@@ -74,6 +82,11 @@ enum NotificationTargetType {
   USER
   CITY
   GLOBAL
+}
+
+enum ReferralStatus {
+  PENDING
+  SUCCESSFUL
 }
 
 // ─────────────────────────────────────────
@@ -144,6 +157,12 @@ model User {
   onesignalPlayerId String?
   // User's cached coin balance (1 coin = ₹1)
   coinBalance       Int        @default(0)
+  
+  // Referral System
+  referralCode      String?    @unique
+  referralsMade     Referral[] @relation("Referrer")
+  referredBy        Referral?  @relation("Referred")
+  
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
@@ -155,6 +174,20 @@ model User {
   paymentAttempts PaymentAttempt[]
 
   @@map("users")
+}
+
+model Referral {
+  id            String         @id @default(uuid())
+  referrerId    String
+  referredId    String         @unique
+  status        ReferralStatus @default(PENDING)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  referrer      User           @relation("Referrer", fields: [referrerId], references: [id])
+  referred      User           @relation("Referred", fields: [referredId], references: [id])
+
+  @@map("referrals")
 }
 
 model Subscription {
@@ -172,6 +205,7 @@ model Subscription {
   preDebitNotifiedAt  DateTime?
   lastRenewalAt       DateTime?
   renewalFailureCount Int                @default(0)
+  isAutopayEnabled    Boolean            @default(true)
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
@@ -233,6 +267,9 @@ model Category {
   name      String   @unique
   slug      String   @unique
   iconName  String?
+  subtitle  String?
+  color     String?
+  sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -249,6 +286,8 @@ model Category {
 model Seller {
   id                String       @id @default(uuid())
   businessName      String
+  fullName          String?
+  pincode           String?
   categoryId        String
   cityId            String
   areaId            String
@@ -277,6 +316,7 @@ model Seller {
   settlements Settlement[]
   media       SellerMedia?
   bannerAds   BannerAd[]
+  agreement   SellerAgreement?
 
   @@map("sellers")
 }
@@ -514,4 +554,24 @@ model AppSetting {
   updatedAt DateTime @updatedAt
 
   @@map("app_settings")
+}
+
+// ─────────────────────────────────────────
+// SELLER AGREEMENTS (Leegality Integration)
+// ─────────────────────────────────────────
+
+model SellerAgreement {
+  id                  String          @id @default(uuid())
+  sellerId            String          @unique
+  leegalityDocumentId String?         @unique
+  status              AgreementStatus @default(PENDING)
+  signUrl             String?         // General signing link for the invitee workflow
+  virtualSignUrl      String?         // Second signing link for the virtual sign workflow
+  signedDocumentUrl   String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@map("seller_agreements")
 }

@@ -10,7 +10,9 @@ import {
   MapPin,
   Settings,
   Megaphone,
+  Grid3X3,
 } from "lucide-react";
+
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -41,9 +43,9 @@ const operationsItems = [
   { title: "Banner Ads", url: "/admin/ads",           icon: Megaphone },
   { title: "Notifications", url: "/admin/notifications", icon: Bell },
 ];
-
 const configItems = [
   { title: "Cities & Areas", url: "/admin/cities", icon: MapPin },
+  { title: "Categories", url: "/admin/categories", icon: Grid3X3 },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 

@@ -53,6 +53,7 @@ class AuthRepositoryImpl implements AuthRepository {
           isRegistered: data.isRegistered,
           registrationToken: data.registrationToken,
           status: data.status,
+          agreementStatus: data.agreementStatus,
         ));
       } else {
         return Left(ServerFailure(message: 'Failed to verify OTP'));
@@ -80,20 +81,46 @@ class AuthRepositoryImpl implements AuthRepository {
         return Right(SellerEntity(
           id: seller.id,
           phone: seller.phone,
+          fullName: seller.fullName,
           businessName: seller.businessName,
-          category: seller.category,
+          category: seller.category.name,
           cityId: seller.cityId,
           areaId: seller.areaId,
           status: seller.status,
-          address: seller.address,
+          address: seller.address ?? '',
+          pincode: seller.pincode,
           email: seller.email,
-          upiId: seller.upiId,
-          lat: seller.lat,
-          lng: seller.lng,
+          upiId: seller.upiId ?? '',
+          lat: seller.lat ?? 0.0,
+          lng: seller.lng ?? 0.0,
         ));
       } else {
         return Left(ServerFailure(message: 'Failed to register seller'));
       }
+    } on DioException catch (e) {
+      return Left(mapDioExceptionToFailure(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> initiateAgreement() async {
+    try {
+      final data = await _remoteDatasource.initiateAgreement();
+      return Right(data);
+    } on DioException catch (e) {
+      return Left(mapDioExceptionToFailure(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> checkAgreementStatus() async {
+    try {
+      final status = await _remoteDatasource.checkAgreementStatus();
+      return Right(status);
     } on DioException catch (e) {
       return Left(mapDioExceptionToFailure(e));
     } catch (e) {

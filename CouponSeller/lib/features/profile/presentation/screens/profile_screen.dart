@@ -101,13 +101,13 @@ class _ProfileShimmer extends StatelessWidget {
 
 // ─── Error state ──────────────────────────────────────────────────────────────
 
-class _ProfileError extends StatelessWidget {
+class _ProfileError extends ConsumerWidget {
   const _ProfileError({required this.message, required this.onRetry});
   final String message;
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -136,6 +136,29 @@ class _ProfileError extends StatelessWidget {
                     horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  await ref.read(authNotifierProvider.notifier).logout();
+                  ref.invalidate(profileNotifierProvider);
+                  if (context.mounted) context.go('/login');
+                },
+                icon: const Icon(Icons.logout_rounded, size: 20),
+                label: const Text('LOGOUT'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFEBEE),
+                  foregroundColor: const Color(0xFFD32F2F),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  textStyle:
+                      AppTextStyles.buttonText.copyWith(letterSpacing: 1.2),
+                ),
               ),
             ),
           ],
@@ -215,6 +238,7 @@ class _ProfileContent extends ConsumerWidget {
             child: ElevatedButton.icon(
               onPressed: () async {
                 await ref.read(authNotifierProvider.notifier).logout();
+                ref.invalidate(profileNotifierProvider);
                 if (context.mounted) context.go('/login');
               },
               icon: const Icon(Icons.logout_rounded, size: 20),

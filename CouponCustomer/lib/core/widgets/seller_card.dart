@@ -5,6 +5,7 @@ import '../../features/home/domain/entities/nearby_seller_entity.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
 import '../utils/category_utils.dart';
+import '../models/category_item.dart';
 
 class SellerCard extends StatelessWidget {
   final NearbySellerEntity seller;
@@ -82,7 +83,7 @@ class SellerCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '${seller.category} • ${seller.area}',
+                                '${seller.category.name} • ${seller.area}',
                                 style: AppTextStyles.dsLabelMd.copyWith(
                                   color: AppColors.dsOnSurface.withOpacity(0.5),
                                   fontWeight: FontWeight.w600,
@@ -119,7 +120,7 @@ class SellerCard extends StatelessWidget {
 }
 
 class _SellerBrandArea extends StatelessWidget {
-  final String category;
+  final CategoryItem category;
   final String? logoUrl;
 
   const _SellerBrandArea({
@@ -186,9 +187,10 @@ class _SellerBrandArea extends StatelessWidget {
         ),
       ),
       child: Center(
-        child: Text(
-          CategoryUtils.getEmoji(category),
-          style: const TextStyle(fontSize: 32),
+        child: Icon(
+          CategoryUtils.getIcon(category),
+          size: 32,
+          color: color,
         ),
       ),
     );

@@ -215,6 +215,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                                         'phone': widget.phone,
                                       },
                                     );
+                                  } else if (authResult.agreementStatus != 'COMPLETED') {
+                                    // Seller registered but hasn't completed signing
+                                    context.go('/agreement-signing');
                                   } else if (authResult.status == 'ACTIVE') {
                                     context.go('/dashboard');
                                   } else if (authResult.status == 'PENDING' ||

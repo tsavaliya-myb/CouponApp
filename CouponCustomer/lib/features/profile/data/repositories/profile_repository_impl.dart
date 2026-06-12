@@ -7,11 +7,23 @@ import '../datasources/profile_remote_datasource.dart';
 import '../models/user_model.dart';
 import '../models/area_model.dart';
 import '../models/user_settings_model.dart';
+import '../models/leaderboard_user_model.dart';
+import '../models/referral_stats_model.dart';
 
 class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileRemoteDataSource remoteDataSource;
 
   ProfileRepositoryImpl(this.remoteDataSource);
+
+  @override
+  Future<Either<Failure, ReferralStatsModel>> getReferralStats() async {
+    try {
+      final result = await remoteDataSource.getReferralStats();
+      return Right(result);
+    } catch (e) {
+      return Left(ServerFailure());
+    }
+  }
 
   @override
   Future<Either<Failure, UserModel>> getUser() async {
@@ -26,7 +38,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, UserModel>> updateUser(Map<String, dynamic> data) async {
+  Future<Either<Failure, UserModel>> updateUser(
+      Map<String, dynamic> data) async {
     try {
       final user = await remoteDataSource.updateUser(data);
       return Right(user);
@@ -66,6 +79,24 @@ class ProfileRepositoryImpl implements ProfileRepository {
     try {
       final settings = await remoteDataSource.getUserSettings();
       return Right(settings);
+    } on DioException catch (e) {
+      return Left(mapDioExceptionToFailure(e));
+    } catch (_) {
+      return Left(const ServerFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<LeaderboardUserModel>>> getLeaderboard({
+    required String type,
+    required String timeFrame,
+  }) async {
+    try {
+      final leaderboard = await remoteDataSource.getLeaderboard(
+        type: type,
+        timeFrame: timeFrame,
+      );
+      return Right(leaderboard);
     } on DioException catch (e) {
       return Left(mapDioExceptionToFailure(e));
     } catch (_) {

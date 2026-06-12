@@ -48,7 +48,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ? []
         : sellers.where((s) {
             return s.name.toLowerCase().contains(queryLower) ||
-                s.category.toLowerCase().contains(queryLower);
+                s.category.name.toLowerCase().contains(queryLower);
           }).toList();
 
     final coupons = couponsAsync.valueOrNull ?? [];
@@ -185,7 +185,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(CategoryUtils.getIcon(cat.slug),
+                    Icon(CategoryUtils.getIcon(cat),
                         size: 18, color: AppColors.dsPrimary),
                     const SizedBox(width: 8),
                     Text(

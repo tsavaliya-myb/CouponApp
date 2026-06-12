@@ -1,12 +1,14 @@
 // lib/features/home/domain/entities/home_coupon_entity.dart
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/models/category_item.dart';
+
 class HomeCouponEntity extends Equatable {
   final String id;
   final String sellerId;
   final String sellerName;
   final String sellerArea;
-  final String category;
+  final CategoryItem category;
   final int discountPercent;
   final String couponType;
   final int? minSpend;

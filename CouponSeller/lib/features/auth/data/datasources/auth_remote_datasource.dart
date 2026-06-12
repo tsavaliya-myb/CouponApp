@@ -13,6 +13,8 @@ abstract class AuthRemoteDatasource {
   Future<RegisterSellerResponseModel> registerSeller(
     RegisterSellerParams params,
   );
+  Future<Map<String, dynamic>> initiateAgreement();
+  Future<Map<String, dynamic>> checkAgreementStatus();
 }
 
 @Injectable(as: AuthRemoteDatasource)
@@ -53,11 +55,13 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     final response = await _apiClient.client.post(
       '/sellers/register',
       data: {
+        "fullName": params.fullName,
         "businessName": params.businessName,
         "categoryId": params.categoryId,
         "cityId": params.cityId,
         "areaId": params.areaId,
         "address": params.address,
+        "pincode": params.pincode,
         "email": params.email,
         "upiId": params.upiId,
         "lat": params.lat,
@@ -70,5 +74,17 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     return RegisterSellerResponseModel.fromJson(
       Map<String, dynamic>.from(response.data as Map),
     );
+  }
+
+  @override
+  Future<Map<String, dynamic>> initiateAgreement() async {
+    final response = await _apiClient.client.post('/sellers/me/agreement/initiate');
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> checkAgreementStatus() async {
+    final response = await _apiClient.client.get('/sellers/me/agreement/status');
+    return response.data['data'] as Map<String, dynamic>;
   }
 }

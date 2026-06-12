@@ -212,10 +212,13 @@ export const mockCities: City[] = [
 ];
 
 export const appSettings = {
-  subscriptionPrice: 1000,
-  bookValidityDays: 45,
-  coinsPerSubscription: 50,
-  maxCoinsPerTransaction: 10,
+  subscription_price: 1000,
+  book_validity_days: 45,
+  coins_per_subscription: 50,
+  max_coins_per_transaction: 10,
+  referrer_coins: 5,
+  referred_user_coins: 5,
+  max_referrals: 10,
   notificationTemplates: {
     expiryReminder: "Your coupon book expires in {days} days. Renew now to keep saving!",
     welcome: "Welcome to CouponBook! You've received {coins} coins as a welcome bonus.",

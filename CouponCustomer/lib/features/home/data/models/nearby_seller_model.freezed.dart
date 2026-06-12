@@ -237,7 +237,7 @@ NearbySellerModel _$NearbySellerModelFromJson(Map<String, dynamic> json) {
 mixin _$NearbySellerModel {
   String get id => throw _privateConstructorUsedError;
   String get businessName => throw _privateConstructorUsedError;
-  String get category => throw _privateConstructorUsedError;
+  CategoryItem get category => throw _privateConstructorUsedError;
   String get area => throw _privateConstructorUsedError;
   double get lat => throw _privateConstructorUsedError;
   double get lng => throw _privateConstructorUsedError;
@@ -264,7 +264,7 @@ abstract class $NearbySellerModelCopyWith<$Res> {
   $Res call(
       {String id,
       String businessName,
-      String category,
+      CategoryItem category,
       String area,
       double lat,
       double lng,
@@ -312,7 +312,7 @@ class _$NearbySellerModelCopyWithImpl<$Res, $Val extends NearbySellerModel>
       category: null == category
           ? _value.category
           : category // ignore: cast_nullable_to_non_nullable
-              as String,
+              as CategoryItem,
       area: null == area
           ? _value.area
           : area // ignore: cast_nullable_to_non_nullable
@@ -366,7 +366,7 @@ abstract class _$$NearbySellerModelImplCopyWith<$Res>
   $Res call(
       {String id,
       String businessName,
-      String category,
+      CategoryItem category,
       String area,
       double lat,
       double lng,
@@ -413,7 +413,7 @@ class __$$NearbySellerModelImplCopyWithImpl<$Res>
       category: null == category
           ? _value.category
           : category // ignore: cast_nullable_to_non_nullable
-              as String,
+              as CategoryItem,
       area: null == area
           ? _value.area
           : area // ignore: cast_nullable_to_non_nullable
@@ -464,7 +464,7 @@ class _$NearbySellerModelImpl implements _NearbySellerModel {
   @override
   final String businessName;
   @override
-  final String category;
+  final CategoryItem category;
   @override
   final String area;
   @override
@@ -528,7 +528,7 @@ abstract class _NearbySellerModel implements NearbySellerModel {
   const factory _NearbySellerModel(
       {required final String id,
       required final String businessName,
-      required final String category,
+      required final CategoryItem category,
       required final String area,
       required final double lat,
       required final double lng,
@@ -544,7 +544,7 @@ abstract class _NearbySellerModel implements NearbySellerModel {
   @override
   String get businessName;
   @override
-  String get category;
+  CategoryItem get category;
   @override
   String get area;
   @override

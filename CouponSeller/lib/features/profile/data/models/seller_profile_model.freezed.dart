@@ -227,7 +227,7 @@ SellerProfileModel _$SellerProfileModelFromJson(Map<String, dynamic> json) {
 mixin _$SellerProfileModel {
   String get id => throw _privateConstructorUsedError;
   String get businessName => throw _privateConstructorUsedError;
-  String get category => throw _privateConstructorUsedError;
+  SellerCategoryModel get category => throw _privateConstructorUsedError;
   String get cityId => throw _privateConstructorUsedError;
   String get areaId => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
@@ -266,7 +266,7 @@ abstract class $SellerProfileModelCopyWith<$Res> {
   $Res call({
     String id,
     String businessName,
-    String category,
+    SellerCategoryModel category,
     String cityId,
     String areaId,
     String? address,
@@ -286,6 +286,7 @@ abstract class $SellerProfileModelCopyWith<$Res> {
     SellerMediaModel? media,
   });
 
+  $SellerCategoryModelCopyWith<$Res> get category;
   $SellerCityModelCopyWith<$Res> get city;
   $SellerAreaModelCopyWith<$Res> get area;
   $SellerMediaModelCopyWith<$Res>? get media;
@@ -340,7 +341,7 @@ class _$SellerProfileModelCopyWithImpl<$Res, $Val extends SellerProfileModel>
             category: null == category
                 ? _value.category
                 : category // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as SellerCategoryModel,
             cityId: null == cityId
                 ? _value.cityId
                 : cityId // ignore: cast_nullable_to_non_nullable
@@ -418,6 +419,16 @@ class _$SellerProfileModelCopyWithImpl<$Res, $Val extends SellerProfileModel>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
+  $SellerCategoryModelCopyWith<$Res> get category {
+    return $SellerCategoryModelCopyWith<$Res>(_value.category, (value) {
+      return _then(_value.copyWith(category: value) as $Val);
+    });
+  }
+
+  /// Create a copy of SellerProfileModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
   $SellerCityModelCopyWith<$Res> get city {
     return $SellerCityModelCopyWith<$Res>(_value.city, (value) {
       return _then(_value.copyWith(city: value) as $Val);
@@ -461,7 +472,7 @@ abstract class _$$SellerProfileModelImplCopyWith<$Res>
   $Res call({
     String id,
     String businessName,
-    String category,
+    SellerCategoryModel category,
     String cityId,
     String areaId,
     String? address,
@@ -481,6 +492,8 @@ abstract class _$$SellerProfileModelImplCopyWith<$Res>
     SellerMediaModel? media,
   });
 
+  @override
+  $SellerCategoryModelCopyWith<$Res> get category;
   @override
   $SellerCityModelCopyWith<$Res> get city;
   @override
@@ -537,7 +550,7 @@ class __$$SellerProfileModelImplCopyWithImpl<$Res>
         category: null == category
             ? _value.category
             : category // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as SellerCategoryModel,
         cityId: null == cityId
             ? _value.cityId
             : cityId // ignore: cast_nullable_to_non_nullable
@@ -645,7 +658,7 @@ class _$SellerProfileModelImpl implements _SellerProfileModel {
   @override
   final String businessName;
   @override
-  final String category;
+  final SellerCategoryModel category;
   @override
   final String cityId;
   @override
@@ -769,7 +782,7 @@ abstract class _SellerProfileModel implements SellerProfileModel {
   const factory _SellerProfileModel({
     required final String id,
     required final String businessName,
-    required final String category,
+    required final SellerCategoryModel category,
     required final String cityId,
     required final String areaId,
     final String? address,
@@ -797,7 +810,7 @@ abstract class _SellerProfileModel implements SellerProfileModel {
   @override
   String get businessName;
   @override
-  String get category;
+  SellerCategoryModel get category;
   @override
   String get cityId;
   @override
@@ -838,6 +851,177 @@ abstract class _SellerProfileModel implements SellerProfileModel {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SellerProfileModelImplCopyWith<_$SellerProfileModelImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+SellerCategoryModel _$SellerCategoryModelFromJson(Map<String, dynamic> json) {
+  return _SellerCategoryModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SellerCategoryModel {
+  String get id => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+
+  /// Serializes this SellerCategoryModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of SellerCategoryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SellerCategoryModelCopyWith<SellerCategoryModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SellerCategoryModelCopyWith<$Res> {
+  factory $SellerCategoryModelCopyWith(
+    SellerCategoryModel value,
+    $Res Function(SellerCategoryModel) then,
+  ) = _$SellerCategoryModelCopyWithImpl<$Res, SellerCategoryModel>;
+  @useResult
+  $Res call({String id, String name});
+}
+
+/// @nodoc
+class _$SellerCategoryModelCopyWithImpl<$Res, $Val extends SellerCategoryModel>
+    implements $SellerCategoryModelCopyWith<$Res> {
+  _$SellerCategoryModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SellerCategoryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? id = null, Object? name = null}) {
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$SellerCategoryModelImplCopyWith<$Res>
+    implements $SellerCategoryModelCopyWith<$Res> {
+  factory _$$SellerCategoryModelImplCopyWith(
+    _$SellerCategoryModelImpl value,
+    $Res Function(_$SellerCategoryModelImpl) then,
+  ) = __$$SellerCategoryModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String id, String name});
+}
+
+/// @nodoc
+class __$$SellerCategoryModelImplCopyWithImpl<$Res>
+    extends _$SellerCategoryModelCopyWithImpl<$Res, _$SellerCategoryModelImpl>
+    implements _$$SellerCategoryModelImplCopyWith<$Res> {
+  __$$SellerCategoryModelImplCopyWithImpl(
+    _$SellerCategoryModelImpl _value,
+    $Res Function(_$SellerCategoryModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of SellerCategoryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? id = null, Object? name = null}) {
+    return _then(
+      _$SellerCategoryModelImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SellerCategoryModelImpl implements _SellerCategoryModel {
+  const _$SellerCategoryModelImpl({required this.id, required this.name});
+
+  factory _$SellerCategoryModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SellerCategoryModelImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String name;
+
+  @override
+  String toString() {
+    return 'SellerCategoryModel(id: $id, name: $name)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SellerCategoryModelImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, name);
+
+  /// Create a copy of SellerCategoryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SellerCategoryModelImplCopyWith<_$SellerCategoryModelImpl> get copyWith =>
+      __$$SellerCategoryModelImplCopyWithImpl<_$SellerCategoryModelImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SellerCategoryModelImplToJson(this);
+  }
+}
+
+abstract class _SellerCategoryModel implements SellerCategoryModel {
+  const factory _SellerCategoryModel({
+    required final String id,
+    required final String name,
+  }) = _$SellerCategoryModelImpl;
+
+  factory _SellerCategoryModel.fromJson(Map<String, dynamic> json) =
+      _$SellerCategoryModelImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get name;
+
+  /// Create a copy of SellerCategoryModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SellerCategoryModelImplCopyWith<_$SellerCategoryModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 

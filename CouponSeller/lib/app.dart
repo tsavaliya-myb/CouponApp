@@ -13,6 +13,8 @@ import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/scan/presentation/screens/scan_screen.dart';
 import 'features/redemption/presentation/screens/redemption_screen.dart';
 import 'features/auth/presentation/screens/registration_screen.dart';
+import 'features/auth/presentation/screens/agreement_intro_screen.dart';
+import 'features/auth/presentation/screens/agreement_signing_screen.dart';
 import 'features/auth/presentation/screens/approval_pending_screen.dart';
 import 'core/router/global_navigator.dart';
 
@@ -48,6 +50,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           final phone = extraMap?['phone'] as String? ?? '';
           return RegistrationScreen(registrationToken: token, phone: phone);
         },
+      ),
+      GoRoute(
+        path: '/agreement-signing',
+        name: 'agreementSigning',
+        builder: (context, state) => const AgreementIntroScreen(),
+      ),
+      GoRoute(
+        path: '/agreement-webview',
+        name: 'agreementWebview',
+        builder: (context, state) => const AgreementSigningScreen(),
       ),
       GoRoute(
         path: '/approval-pending',

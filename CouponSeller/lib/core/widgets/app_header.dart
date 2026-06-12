@@ -1,15 +1,22 @@
 // lib/core/widgets/app_header.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/constants/app_spacing.dart';
+import '../../features/profile/presentation/providers/profile_provider.dart';
 
-class AppHeader extends StatelessWidget implements PreferredSizeWidget {
+class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   const AppHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileState = ref.watch(profileNotifierProvider);
+    final businessName =
+        profileState.valueOrNull?.businessName ?? 'Coupon360 Seller';
+    final cityName = profileState.valueOrNull?.cityName ?? '';
+
     return SafeArea(
       bottom: false,
       child: Container(
@@ -52,19 +59,20 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'LaPinoz Pizza',
+                        businessName,
                         style: AppTextStyles.bodySM.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.onSurface,
                         ),
                       ),
-                      Text(
-                        'Surat',
-                        style: AppTextStyles.labelSM.copyWith(
-                          color: AppColors.textSecondary.withOpacity(0.6),
-                          letterSpacing: 0.5,
+                      if (cityName.isNotEmpty)
+                        Text(
+                          cityName,
+                          style: AppTextStyles.labelSM.copyWith(
+                            color: AppColors.textSecondary.withOpacity(0.6),
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ],

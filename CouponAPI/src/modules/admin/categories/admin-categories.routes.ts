@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { AdminCategoriesController } from './admin-categories.controller';
 import { validate } from '../../../shared/middlewares/validate';
 import { authenticate, authorize } from '../../../shared/middlewares/auth';
-import { createCategorySchema, updateCategorySchema } from './admin-categories.validator';
+import { createCategorySchema, updateCategorySchema, reorderCategorySchema } from './admin-categories.validator';
 
 import './admin-categories.swagger';
 
@@ -23,6 +23,12 @@ adminCategoriesRouter.post(
   '/',
   validate(createCategorySchema),
   controller.createCategory,
+);
+
+adminCategoriesRouter.patch(
+  '/reorder',
+  validate(reorderCategorySchema),
+  controller.reorderCategories,
 );
 
 adminCategoriesRouter.patch(

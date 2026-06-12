@@ -5,6 +5,7 @@ import { logger } from '../../config/logger';
 import { ConflictError } from '../../shared/utils/AppError';
 import { verifyPayUWebhookHash, computeHashFromString } from '../../shared/utils/payuHash';
 import { oneSignal } from '../notifications/onesignal.service';
+import crypto from 'crypto';
 
 const log = logger.child({ module: 'PaymentService' });
 
@@ -223,6 +224,55 @@ export class PaymentService {
           where: { id: userId },
           data:  { coinBalance: { increment: coinsToAward } },
         });
+
+        // ─── Referral Fulfillment ────────────────────────────────────
+        const pendingReferral = await tx.referral.findUnique({
+          where: { referredId: userId }
+        });
+
+        if (pendingReferral && pendingReferral.status === 'PENDING') {
+          const [maxLimitSetting, referrerRewardSetting, referredRewardSetting] = await Promise.all([
+            tx.appSetting.findUnique({ where: { key: 'max_referrals' } }),
+            tx.appSetting.findUnique({ where: { key: 'referrer_coins' } }),
+            tx.appSetting.findUnique({ where: { key: 'referred_user_coins' } }),
+          ]);
+          
+          const maxLimit = maxLimitSetting ? parseInt(maxLimitSetting.value, 10) : 10;
+          const referrerReward = referrerRewardSetting ? parseInt(referrerRewardSetting.value, 10) : 5;
+          const referredReward = referredRewardSetting ? parseInt(referredRewardSetting.value, 10) : 5;
+
+          const successfulCount = await tx.referral.count({
+            where: {
+              referrerId: pendingReferral.referrerId,
+              status: 'SUCCESSFUL',
+            }
+          });
+
+          if (successfulCount < maxLimit) {
+            await tx.referral.update({
+              where: { id: pendingReferral.id },
+              data: { status: 'SUCCESSFUL' },
+            });
+
+            // Reward referrer
+            await tx.walletTransaction.create({
+              data: { userId: pendingReferral.referrerId, type: 'EARNED', amount: referrerReward, note: 'Referral Bonus (Referrer)' },
+            });
+            await tx.user.update({
+              where: { id: pendingReferral.referrerId },
+              data: { coinBalance: { increment: referrerReward } },
+            });
+
+            // Reward referred user
+            await tx.walletTransaction.create({
+              data: { userId: pendingReferral.referredId, type: 'EARNED', amount: referredReward, note: 'Referral Bonus (Referred)' },
+            });
+            await tx.user.update({
+              where: { id: pendingReferral.referredId },
+              data: { coinBalance: { increment: referredReward } },
+            });
+          }
+        }
       });
     } catch (err) {
       log.error('fulfillSubscription: DB transaction failed', { userId, payuPaymentId, err });
@@ -234,5 +284,105 @@ export class PaymentService {
     oneSignal
       .sendToUser(userId, '🪙 Coins Credited!', `${coinsToAward} coins have been added to your wallet.`, 'coins_credited')
       .catch((err) => log.warn('fulfillSubscription: coins push notification failed (non-fatal)', { userId, err }));
+  }
+
+  // ─── Cancel Autopay ─────────────────────────────────────────────────────────
+  async cancelAutopay(userId: string): Promise<void> {
+    log.info('cancelAutopay: start', { userId });
+
+    const subscription = await prisma.subscription.findUnique({ where: { userId } });
+    if (!subscription) {
+      throw ConflictError('User has no subscription');
+    }
+
+    if (!subscription.isAutopayEnabled) {
+      throw ConflictError('Autopay is already disabled');
+    }
+
+    // Call PayU to revoke mandate if we have the authPayUID
+    if (subscription.authPayUID) {
+      try {
+        const command = 'upi_mandate_revoke';
+        const requestId = crypto.randomUUID().replace(/-/g, '').slice(0, 20);
+        const var1 = JSON.stringify({
+          authPayuId: subscription.authPayUID,
+          requestId: requestId,
+        });
+
+        // Hash formula: key|command|var1|salt
+        const hashStr = `${env.PAYU_KEY}|${command}|${var1}|${env.PAYU_SALT}`;
+        const hash = crypto.createHash('sha512').update(hashStr).digest('hex');
+
+        const payuUrl = env.PAYU_ENV === 'production' 
+          ? 'https://info.payu.in/merchant/postservice.php'
+          : 'https://test.payu.in/merchant/postservice.php';
+
+        const bodyParams = new URLSearchParams({
+          key: env.PAYU_KEY,
+          command,
+          var1,
+          hash,
+        });
+
+        const response = await fetch(`${payuUrl}?form=2`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: bodyParams.toString(),
+        });
+
+        const data = await response.json() as any;
+        if (data.status !== 1) {
+          log.warn('cancelAutopay: PayU revoke failed or returned non-1 status', { userId, response: data });
+          // We can still proceed to cancel locally so we don't attempt si_transaction
+        } else {
+          log.info('cancelAutopay: PayU revoke successful', { userId, data });
+        }
+      } catch (err) {
+        log.error('cancelAutopay: error calling PayU API', { userId, err });
+        // Proceed with local cancellation as fallback
+      }
+    }
+
+    await prisma.subscription.update({
+      where: { id: subscription.id },
+      data: { isAutopayEnabled: false },
+    });
+
+    log.info('cancelAutopay: complete', { userId });
+  }
+
+  // ─── Get Payment History ────────────────────────────────────────────────────
+  async getPaymentHistory(userId: string) {
+    const subscription = await prisma.subscription.findUnique({
+      where: { userId },
+      select: {
+        status: true,
+        startDate: true,
+        endDate: true,
+        isAutopayEnabled: true,
+      },
+    });
+
+    const attempts = await prisma.paymentAttempt.findMany({
+      where: {
+        userId,
+        status: 'SUCCESS',
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        txnid: true,
+        amount: true,
+        createdAt: true,
+        kind: true,
+      },
+    });
+
+    return {
+      subscription,
+      history: attempts,
+    };
   }
 }
