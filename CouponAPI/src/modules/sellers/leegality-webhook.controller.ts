@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../config/db';
 import { sendSuccess } from '../../shared/utils/response';
-
+import crypto from 'crypto';
+import { env } from '../../config/env';
 export class LeegalityWebhookController {
   
   handleWebhook = async (req: Request, res: Response): Promise<void> => {
@@ -12,9 +13,27 @@ export class LeegalityWebhookController {
 
       const documentId = payload.documentId;
       const eventName = payload.event; // Typically 'document_completed', 'invitee_signed', etc.
+      const providedMac = payload.mac;
 
       if (!documentId) {
         res.status(400).send('Invalid payload');
+        return;
+      }
+
+      // Verify MAC if salt is configured
+      if (env.LEEGALITY_PRIVATE_SALT && providedMac) {
+        const hmac = crypto.createHmac('sha1', env.LEEGALITY_PRIVATE_SALT);
+        hmac.update(documentId);
+        const computedMac = hmac.digest('hex');
+
+        if (computedMac !== providedMac) {
+          console.error('Webhook Error: MAC verification failed.', { computedMac, providedMac });
+          res.status(401).send('Unauthorized: MAC mismatch');
+          return;
+        }
+      } else if (env.LEEGALITY_PRIVATE_SALT && !providedMac) {
+        console.error('Webhook Error: MAC missing from payload.');
+        res.status(401).send('Unauthorized: MAC missing');
         return;
       }
 

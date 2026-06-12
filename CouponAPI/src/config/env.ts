@@ -56,4 +56,7 @@ export const env = cleanEnv(process.env, {
 
   // Swagger — enable in production by setting to 'true'
   SWAGGER_ENABLED:       str({ default: 'false' }),
+
+  // Leegality
+  LEEGALITY_PRIVATE_SALT: str({ default: '' }),
 });
