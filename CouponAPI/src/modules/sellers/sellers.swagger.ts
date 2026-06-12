@@ -179,7 +179,8 @@ openApiRegistry.registerPath({
           schema: z.object({
             success: z.boolean().default(true),
             data: z.object({
-              signUrl: z.string(),
+              signUrl: z.string().nullable().optional(),
+              virtualSignUrl: z.string().nullable().optional(),
               status: z.string(),
             }),
           }),
@@ -207,6 +208,8 @@ openApiRegistry.registerPath({
             success: z.boolean().default(true),
             data: z.object({
               status: z.string(),
+              signUrl: z.string().nullable().optional(),
+              virtualSignUrl: z.string().nullable().optional(),
             }).nullable(),
           }),
         },

@@ -7,6 +7,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/di/injection.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 /// The WebView screen that handles the actual Leegality signing flow.
@@ -25,6 +26,7 @@ class _AgreementSigningScreenState
   bool _isLoading = true;
   bool _isInitFailed = false;
   String? _signUrl;
+  String? _virtualSignUrl;
   Timer? _pollingTimer;
 
   @override
@@ -38,6 +40,25 @@ class _AgreementSigningScreenState
             setState(() {
               _isLoading = false;
             });
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            if (request.url.startsWith(
+              'https://coupocode360.com/leegality/success/1',
+            )) {
+              // First sign completed, navigate to virtual sign if available
+              if (_virtualSignUrl != null) {
+                _isVirtualSignLoaded = true;
+                _controller.loadRequest(Uri.parse(_virtualSignUrl!));
+              }
+              return NavigationDecision.prevent;
+            } else if (request.url.startsWith(
+              'https://coupocode360.com/leegality/success/2',
+            )) {
+              // Second sign completed, redirect to success/dashboard
+              _handleCompletion();
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
           },
         ),
       );
@@ -55,18 +76,42 @@ class _AgreementSigningScreenState
           _isLoading = false;
         });
       },
-      (signUrl) {
+      (data) {
+        final signUrl = data['signUrl'] as String?;
+        final virtualSignUrl = data['virtualSignUrl'] as String?;
         setState(() {
           _signUrl = signUrl;
+          _virtualSignUrl = virtualSignUrl;
         });
-        _controller.loadRequest(Uri.parse(signUrl));
+        if (signUrl != null) {
+          _controller.loadRequest(Uri.parse(signUrl));
+        }
         _startPolling();
       },
     );
   }
 
+  bool _isVirtualSignLoaded = false;
+
+  void _handleCompletion() {
+    _pollingTimer?.cancel();
+    if (mounted) {
+      ref.read(profileNotifierProvider.notifier).refresh().then((_) {
+        if (mounted) {
+          final profile = ref.read(profileNotifierProvider).value;
+          final userStatus = profile?.status ?? 'PENDING';
+          if (userStatus == 'ACTIVE') {
+            context.go('/dashboard');
+          } else {
+            context.go('/approval-pending', extra: userStatus);
+          }
+        }
+      });
+    }
+  }
+
   void _startPolling() {
-    // Poll every 5 seconds
+    // We still poll as a fallback in case the URL interception fails or user closes/reopens
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       final repo = getIt<AuthRepository>();
       final result = await repo.checkAgreementStatus();
@@ -74,12 +119,17 @@ class _AgreementSigningScreenState
         (failure) {
           // Ignore polling failures silently
         },
-        (status) {
+        (data) {
+          final status = data['status'] as String?;
+          final virtualSignUrl = data['virtualSignUrl'] as String?;
+
           if (status == 'COMPLETED') {
-            timer.cancel();
-            if (mounted) {
-              context.go('/approval-pending', extra: 'PENDING');
-            }
+            _handleCompletion();
+          } else if (status == 'AADHAAR_SIGNED' &&
+              !_isVirtualSignLoaded &&
+              virtualSignUrl != null) {
+            _isVirtualSignLoaded = true;
+            _controller.loadRequest(Uri.parse(virtualSignUrl));
           }
         },
       );

@@ -566,6 +566,7 @@ model SellerAgreement {
   leegalityDocumentId String?         @unique
   status              AgreementStatus @default(PENDING)
   signUrl             String?         // General signing link for the invitee workflow
+  virtualSignUrl      String?         // Second signing link for the virtual sign workflow
   signedDocumentUrl   String?
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt

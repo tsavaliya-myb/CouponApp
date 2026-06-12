@@ -105,10 +105,10 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, String>> initiateAgreement() async {
+  Future<Either<Failure, Map<String, dynamic>>> initiateAgreement() async {
     try {
-      final signUrl = await _remoteDatasource.initiateAgreement();
-      return Right(signUrl);
+      final data = await _remoteDatasource.initiateAgreement();
+      return Right(data);
     } on DioException catch (e) {
       return Left(mapDioExceptionToFailure(e));
     } catch (e) {
@@ -117,7 +117,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, String>> checkAgreementStatus() async {
+  Future<Either<Failure, Map<String, dynamic>>> checkAgreementStatus() async {
     try {
       final status = await _remoteDatasource.checkAgreementStatus();
       return Right(status);
