@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -229,7 +230,11 @@ class _ProfileContent extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xl),
 
           // Settings
-          _SettingsItem(icon: Icons.security_outlined, title: 'Privacy & Security'),
+          _SettingsItem(
+            icon: Icons.security_outlined,
+            title: 'Privacy & Security',
+            url: 'https://couponcode360.com/privacy',
+          ),
           const SizedBox(height: 48),
 
           // Logout
@@ -1028,9 +1033,10 @@ class _InfoField extends StatelessWidget {
 // ─── Settings item ────────────────────────────────────────────────────────────
 
 class _SettingsItem extends StatelessWidget {
-  const _SettingsItem({required this.icon, required this.title});
+  const _SettingsItem({required this.icon, required this.title, required this.url});
   final IconData icon;
   final String title;
+  final String url;
 
   @override
   Widget build(BuildContext context) {
@@ -1046,7 +1052,12 @@ class _SettingsItem extends StatelessWidget {
             style: AppTextStyles.bodyMD.copyWith(fontWeight: FontWeight.w600)),
         trailing: const Icon(Icons.arrow_forward_ios_rounded,
             size: 14, color: AppColors.textSecondary),
-        onTap: () {},
+        onTap: () async {
+          final uri = Uri.parse(url);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+        },
       ),
     );
   }

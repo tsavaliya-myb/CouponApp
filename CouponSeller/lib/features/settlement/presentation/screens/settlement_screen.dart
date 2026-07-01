@@ -173,16 +173,27 @@ class _SettlementScreenState extends ConsumerState<SettlementScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Icon(
-            Icons.tune_rounded,
-            color: AppColors.primary,
-            size: 24,
+        InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Filter by date range coming soon'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.tune_rounded,
+              color: AppColors.primary,
+              size: 24,
+            ),
           ),
         ),
       ],

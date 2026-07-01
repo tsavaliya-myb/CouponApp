@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
 
@@ -110,7 +111,12 @@ class _MapPickerState extends State<MapPicker> {
                 attributions: [
                   TextSourceAttribution(
                     'OpenStreetMap contributors',
-                    onTap: () {},
+                    onTap: () async {
+                      final uri = Uri.parse('https://www.openstreetmap.org/copyright');
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    },
                   ),
                 ],
               ),

@@ -1,7 +1,9 @@
 // lib/features/auth/presentation/screens/otp_screen.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/constants/app_spacing.dart';
@@ -22,8 +24,61 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   );
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
+  // Countdown timer
+  static const int _resendCooldown = 60;
+  int _secondsLeft = _resendCooldown;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    setState(() => _secondsLeft = _resendCooldown);
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_secondsLeft == 0) {
+        t.cancel();
+      } else {
+        setState(() => _secondsLeft--);
+      }
+    });
+  }
+
+  Future<void> _resendOtp() async {
+    if (_secondsLeft > 0) return;
+    final phone = widget.phone.replaceAll('+91', '');
+    final success =
+        await ref.read(authNotifierProvider.notifier).sendOtp(phone);
+    if (success) {
+      _startTimer();
+      for (var c in _controllers) {
+        c.clear();
+      }
+      _focusNodes.first.requestFocus();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('OTP resent successfully'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to resend OTP. Please try again.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
+    _timer?.cancel();
     for (var c in _controllers) {
       c.dispose();
     }
@@ -304,8 +359,15 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     style: AppTextStyles.bodySM,
                   ),
                   GestureDetector(
-                    onTap: () {},
-                    child: Text('Resend OTP', style: AppTextStyles.footerLink),
+                    onTap: _secondsLeft == 0 ? _resendOtp : null,
+                    child: Text(
+                      'Resend OTP',
+                      style: AppTextStyles.footerLink.copyWith(
+                        color: _secondsLeft == 0
+                            ? AppColors.primary
+                            : AppColors.textSecondary.withOpacity(0.4),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -320,9 +382,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'REQUEST NEW CODE IN 00:54',
+                    _secondsLeft > 0
+                        ? 'REQUEST NEW CODE IN 00:${_secondsLeft.toString().padLeft(2, '0')}'
+                        : 'YOU CAN RESEND NOW',
                     style: AppTextStyles.labelSM.copyWith(
-                      color: AppColors.textSecondary.withOpacity(0.5),
+                      color: _secondsLeft > 0
+                          ? AppColors.textSecondary.withOpacity(0.5)
+                          : AppColors.primary,
                     ),
                   ),
                 ],
@@ -333,8 +399,16 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildFooterAction(Icons.help_outline, 'HELP'),
-                  _buildFooterAction(Icons.description_outlined, 'TERMS'),
+                  _buildFooterAction(
+                    Icons.help_outline,
+                    'HELP',
+                    'https://couponcode360.com/help',
+                  ),
+                  _buildFooterAction(
+                    Icons.description_outlined,
+                    'TERMS',
+                    'https://couponcode360.com/terms',
+                  ),
                 ],
               ),
             ],
@@ -375,19 +449,27 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     );
   }
 
-  Widget _buildFooterAction(IconData icon, String label) {
-    return Column(
-      children: [
-        Icon(icon, color: AppColors.textSecondary.withOpacity(0.4), size: 24),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: AppTextStyles.labelSM.copyWith(
-            color: AppColors.textSecondary.withOpacity(0.4),
-            fontSize: 10,
+  Widget _buildFooterAction(IconData icon, String label, String url) {
+    return GestureDetector(
+      onTap: () async {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Column(
+        children: [
+          Icon(icon, color: AppColors.textSecondary.withOpacity(0.6), size: 24),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: AppTextStyles.labelSM.copyWith(
+              color: AppColors.textSecondary.withOpacity(0.6),
+              fontSize: 10,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

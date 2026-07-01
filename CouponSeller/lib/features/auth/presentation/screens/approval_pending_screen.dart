@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
@@ -137,11 +138,21 @@ class ApprovalPendingScreen extends ConsumerWidget {
                           color: AppColors.primary,
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          'support@couponcode.com',
-                          style: AppTextStyles.bodyMD.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
+                        GestureDetector(
+                          onTap: () async {
+                            final uri = Uri.parse('mailto:support@couponcode.com');
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri);
+                            }
+                          },
+                          child: Text(
+                            'support@couponcode.com',
+                            style: AppTextStyles.bodyMD.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.primary,
+                            ),
                           ),
                         ),
                       ],
@@ -156,11 +167,21 @@ class ApprovalPendingScreen extends ConsumerWidget {
                           color: AppColors.primary,
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          '+91 1234567890',
-                          style: AppTextStyles.bodyMD.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
+                        GestureDetector(
+                          onTap: () async {
+                            final uri = Uri.parse('tel:+911234567890');
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri);
+                            }
+                          },
+                          child: Text(
+                            '+91 1234567890',
+                            style: AppTextStyles.bodyMD.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.primary,
+                            ),
                           ),
                         ),
                       ],
