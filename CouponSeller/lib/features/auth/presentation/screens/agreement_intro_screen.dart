@@ -17,7 +17,7 @@ class AgreementIntroScreen extends StatelessWidget {
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Text(
-          'CouponCode Seller',
+          'Coupon360 Seller',
           style: AppTextStyles.headlineSM.copyWith(
             color: AppColors.primary,
             letterSpacing: -0.5,

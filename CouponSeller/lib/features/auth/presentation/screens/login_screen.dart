@@ -52,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 // Brand Header
                 Text(
-                  'CouponCode Seller',
+                  'Coupon360 Seller',
                   textAlign: TextAlign.center,
                   style: AppTextStyles.headlineSM.copyWith(
                     color: AppColors.primary,
@@ -189,32 +189,53 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             width: double.infinity,
                             height: 56,
                             decoration: BoxDecoration(
-                              gradient: isLoading ? null : AppColors.primaryGradient,
-                              color: isLoading ? AppColors.surfaceContainerHigh : null,
+                              gradient: isLoading
+                                  ? null
+                                  : AppColors.primaryGradient,
+                              color: isLoading
+                                  ? AppColors.surfaceContainerHigh
+                                  : null,
                               borderRadius: BorderRadius.circular(
                                 AppSpacing.radiusMd,
                               ),
-                              boxShadow: isLoading ? [] : [
-                                BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.2),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
+                              boxShadow: isLoading
+                                  ? []
+                                  : [
+                                      BoxShadow(
+                                        color: AppColors.primary.withOpacity(
+                                          0.2,
+                                        ),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
                             ),
                             child: ElevatedButton(
-                              onPressed: (_phoneController.text.length == 10 && !isLoading)
+                              onPressed:
+                                  (_phoneController.text.length == 10 &&
+                                      !isLoading)
                                   ? () async {
                                       final phone = _phoneController.text;
                                       final success = await ref
                                           .read(authNotifierProvider.notifier)
                                           .sendOtp(phone);
-                                          
+
                                       if (success && context.mounted) {
-                                        context.push('/otp', extra: '+91$phone');
-                                      } else if (!success && context.mounted && authState.hasError) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text(authState.error.toString())),
+                                        context.push(
+                                          '/otp',
+                                          extra: '+91$phone',
+                                        );
+                                      } else if (!success &&
+                                          context.mounted &&
+                                          authState.hasError) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              authState.error.toString(),
+                                            ),
+                                          ),
                                         );
                                       }
                                     }
@@ -230,29 +251,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ),
                               child: isLoading
-                                ? const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                                    ),
-                                  )
-                                : Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text('Send OTP', style: AppTextStyles.buttonText),
-                                      const SizedBox(width: AppSpacing.sm),
-                                      const Icon(
-                                        Icons.arrow_forward_rounded,
-                                        color: Colors.white,
-                                        size: 18,
+                                  ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              AppColors.primary,
+                                            ),
                                       ),
-                                    ],
-                                  ),
+                                    )
+                                  : Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Send OTP',
+                                          style: AppTextStyles.buttonText,
+                                        ),
+                                        const SizedBox(width: AppSpacing.sm),
+                                        const Icon(
+                                          Icons.arrow_forward_rounded,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                      ],
+                                    ),
                             ),
                           );
-                        }
+                        },
                       ),
                       const SizedBox(height: 32),
 
@@ -260,9 +288,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Center(
                         child: GestureDetector(
                           onTap: () async {
-                            final uri = Uri.parse('https://couponcode360.com');
+                            final uri = Uri.parse('https://couponcode360.com/#seller-policy');
                             if (await canLaunchUrl(uri)) {
-                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
                             }
                           },
                           child: Text.rich(

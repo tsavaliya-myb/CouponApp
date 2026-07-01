@@ -140,13 +140,13 @@ class ApprovalPendingScreen extends ConsumerWidget {
                         const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () async {
-                            final uri = Uri.parse('mailto:support@couponcode.com');
+                            final uri = Uri.parse('mailto:support@couponcode360.com');
                             if (await canLaunchUrl(uri)) {
                               await launchUrl(uri);
                             }
                           },
                           child: Text(
-                            'support@couponcode.com',
+                            'support@couponcode360.com',
                             style: AppTextStyles.bodyMD.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,

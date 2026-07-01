@@ -399,15 +399,15 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildFooterAction(
-                    Icons.help_outline,
-                    'HELP',
-                    'https://couponcode360.com/help',
-                  ),
+                  // _buildFooterAction(
+                  //   Icons.help_outline,
+                  //   'HELP',
+                  //   'https://couponcode360.com/help',
+                  // ),
                   _buildFooterAction(
                     Icons.description_outlined,
                     'TERMS',
-                    'https://couponcode360.com/terms',
+                    'https://couponcode360.com/#seller-policy',
                   ),
                 ],
               ),

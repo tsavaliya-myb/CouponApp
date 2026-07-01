@@ -142,7 +142,7 @@ class CouponSellerApp extends ConsumerWidget {
     final router = ref.watch(goRouterProvider);
 
     return MaterialApp.router(
-      title: 'CouponCode Seller',
+      title: 'Coupon360 Seller',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
