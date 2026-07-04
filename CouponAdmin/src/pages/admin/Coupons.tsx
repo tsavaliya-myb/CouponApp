@@ -333,10 +333,6 @@ export default function CouponsPage() {
               </Select>
             </div>
             <div>
-              <Label className="text-sm font-medium">Coupon Name (Unused)</Label>
-              <Input className="mt-1.5 rounded-lg" placeholder="e.g. 20% Off Lunch [API doesn't have name]" value={formName} onChange={(e) => setFormName(e.target.value)} disabled />
-            </div>
-            <div>
               <Label className="text-sm font-medium">Coupon Type</Label>
               <Select value={formType} onValueChange={setFormType}>
                 <SelectTrigger className="mt-1.5 rounded-lg"><SelectValue /></SelectTrigger>
