@@ -37,7 +37,9 @@ apiRouter.use('/admin/sellers', adminSellersRouter);
 
 // Phase 5: Payments
 import { paymentsRouter } from '../modules/payments/payments.routes';
+import { adminPaymentsRouter } from '../modules/admin/payments/admin-payments.routes';
 apiRouter.use('/payments', paymentsRouter);
+apiRouter.use('/admin/payments', adminPaymentsRouter);
 
 // Phase 6: Coupons
 import { couponsRouter } from '../modules/coupons/coupons.routes';

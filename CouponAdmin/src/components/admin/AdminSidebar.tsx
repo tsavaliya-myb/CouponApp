@@ -11,6 +11,7 @@ import {
   Settings,
   Megaphone,
   Grid3X3,
+  CreditCard,
 } from "lucide-react";
 
 import { NavLink } from "@/components/NavLink";
@@ -37,6 +38,7 @@ const coreItems = [
 ];
 
 const operationsItems = [
+  { title: "Payments",    url: "/admin/payments",     icon: CreditCard },
   { title: "Settlements", url: "/admin/settlements", icon: Landmark },
   { title: "Wallet",      url: "/admin/wallet",       icon: Wallet },
   { title: "Analytics",  url: "/admin/analytics",    icon: BarChart3 },

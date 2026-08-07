@@ -18,16 +18,14 @@ export function createApp(): Express {
   applySecurityMiddleware(app);
 
   // Body parsing
-  app.use(express.json({
-    limit: '10mb',
-    verify: (req: any, _res, buf) => {
-      // Capture raw body for webhook signature verification
-      if (req.originalUrl.includes('/webhook')) {
-        req.rawBody = buf;
-      }
-    }
-  }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  // The Razorpay webhook needs the untouched raw bytes to verify its HMAC
+  // signature (re-serializing parsed JSON will not byte-match what Razorpay
+  // signed), so that route parses its own body via express.raw() and must
+  // never pass through the global JSON/urlencoded parsers below.
+  const isRazorpayWebhook = (req: express.Request) => req.path === '/api/v1/payments/webhook';
+
+  app.use((req, res, next) => (isRazorpayWebhook(req) ? next() : express.json({ limit: '10mb' })(req, res, next)));
+  app.use((req, res, next) => (isRazorpayWebhook(req) ? next() : express.urlencoded({ extended: true, limit: '10mb' })(req, res, next)));
 
   // HTTP request logging (skip /health to reduce noise)
   app.use(

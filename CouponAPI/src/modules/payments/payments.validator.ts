@@ -2,41 +2,35 @@ import { z } from 'zod';
 
 // ─── POST /payments/initiate ──────────────────────────────────────────────────
 
-const siDetailsSchema = z.object({
-  billingAmount:    z.string(),
-  billingCurrency:  z.string(),
-  billingCycle:     z.string(),
-  billingInterval:  z.number(),
-  paymentStartDate: z.string(),
-  paymentEndDate:   z.string(),
-  billingRule:      z.string(),
-  remarks:          z.string(),
-});
-
 export const initiatePaymentResponseSchema = z.object({
-  key:            z.string(),
-  txnid:          z.string(),
-  amount:         z.string(),
-  productinfo:    z.string(),
-  firstname:      z.string(),
-  email:          z.string(),
-  phone:          z.string(),
-  userCredential: z.string(),
-  env:            z.string(),
-  si_details:     siDetailsSchema,
+  keyId:       z.string(),
+  orderId:     z.string(),
+  customerId:  z.string(),
+  amount:      z.number().int(),
+  currency:    z.literal('INR'),
+  name:        z.string(),
+  description: z.string(),
+  recurring:   z.literal('1'),
+  prefill: z.object({
+    name:    z.string(),
+    email:   z.string(),
+    contact: z.string(),
+  }),
 });
 
 export type InitiatePaymentResponse = z.infer<typeof initiatePaymentResponseSchema>;
 
-// ─── POST /payments/generate-hash ────────────────────────────────────────────
+// ─── POST /payments/verify ────────────────────────────────────────────────────
 
-export const generateHashRequestSchema = z.object({
-  hash_string: z.string().min(1, 'hash_string is required'),
+export const verifyPaymentRequestSchema = z.object({
+  razorpay_order_id:   z.string().min(1, 'razorpay_order_id is required'),
+  razorpay_payment_id: z.string().min(1, 'razorpay_payment_id is required'),
+  razorpay_signature:  z.string().min(1, 'razorpay_signature is required'),
 });
 
-export const generateHashResponseSchema = z.object({
-  hash: z.string(),
+export const verifyPaymentResponseSchema = z.object({
+  status: z.string(),
 });
 
-export type GenerateHashRequest  = z.infer<typeof generateHashRequestSchema>;
-export type GenerateHashResponse = z.infer<typeof generateHashResponseSchema>;
+export type VerifyPaymentRequest  = z.infer<typeof verifyPaymentRequestSchema>;
+export type VerifyPaymentResponse = z.infer<typeof verifyPaymentResponseSchema>;

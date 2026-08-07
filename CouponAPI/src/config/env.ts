@@ -34,11 +34,15 @@ export const env = cleanEnv(process.env, {
   MSG91_TEMPLATE_ID:    str({ default: '' }),
   MSG91_SENDER_ID:      str({ default: 'CPNAPP' }),
 
-  // PayU
-  PAYU_KEY:         str({ default: '' }),
-  PAYU_SALT:        str({ default: '' }),
-  PAYU_MERCHANT_ID: str({ default: '' }),
-  PAYU_ENV:         str({ choices: ['test', 'production'], default: 'test' }),
+  // Razorpay
+  RAZORPAY_KEY_ID:         str({ default: '' }),
+  RAZORPAY_KEY_SECRET:     str({ default: '' }),
+  RAZORPAY_WEBHOOK_SECRET: str({ default: '' }),
+  // UPI Autopay mandate ceiling in paise (₹5,000 confirmed for this account;
+  // UPI Autopay's own hard cap without extra authentication is ₹15,000/1500000).
+  RAZORPAY_MANDATE_MAX_AMOUNT: num({ default: 500_000 }),
+  // Mandate validity in years (token.expire_at)
+  RAZORPAY_MANDATE_YEARS:      num({ default: 10 }),
 
   // OneSignal
   ONESIGNAL_APP_ID:     str({ default: '' }),

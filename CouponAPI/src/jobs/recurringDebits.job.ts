@@ -2,8 +2,7 @@ import { Queue, Worker, Job } from 'bullmq';
 import { redis } from '../config/redis';
 import { logger } from '../config/logger';
 import { prisma } from '../config/db';
-import { env } from '../config/env';
-import crypto from 'crypto';
+import { razorpay, toPaise } from '../config/razorpay';
 
 const QUEUE_NAME = 'recurring-debits-queue';
 
@@ -14,102 +13,103 @@ export const recurringDebitsWorker = new Worker(
   async (job: Job) => {
     logger.info(`Processing recurringDebitsJob: ${job.id}`);
     const now = new Date();
-    // We want to renew subscriptions that are expiring in the next 24 hours
-    // Or exactly today, provided isAutopayEnabled is true
-    const targetDate = new Date(now);
-    targetDate.setDate(targetDate.getDate() + 1);
+
+    // UPI subsequent debits take 24–36h to settle, and must not be created on
+    // the last day of the mandate cycle. Firing 48–72h ahead of endDate gives
+    // the debit room to land before the book actually expires.
+    const windowStart = new Date(now.getTime() + 48 * 3600 * 1000);
+    const windowEnd   = new Date(now.getTime() + 72 * 3600 * 1000);
 
     try {
+      const priceSetting = await prisma.appSetting.findUnique({
+        where: { key: 'subscription_price' },
+      });
+      const rupees = priceSetting ? parseFloat(priceSetting.value) : 999;
+      const amountPaise = toPaise(rupees);
+
       const expiringSubs = await prisma.subscription.findMany({
         where: {
-          status: 'ACTIVE',
-          isAutopayEnabled: true,
-          authPayUID: { not: null },
-          endDate: { lte: targetDate },
+          status:              'ACTIVE',
+          isAutopayEnabled:    true,
+          razorpayTokenId:     { not: null },
+          renewalFailureCount: { lt: 3 },
+          endDate:             { gte: windowStart, lt: windowEnd },
         },
         include: { user: true },
       });
 
       if (expiringSubs.length === 0) {
         logger.info('recurringDebitsJob: No expiring subscriptions found for autopay.');
-        return { attempted: 0, successful: 0, failed: 0 };
+        return { attempted: 0, created: 0, skipped: 0, failed: 0 };
       }
 
-      let successful = 0;
-      let failed = 0;
+      let created = 0;
+      let skipped = 0;
+      let failed  = 0;
 
       for (const sub of expiringSubs) {
         try {
-          // Prepare si_transaction
-          const txnid = `renew_${sub.userId.slice(0, 8)}_${Date.now()}`;
-          const amount = "999.00"; // Should be fetched from settings ideally
-          
-          const var1Obj = {
-            txnid,
-            amount,
-            productinfo: "CouponApp Annual Renewal",
-            firstname: sub.user.name?.split(' ')[0] || 'Customer',
-            email: sub.user.email || '',
-            phone: (sub.user.phone || '').replace(/^\+91/, ''),
-            authpayuid: sub.authPayUID
-          };
-          
-          const var1 = JSON.stringify(var1Obj);
-          const command = 'si_transaction';
-          
-          // Hash: key|command|var1|salt
-          const hashStr = `${env.PAYU_KEY}|${command}|${var1}|${env.PAYU_SALT}`;
-          const hash = crypto.createHash('sha512').update(hashStr).digest('hex');
-
-          const payuUrl = env.PAYU_ENV === 'production' 
-            ? 'https://info.payu.in/merchant/postservice.php'
-            : 'https://test.payu.in/merchant/postservice.php';
-
-          const bodyParams = new URLSearchParams({
-            key: env.PAYU_KEY,
-            command,
-            var1,
-            hash,
-          });
-
-          const response = await fetch(`${payuUrl}?form=2`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: bodyParams.toString(),
-          });
-
-          const data = await response.json() as any;
-          
-          // Handle response
-          if (data.status === 1) {
-            // Success
-            logger.info('recurringDebitsJob: Renewal successful', { userId: sub.userId });
-            successful++;
-          } else {
-            // Failure
-            logger.warn('recurringDebitsJob: Renewal failed', { userId: sub.userId, error: data.error_code || data.msg });
-            failed++;
-            
-            // Check for mandate revoked / user cancelled in UPI app (E001)
-            // or equivalent error indicating mandate is no longer valid
-            if (data.error_code === 'E001' || data.msg?.toLowerCase().includes('mandate')) {
-              await prisma.subscription.update({
-                where: { id: sub.id },
-                data: {
-                  isAutopayEnabled: false,
-                  status: 'EXPIRED'
-                }
-              });
-              logger.info('recurringDebitsJob: Mandate revoked by user. Autopay disabled and subscription expired.', { userId: sub.userId });
-            }
+          if (!sub.user.razorpayCustomerId || !sub.razorpayTokenId) {
+            logger.warn('recurringDebitsJob: missing razorpayCustomerId/razorpayTokenId — skipping', { userId: sub.userId });
+            skipped++;
+            continue;
           }
+
+          // One in-flight renewal per subscription — never create a second
+          // debit before the previous one's outcome (payment.captured/failed)
+          // has landed via webhook.
+          const inFlight = await prisma.paymentAttempt.findFirst({
+            where: { subscriptionId: sub.id, kind: 'RENEWAL', status: 'PENDING' },
+          });
+          if (inFlight) {
+            logger.info('recurringDebitsJob: renewal already in flight — skipping', { userId: sub.userId, subscriptionId: sub.id });
+            skipped++;
+            continue;
+          }
+
+          const contact = (sub.user.phone || '').replace(/^\+91/, '');
+          const order = await razorpay.orders.create({
+            amount:   amountPaise,
+            currency: 'INR',
+            receipt:  `rnw_${sub.userId.slice(0, 8)}_${Date.now()}`.slice(0, 40),
+            notes:    { userId: sub.userId, kind: 'RENEWAL', subscriptionId: sub.id },
+          });
+
+          await prisma.paymentAttempt.create({
+            data: {
+              userId:          sub.userId,
+              subscriptionId:  sub.id,
+              razorpayOrderId: order.id,
+              amount:          rupees.toFixed(2) as any,
+              kind:            'RENEWAL',
+              status:          'PENDING',
+            },
+          });
+
+          await razorpay.payments.createRecurringPayment({
+            email:       sub.user.email || '',
+            contact,
+            amount:      amountPaise,
+            currency:    'INR',
+            order_id:    order.id,
+            customer_id: sub.user.razorpayCustomerId,
+            token:       sub.razorpayTokenId,
+            recurring:   true,
+            description: 'CouponApp Coupon Book Renewal',
+            notes:       { userId: sub.userId, kind: 'RENEWAL', subscriptionId: sub.id },
+          });
+
+          logger.info('recurringDebitsJob: renewal debit requested', { userId: sub.userId, orderId: order.id });
+          created++;
+          // Final outcome (extend endDate / bump renewalFailureCount) is
+          // handled by the payment.captured / payment.failed webhook — not here.
         } catch (err) {
-          logger.error('recurringDebitsJob: Error processing subscription', { userId: sub.userId, err });
+          logger.error('recurringDebitsJob: error processing subscription', { userId: sub.userId, err });
           failed++;
         }
       }
 
-      return { attempted: expiringSubs.length, successful, failed };
+      return { attempted: expiringSubs.length, created, skipped, failed };
     } catch (err) {
       logger.error('recurringDebitsJob failed', err);
       throw err;

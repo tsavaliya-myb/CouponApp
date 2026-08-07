@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 
 import '../data/models/payment_history_model.dart';
+import '../../payment/data/payment_repository.dart';
 
-// Mock state for demonstration purposes
 final mySubscriptionsProvider = StateNotifierProvider<MySubscriptionsNotifier, AsyncValue<PaymentHistoryResponse>>((ref) {
   return MySubscriptionsNotifier();
 });
@@ -15,53 +16,54 @@ class MySubscriptionsNotifier extends StateNotifier<AsyncValue<PaymentHistoryRes
   }
 
   Future<void> fetchHistory() async {
-    // In a real implementation, this calls ApiService().getPaymentHistory()
-    await Future.delayed(const Duration(seconds: 1));
-    state = AsyncValue.data(PaymentHistoryResponse(
-      subscription: SubscriptionDetailsModel(
-        status: 'ACTIVE',
-        startDate: DateTime.now().subtract(const Duration(days: 30)),
-        endDate: DateTime.now().add(const Duration(days: 335)),
-        isAutopayEnabled: true,
-      ),
-      history: [
-        PaymentAttemptModel(
-          id: '1',
-          txnid: 'sub12345678',
-          amount: '999.00',
-          createdAt: DateTime.now().subtract(const Duration(days: 30)),
-          kind: 'MANDATE',
-        ),
-      ],
-    ));
+    state = const AsyncValue.loading();
+    final repository = GetIt.I<PaymentRepository>();
+    final result = await repository.getPaymentHistory();
+    result.fold(
+      (failure) => state = AsyncValue.error(failure.message, StackTrace.current),
+      (data) => state = AsyncValue.data(data),
+    );
   }
 
   Future<void> cancelAutopay(BuildContext context) async {
-    // In a real implementation, this calls ApiService().cancelAutopay()
     final currentState = state;
-    if (currentState is AsyncData) {
-      // Simulate API call
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
-      );
-      await Future.delayed(const Duration(seconds: 1));
-      if (context.mounted) Navigator.pop(context); // close loading
-
-      // Update local state
-      state = AsyncValue.data(currentState.value!.copyWith(
-        subscription: currentState.value!.subscription!.copyWith(
-          isAutopayEnabled: false,
-        ),
-      ));
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Autopay has been successfully cancelled.')),
-        );
-      }
+    if (currentState is! AsyncData<PaymentHistoryResponse> || currentState.value.subscription == null) {
+      return;
     }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final repository = GetIt.I<PaymentRepository>();
+    final result = await repository.cancelAutopay();
+
+    if (context.mounted) Navigator.pop(context); // close loading
+
+    result.fold(
+      (failure) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(failure.message)),
+          );
+        }
+      },
+      (_) {
+        state = AsyncValue.data(currentState.value.copyWith(
+          subscription: currentState.value.subscription!.copyWith(
+            isAutopayEnabled: false,
+          ),
+        ));
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Autopay has been successfully cancelled.')),
+          );
+        }
+      },
+    );
   }
 }
 

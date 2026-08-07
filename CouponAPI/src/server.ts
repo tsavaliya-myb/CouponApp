@@ -5,10 +5,12 @@ import { logger } from './config/logger';
 import { prisma } from './config/db';
 import { redis } from './config/redis';
 import './jobs/export.worker';
+import './jobs/recurringDebits.job';
 
 import { scheduleExpiryReminders } from './jobs/expiryReminder.job';
 import { scheduleDailyMotivation } from './jobs/dailyMotivation.job';
 import { scheduleSubscriptionExpiry } from './jobs/subscriptionExpiry.job';
+import { scheduleRecurringDebits } from './jobs/recurringDebits.job';
 
 async function bootstrap() {
   // Verify DB connectivity before binding to port
@@ -19,6 +21,7 @@ async function bootstrap() {
   await scheduleSubscriptionExpiry();   // 00:00 — expire stale subscriptions & user coupons
   await scheduleExpiryReminders();      // 09:00 — warn users 7d / 2d before expiry
   await scheduleDailyMotivation();      // 10:00 — daily engagement push
+  await scheduleRecurringDebits();      // 09:00 — fire UPI Autopay renewal debits
 
   const app = createApp();
 

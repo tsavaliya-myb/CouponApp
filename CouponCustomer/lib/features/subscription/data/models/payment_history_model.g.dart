@@ -49,7 +49,7 @@ _$PaymentAttemptModelImpl _$$PaymentAttemptModelImplFromJson(
         Map<String, dynamic> json) =>
     _$PaymentAttemptModelImpl(
       id: json['id'] as String,
-      txnid: json['txnid'] as String,
+      razorpayOrderId: json['razorpayOrderId'] as String,
       amount: json['amount'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
       kind: json['kind'] as String,
@@ -59,7 +59,7 @@ Map<String, dynamic> _$$PaymentAttemptModelImplToJson(
         _$PaymentAttemptModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'txnid': instance.txnid,
+      'razorpayOrderId': instance.razorpayOrderId,
       'amount': instance.amount,
       'createdAt': instance.createdAt.toIso8601String(),
       'kind': instance.kind,

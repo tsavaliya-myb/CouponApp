@@ -9,33 +9,36 @@ const paymentController = new PaymentController();
 
 /**
  * @route   POST /api/v1/payments/initiate
- * @desc    Generate PayU hash + SI details; Flutter opens PayU CheckoutPro
+ * @desc    Create a Razorpay order carrying UPI Autopay token params; Flutter opens Razorpay Checkout
  * @access  Private (Customer)
  */
 router.post('/initiate', authenticate, paymentController.initiatePayment);
 
 /**
- * @route   POST /api/v1/payments/generate-hash
- * @desc    Compute SHA-512 hash server-side for PayU SDK's generateHash callback
- * @access  Private (Customer) — salt never sent to client
+ * @route   POST /api/v1/payments/verify
+ * @desc    Verify the Checkout success callback's HMAC signature; optimistic fulfilment
+ *          ahead of the webhook (webhook remains the source of truth)
+ * @access  Private (Customer)
  */
-router.post('/generate-hash', authenticate, paymentController.generateHash);
+router.post('/verify', authenticate, paymentController.verifyPayment);
 
 /**
  * @route   POST /api/v1/payments/webhook
- * @desc    PayU S2S webhook — fulfils subscription on successful mandate
- * @access  Public (PayU servers only — validated via reverse SHA-512 hash)
- * @note    PayU sends application/x-www-form-urlencoded, NOT JSON
+ * @desc    Razorpay webhook — fulfils/extends subscriptions on payment.captured,
+ *          tracks failures on payment.failed, and syncs mandate state on token.* events
+ * @access  Public (Razorpay servers only — validated via X-Razorpay-Signature HMAC)
+ * @note    Body must stay a raw Buffer for signature verification — do NOT parse
+ *          it as JSON before this middleware runs.
  */
 router.post(
   '/webhook',
-  express.urlencoded({ extended: true }),
+  express.raw({ type: 'application/json', limit: '2mb' }),
   paymentController.webhook,
 );
 
 /**
  * @route   POST /api/v1/payments/cancel-autopay
- * @desc    Cancel the UPI autopay mandate securely via PayU API
+ * @desc    Cancel the UPI autopay mandate (deletes the Razorpay token) and disable renewals
  * @access  Private (Customer)
  */
 router.post('/cancel-autopay', authenticate, paymentController.cancelAutopay);
