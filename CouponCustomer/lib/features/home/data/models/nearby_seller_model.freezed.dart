@@ -239,8 +239,8 @@ mixin _$NearbySellerModel {
   String get businessName => throw _privateConstructorUsedError;
   CategoryItem get category => throw _privateConstructorUsedError;
   String get area => throw _privateConstructorUsedError;
-  double get lat => throw _privateConstructorUsedError;
-  double get lng => throw _privateConstructorUsedError;
+  double? get lat => throw _privateConstructorUsedError;
+  double? get lng => throw _privateConstructorUsedError;
   double? get distanceKm => throw _privateConstructorUsedError;
   String? get logoUrl => throw _privateConstructorUsedError;
   SellerMediaModel? get media => throw _privateConstructorUsedError;
@@ -266,8 +266,8 @@ abstract class $NearbySellerModelCopyWith<$Res> {
       String businessName,
       CategoryItem category,
       String area,
-      double lat,
-      double lng,
+      double? lat,
+      double? lng,
       double? distanceKm,
       String? logoUrl,
       SellerMediaModel? media});
@@ -294,8 +294,8 @@ class _$NearbySellerModelCopyWithImpl<$Res, $Val extends NearbySellerModel>
     Object? businessName = null,
     Object? category = null,
     Object? area = null,
-    Object? lat = null,
-    Object? lng = null,
+    Object? lat = freezed,
+    Object? lng = freezed,
     Object? distanceKm = freezed,
     Object? logoUrl = freezed,
     Object? media = freezed,
@@ -317,14 +317,14 @@ class _$NearbySellerModelCopyWithImpl<$Res, $Val extends NearbySellerModel>
           ? _value.area
           : area // ignore: cast_nullable_to_non_nullable
               as String,
-      lat: null == lat
+      lat: freezed == lat
           ? _value.lat
           : lat // ignore: cast_nullable_to_non_nullable
-              as double,
-      lng: null == lng
+              as double?,
+      lng: freezed == lng
           ? _value.lng
           : lng // ignore: cast_nullable_to_non_nullable
-              as double,
+              as double?,
       distanceKm: freezed == distanceKm
           ? _value.distanceKm
           : distanceKm // ignore: cast_nullable_to_non_nullable
@@ -368,8 +368,8 @@ abstract class _$$NearbySellerModelImplCopyWith<$Res>
       String businessName,
       CategoryItem category,
       String area,
-      double lat,
-      double lng,
+      double? lat,
+      double? lng,
       double? distanceKm,
       String? logoUrl,
       SellerMediaModel? media});
@@ -395,8 +395,8 @@ class __$$NearbySellerModelImplCopyWithImpl<$Res>
     Object? businessName = null,
     Object? category = null,
     Object? area = null,
-    Object? lat = null,
-    Object? lng = null,
+    Object? lat = freezed,
+    Object? lng = freezed,
     Object? distanceKm = freezed,
     Object? logoUrl = freezed,
     Object? media = freezed,
@@ -418,14 +418,14 @@ class __$$NearbySellerModelImplCopyWithImpl<$Res>
           ? _value.area
           : area // ignore: cast_nullable_to_non_nullable
               as String,
-      lat: null == lat
+      lat: freezed == lat
           ? _value.lat
           : lat // ignore: cast_nullable_to_non_nullable
-              as double,
-      lng: null == lng
+              as double?,
+      lng: freezed == lng
           ? _value.lng
           : lng // ignore: cast_nullable_to_non_nullable
-              as double,
+              as double?,
       distanceKm: freezed == distanceKm
           ? _value.distanceKm
           : distanceKm // ignore: cast_nullable_to_non_nullable
@@ -450,8 +450,8 @@ class _$NearbySellerModelImpl implements _NearbySellerModel {
       required this.businessName,
       required this.category,
       required this.area,
-      required this.lat,
-      required this.lng,
+      this.lat,
+      this.lng,
       this.distanceKm,
       this.logoUrl,
       this.media});
@@ -468,9 +468,9 @@ class _$NearbySellerModelImpl implements _NearbySellerModel {
   @override
   final String area;
   @override
-  final double lat;
+  final double? lat;
   @override
-  final double lng;
+  final double? lng;
   @override
   final double? distanceKm;
   @override
@@ -530,8 +530,8 @@ abstract class _NearbySellerModel implements NearbySellerModel {
       required final String businessName,
       required final CategoryItem category,
       required final String area,
-      required final double lat,
-      required final double lng,
+      final double? lat,
+      final double? lng,
       final double? distanceKm,
       final String? logoUrl,
       final SellerMediaModel? media}) = _$NearbySellerModelImpl;
@@ -548,9 +548,9 @@ abstract class _NearbySellerModel implements NearbySellerModel {
   @override
   String get area;
   @override
-  double get lat;
+  double? get lat;
   @override
-  double get lng;
+  double? get lng;
   @override
   double? get distanceKm;
   @override

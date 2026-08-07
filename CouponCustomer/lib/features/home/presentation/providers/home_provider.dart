@@ -107,11 +107,12 @@ List<NearbySellerEntity> _filterAndMapDistance(List<NearbySellerEntity> all,
   if (locationAsync is AsyncData && locationAsync.value != null) {
     final pos = locationAsync.value!;
     filtered = filtered.map((seller) {
+      if (seller.lat == null || seller.lng == null) return seller;
       final distanceMeters = Geolocator.distanceBetween(
         pos.latitude,
         pos.longitude,
-        seller.lat,
-        seller.lng,
+        seller.lat!,
+        seller.lng!,
       );
       return seller.copyWith(distanceKm: distanceMeters / 1000);
     }).toList();

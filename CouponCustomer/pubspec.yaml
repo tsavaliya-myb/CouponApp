@@ -2,7 +2,7 @@ name: couponcode
 description: "Customer App for the CouponApp platform — ₹1000 subscription, coupon book, QR redemption."
 publish_to: 'none'
 
-version: 1.0.0+6
+version: 1.0.0+7
 
 environment:
   sdk: ^3.5.0
@@ -110,6 +110,4 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/
     - assets/icons/
-    - assets/animations/

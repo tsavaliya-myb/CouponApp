@@ -9,7 +9,9 @@
       "WebFetch(domain:payumobile.gitbook.io)",
       "Bash(xargs grep *)",
       "Read(//c/Users/TusharJS/**)",
-      "Bash(xargs cat *)"
+      "Bash(xargs cat *)",
+      "Bash(git check-ignore *)",
+      "Bash(flutter analyze *)"
     ]
   },
   "enabledMcpjsonServers": [

@@ -739,7 +739,10 @@ class _SellerMapSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final point = LatLng(seller.lat, seller.lng);
+    final lat = seller.lat;
+    final lng = seller.lng;
+    if (lat == null || lng == null) return const SizedBox.shrink();
+    final point = LatLng(lat, lng);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -825,8 +828,7 @@ class _SellerMapSection extends StatelessWidget {
                     bottom: 10,
                     right: 10,
                     child: GestureDetector(
-                      onTap: () => _openInGoogleMaps(
-                          seller.lat, seller.lng, seller.name),
+                      onTap: () => _openInGoogleMaps(lat, lng, seller.name),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),
