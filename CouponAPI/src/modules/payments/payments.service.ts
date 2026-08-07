@@ -15,7 +15,21 @@ export class PaymentService {
 
   // ─── Razorpay Customer (created once per user, cached on User) ──────────
   private async getOrCreateCustomer(user: User): Promise<string> {
-    if (user.razorpayCustomerId) return user.razorpayCustomerId;
+    if (user.razorpayCustomerId) {
+      // A customer id cached while the server ran under a *different* key mode
+      // (test vs live) will not exist in the current mode — Razorpay has no
+      // test/live prefix on customer ids, so the only way to tell is to ask.
+      // Self-heal by minting a fresh one instead of handing Checkout a dead id
+      // (surfaces there as "The id provided does not exist").
+      try {
+        await razorpay.customers.fetch(user.razorpayCustomerId);
+        return user.razorpayCustomerId;
+      } catch (err) {
+        log.warn('getOrCreateCustomer: cached razorpayCustomerId not found in current mode — reissuing', {
+          userId: user.id, staleCustomerId: user.razorpayCustomerId, err,
+        });
+      }
+    }
 
     const contact = (user.phone || '').replace(/^\+91/, '');
     const customer = await razorpay.customers.create({
