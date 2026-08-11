@@ -5,7 +5,6 @@
 class AppConfig {
   final String appName;
   final String baseUrl;
-  final String payuMerchantKey;
   final String qrSecretKey;
   final String appVersion;
   final bool enableAnalytics;
@@ -18,7 +17,6 @@ class AppConfig {
   const AppConfig({
     required this.appName,
     required this.baseUrl,
-    required this.payuMerchantKey,
     required this.qrSecretKey,
     required this.appVersion,
     required this.enableAnalytics,
@@ -43,7 +41,6 @@ class AppConfig {
   factory AppConfig.prod() => const AppConfig(
         appName: 'CouponApp',
         baseUrl: String.fromEnvironment('BASE_URL'),
-        payuMerchantKey: String.fromEnvironment('PAYU_KEY'),
         qrSecretKey: String.fromEnvironment('QR_SECRET_KEY'),
         appVersion: '1.0.0',
         enableAnalytics: true,
@@ -56,7 +53,6 @@ class AppConfig {
   factory AppConfig.dev() => const AppConfig(
         appName: 'CouponApp',
         baseUrl: String.fromEnvironment('BASE_URL'),
-        payuMerchantKey: String.fromEnvironment('PAYU_KEY'),
         qrSecretKey: String.fromEnvironment('QR_SECRET_KEY'),
         appVersion: '1.0.0',
         enableAnalytics: true,

@@ -1,17 +1,20 @@
 // lib/core/network/auth_interceptor.dart
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
+import '../security/session_manager.dart';
 import '../security/token_service.dart';
 
 /// Attaches JWT Bearer token to every outgoing request.
 /// On 401, attempts a silent token refresh before retrying.
-/// On refresh failure, clears tokens and triggers re-login.
+/// On refresh failure, clears tokens and signals SessionManager so AuthNotifier
+/// can wipe cached state and redirect to login.
 @injectable
 class AuthInterceptor extends Interceptor {
   final TokenService _tokenService;
+  final SessionManager _sessionManager;
   final Dio _refreshDio; // Separate Dio instance — no interceptors (avoids loops)
 
-  AuthInterceptor(this._tokenService)
+  AuthInterceptor(this._tokenService, this._sessionManager)
       : _refreshDio = Dio(); // Plain Dio for refresh calls
 
   @override
@@ -37,7 +40,9 @@ class AuthInterceptor extends Interceptor {
         return;
       } catch (_) {
         await _tokenService.clearTokens();
-        // GoRouter redirect will handle re-login via auth state change
+        // Session is unrecoverable — AuthNotifier listens and does the rest
+        // (cache wipe, provider invalidation, GoRouter redirect to login).
+        _sessionManager.expire();
       }
     }
     handler.next(err);

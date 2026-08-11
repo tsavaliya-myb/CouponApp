@@ -115,6 +115,7 @@ class HiveService {
       Hive.box<dynamic>(AppConstants.couponBox).clear(),
       Hive.box<dynamic>(AppConstants.sellerBox).clear(),
       Hive.box<dynamic>(AppConstants.profileBox).clear(),
+      Hive.box<dynamic>(AppConstants.settingsBox).clear(),
     ]);
   }
 }

@@ -451,7 +451,7 @@ PaymentAttemptModel _$PaymentAttemptModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$PaymentAttemptModel {
   String get id => throw _privateConstructorUsedError;
-  String get txnid => throw _privateConstructorUsedError;
+  String get razorpayOrderId => throw _privateConstructorUsedError;
   String get amount => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   String get kind => throw _privateConstructorUsedError;
@@ -474,7 +474,7 @@ abstract class $PaymentAttemptModelCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String txnid,
+      String razorpayOrderId,
       String amount,
       DateTime createdAt,
       String kind});
@@ -496,7 +496,7 @@ class _$PaymentAttemptModelCopyWithImpl<$Res, $Val extends PaymentAttemptModel>
   @override
   $Res call({
     Object? id = null,
-    Object? txnid = null,
+    Object? razorpayOrderId = null,
     Object? amount = null,
     Object? createdAt = null,
     Object? kind = null,
@@ -506,9 +506,9 @@ class _$PaymentAttemptModelCopyWithImpl<$Res, $Val extends PaymentAttemptModel>
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      txnid: null == txnid
-          ? _value.txnid
-          : txnid // ignore: cast_nullable_to_non_nullable
+      razorpayOrderId: null == razorpayOrderId
+          ? _value.razorpayOrderId
+          : razorpayOrderId // ignore: cast_nullable_to_non_nullable
               as String,
       amount: null == amount
           ? _value.amount
@@ -536,7 +536,7 @@ abstract class _$$PaymentAttemptModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      String txnid,
+      String razorpayOrderId,
       String amount,
       DateTime createdAt,
       String kind});
@@ -556,7 +556,7 @@ class __$$PaymentAttemptModelImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? txnid = null,
+    Object? razorpayOrderId = null,
     Object? amount = null,
     Object? createdAt = null,
     Object? kind = null,
@@ -566,9 +566,9 @@ class __$$PaymentAttemptModelImplCopyWithImpl<$Res>
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      txnid: null == txnid
-          ? _value.txnid
-          : txnid // ignore: cast_nullable_to_non_nullable
+      razorpayOrderId: null == razorpayOrderId
+          ? _value.razorpayOrderId
+          : razorpayOrderId // ignore: cast_nullable_to_non_nullable
               as String,
       amount: null == amount
           ? _value.amount
@@ -591,7 +591,7 @@ class __$$PaymentAttemptModelImplCopyWithImpl<$Res>
 class _$PaymentAttemptModelImpl implements _PaymentAttemptModel {
   const _$PaymentAttemptModelImpl(
       {required this.id,
-      required this.txnid,
+      required this.razorpayOrderId,
       required this.amount,
       required this.createdAt,
       required this.kind});
@@ -602,7 +602,7 @@ class _$PaymentAttemptModelImpl implements _PaymentAttemptModel {
   @override
   final String id;
   @override
-  final String txnid;
+  final String razorpayOrderId;
   @override
   final String amount;
   @override
@@ -612,7 +612,7 @@ class _$PaymentAttemptModelImpl implements _PaymentAttemptModel {
 
   @override
   String toString() {
-    return 'PaymentAttemptModel(id: $id, txnid: $txnid, amount: $amount, createdAt: $createdAt, kind: $kind)';
+    return 'PaymentAttemptModel(id: $id, razorpayOrderId: $razorpayOrderId, amount: $amount, createdAt: $createdAt, kind: $kind)';
   }
 
   @override
@@ -621,7 +621,8 @@ class _$PaymentAttemptModelImpl implements _PaymentAttemptModel {
         (other.runtimeType == runtimeType &&
             other is _$PaymentAttemptModelImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.txnid, txnid) || other.txnid == txnid) &&
+            (identical(other.razorpayOrderId, razorpayOrderId) ||
+                other.razorpayOrderId == razorpayOrderId) &&
             (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -631,7 +632,7 @@ class _$PaymentAttemptModelImpl implements _PaymentAttemptModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, id, txnid, amount, createdAt, kind);
+      Object.hash(runtimeType, id, razorpayOrderId, amount, createdAt, kind);
 
   /// Create a copy of PaymentAttemptModel
   /// with the given fields replaced by the non-null parameter values.
@@ -653,7 +654,7 @@ class _$PaymentAttemptModelImpl implements _PaymentAttemptModel {
 abstract class _PaymentAttemptModel implements PaymentAttemptModel {
   const factory _PaymentAttemptModel(
       {required final String id,
-      required final String txnid,
+      required final String razorpayOrderId,
       required final String amount,
       required final DateTime createdAt,
       required final String kind}) = _$PaymentAttemptModelImpl;
@@ -664,7 +665,7 @@ abstract class _PaymentAttemptModel implements PaymentAttemptModel {
   @override
   String get id;
   @override
-  String get txnid;
+  String get razorpayOrderId;
   @override
   String get amount;
   @override

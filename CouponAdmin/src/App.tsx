@@ -9,6 +9,7 @@ import UsersPage from "@/pages/admin/Users";
 import SellersPage from "@/pages/admin/Sellers";
 import CouponsPage from "@/pages/admin/Coupons";
 import SettlementsPage from "@/pages/admin/Settlements";
+import PaymentsPage from "@/pages/admin/Payments";
 import WalletPage from "@/pages/admin/Wallet";
 import AnalyticsPage from "@/pages/admin/Analytics";
 import NotificationsPage from "@/pages/admin/Notifications";
@@ -42,6 +43,7 @@ const App = () => (
                 <Route path="sellers" element={<SellersPage />} />
                 <Route path="coupons" element={<CouponsPage />} />
                 <Route path="settlements" element={<SettlementsPage />} />
+                <Route path="payments" element={<PaymentsPage />} />
                 <Route path="wallet" element={<WalletPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />

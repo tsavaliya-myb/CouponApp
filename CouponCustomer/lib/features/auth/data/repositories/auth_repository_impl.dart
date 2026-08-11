@@ -62,6 +62,16 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, Unit>> logout() async {
+    // Best-effort server-side revocation. Must run BEFORE the local wipe (needs
+    // the refresh token) and must never block logout if the network is down —
+    // the token still expires on its own TTL.
+    try {
+      final refreshToken = await _tokenService.getRefreshToken();
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _datasource.logout(refreshToken: refreshToken);
+      }
+    } catch (_) {}
+
     try {
       await Future.wait([
         _tokenService.clearTokens(),

@@ -23,6 +23,8 @@ export interface User {
   status: "ACTIVE" | "INACTIVE" | "BANNED" | "EXPIRED" | string;
   onesignalPlayerId: string | null;
   coinBalance: number;
+  // Razorpay customer — created once on first purchase attempt, reused for every mandate/renewal
+  razorpayCustomerId: string | null;
   createdAt: string;
   updatedAt: string;
   city?: City;
@@ -50,8 +52,15 @@ export interface UserSubscription {
   startDate: string;
   endDate: string;
   status: string;
-  razorpayOrderId: string | null;
-  razorpayPaymentId: string | null;
+  // Razorpay mandate references
+  razorpayPaymentId: string | null; // pay_xxx — latest captured payment
+  razorpayTokenId: string | null; // token_xxx — mandate handle
+  mandateMaxAmount: number | null; // paise — the token's max_amount ceiling
+  mandateExpiresAt: string | null; // token's expire_at
+  preDebitNotifiedAt: string | null;
+  lastRenewalAt: string | null;
+  renewalFailureCount: number;
+  isAutopayEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }

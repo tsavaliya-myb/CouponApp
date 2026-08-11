@@ -31,7 +31,7 @@ class SubscriptionDetailsModel with _$SubscriptionDetailsModel {
 class PaymentAttemptModel with _$PaymentAttemptModel {
   const factory PaymentAttemptModel({
     required String id,
-    required String txnid,
+    required String razorpayOrderId,
     required String amount,
     required DateTime createdAt,
     required String kind,

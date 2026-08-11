@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dart run *)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter build *)",
+      "Bash(npm run *)",
+      "Bash(node -e ' *)",
+      "Bash(grep -n \"class PaymentFailureResponse\" -A 25 \"C:/Users/TusharJS/AppData/Local/Pub/Cache/hosted/pub.dev/razorpay_flutter-1.4.5/lib/razorpay_flutter.dart\")",
+      "Read(//c/Users/TusharJS/AppData/Local/Pub/Cache/hosted/pub.dev/razorpay_flutter-1.4.5/lib/**)",
+      "Bash(grep -n \"PAYMENT_CANCELLED\\\\|NETWORK_ERROR\\\\|INVALID_OPTIONS\\\\|TLS_ERROR\\\\|UNKNOWN_ERROR\\\\|static const int\" \"C:/Users/TusharJS/AppData/Local/Pub/Cache/hosted/pub.dev/razorpay_flutter-1.4.5/lib/razorpay_flutter.dart\")",
+      "Bash(grep -rn \"timeout\" \"C:/Users/TusharJS/AppData/Local/Pub/Cache/hosted/pub.dev/razorpay_flutter-1.4.5/lib\" \"C:/Users/TusharJS/AppData/Local/Pub/Cache/hosted/pub.dev/razorpay_flutter-1.4.5/README.md\" 2>&1 | head -30)"
+    ]
+  }
+}

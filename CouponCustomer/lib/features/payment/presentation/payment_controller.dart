@@ -1,37 +1,42 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 
-import '../../../core/services/payu_service.dart';
+import '../../../core/services/razorpay_service.dart';
 import '../../../core/error/failures.dart';
+import '../../home/presentation/providers/home_provider.dart';
 import '../../profile/presentation/providers/profile_provider.dart';
+import '../../subscription/presentation/my_subscriptions_screen.dart';
 import '../data/payment_repository.dart';
 
-/// Drives the PayU UPI Autopay purchase flow.
+/// Drives the Razorpay UPI Autopay purchase flow.
 ///
-/// State is `AsyncLoading` while the SDK checkout is open, `AsyncData(null)`
-/// on success, and `AsyncError` on failure / cancellation.
+/// State is `AsyncLoading` while Checkout is open, `AsyncData(null)` on
+/// success, and `AsyncError` on failure / cancellation.
 class PaymentController extends AutoDisposeAsyncNotifier<void> {
   @override
   FutureOr<void> build() {
-    // Initial idle state
+    // Release the Checkout SDK's method-channel listeners when this
+    // controller (and the screen that watches it) goes away.
+    ref.onDispose(() => GetIt.I<RazorpayService>().dispose());
   }
 
-  /// Initiates the PayU UPI Autopay flow.
+  /// Initiates the Razorpay UPI Autopay flow.
   ///
-  /// 1. Calls the backend to get payment params + SHA-512 hash.
-  /// 2. Opens the PayU CheckoutPro SDK.
-  /// 3. On success, waits 3 s for the S2S webhook to fulfil the subscription,
-  ///    then invalidates [profileProvider] to refresh the user's status.
-  Future<void> startPaymentFlow(BuildContext context) async {
+  /// 1. Calls the backend to get an order + Checkout params.
+  /// 2. Opens Razorpay Checkout in recurring mode.
+  /// 3. On success, verifies the signature (optimistic fulfilment), then
+  ///    polls the profile until the subscription turns ACTIVE — the S2S
+  ///    webhook is the actual source of truth and may still be in flight.
+  Future<void> startPaymentFlow() async {
     state = const AsyncLoading();
     try {
       final repository = GetIt.I<PaymentRepository>();
-      final payuService = GetIt.I<PayUService>();
+      final razorpayService = GetIt.I<RazorpayService>();
 
-      // Step 1 — fetch PayU params from backend
+      // Step 1 — fetch Razorpay order + Checkout params from backend
       final result = await repository.initiatePayment();
       final params = result.fold(
         (failure) => throw failure,
@@ -39,28 +44,29 @@ class PaymentController extends AutoDisposeAsyncNotifier<void> {
       );
 
       // Step 2 — wire callbacks before opening checkout
-      payuService.initialize(context);
+      razorpayService.initialize();
 
-      // Server-side hash generation keeps the merchant salt off the client.
-      payuService.onGenerateHash = (hashString) async {
-        debugPrint('[PayU] generateHash request: hashString="$hashString"');
-        final result = await repository.generateHash(hashString);
-        return result.fold(
-          (failure) {
-            debugPrint('[PayU] generateHash FAILED: ${failure.message}');
-            return '';
-          },
-          (hash) {
-            debugPrint('[PayU] generateHash SUCCESS: hash="${hash.substring(0, hash.length.clamp(0, 20))}..."');
-            return hash;
-          },
-        );
-      };
+      razorpayService.onSuccess = (PaymentSuccessResponse response) async {
+        final orderId = response.orderId ?? '';
+        final paymentId = response.paymentId ?? '';
+        final signature = response.signature ?? '';
 
-      payuService.onSuccess = (_) async {
-        // Subscription fulfilment happens server-side via S2S webhook.
-        // Poll the profile up to 5 times (2 s apart) until it turns ACTIVE,
-        // so slow webhooks don't leave the UI stuck on the old state.
+        if (orderId.isEmpty || paymentId.isEmpty || signature.isEmpty) {
+          debugPrint('[Payment] success callback missing order/payment/signature');
+        } else {
+          final verifyResult = await repository.verifyPayment(
+            orderId: orderId,
+            paymentId: paymentId,
+            signature: signature,
+          );
+          verifyResult.fold(
+            (failure) => debugPrint('[Payment] verify failed: ${failure.message}'),
+            (status) => debugPrint('[Payment] verify status: $status'),
+          );
+        }
+
+        // Poll the profile up to 5 times (2s apart) until it turns ACTIVE,
+        // so a slightly slow webhook doesn't leave the UI stuck.
         for (var i = 0; i < 5; i++) {
           await Future.delayed(const Duration(seconds: 2));
           ref.invalidate(profileProvider);
@@ -71,20 +77,36 @@ class PaymentController extends AutoDisposeAsyncNotifier<void> {
             // profile fetch failed — keep polling
           }
         }
+
+        // Purchase changes what every user-scoped screen should show, but the
+        // keepAlive providers below still hold pre-purchase data (e.g. "No
+        // active subscription found"). Drop them so they refetch on next read.
+        _invalidateSubscriptionScopedProviders();
+
         state = const AsyncData(null);
       };
 
-      payuService.onFailure = (err) {
+      razorpayService.onFailure = (err) {
         state = AsyncError(err, StackTrace.current);
       };
 
       // Step 3 — open checkout (non-blocking; result via callbacks above)
-      payuService.openCheckout(params);
+      razorpayService.openCheckout(params);
     } on Failure catch (f, stack) {
       state = AsyncError(f.message, stack);
     } catch (e, stack) {
       state = AsyncError(e.toString(), stack);
     }
+  }
+
+  /// Drops the keepAlive providers whose contents depend on subscription
+  /// status, so post-purchase screens don't render pre-purchase data.
+  void _invalidateSubscriptionScopedProviders() {
+    ref.invalidate(profileProvider);
+    ref.invalidate(userSettingsProvider);
+    ref.invalidate(mySubscriptionsProvider);
+    ref.invalidate(allCouponsProvider);
+    ref.invalidate(allSellersProvider);
   }
 }
 

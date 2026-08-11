@@ -6,11 +6,13 @@
 -keep class io.flutter.** { *; }
 -keep class io.flutter.plugins.** { *; }
 
-# PayU SDK
--keep class com.payu.** { *; }
--dontwarn com.payu.**
+# Razorpay SDK
+-keep class com.razorpay.** { *; }
+-dontwarn com.razorpay.**
+-keepclasseswithmembers class * { @com.razorpay.* <methods>; }
+-optimizations !method/inlining/*
 
-# Google Pay in-app client — optional dependency used by PayU's GPay module.
+# Google Pay in-app client — optional dependency used by Razorpay's GPay module.
 # These classes are only present when the Google Pay app is installed on the
 # device; R8 cannot find them at compile time, so we suppress the warnings.
 -dontwarn com.google.android.apps.nbu.paisa.inapp.client.api.PaymentsClient

@@ -12,6 +12,11 @@ import { Loader2 } from "lucide-react";
 
 import { useSystemSettings, useUpdateSystemSettings } from "@/hooks/api/useSettings";
 
+// Must track CouponAPI's RAZORPAY_MANDATE_MAX_AMOUNT (paise) — a price above this
+// cap can never be charged: Razorpay's UPI Autopay token enforces it server-side,
+// so purchases would start failing for every user with no client-visible cause.
+const RAZORPAY_MANDATE_MAX_RUPEES = 5000;
+
 export default function SettingsPage() {
   const { data: settingsResp, isLoading } = useSystemSettings();
   const updateSettingsMutation = useUpdateSystemSettings();
@@ -74,6 +79,12 @@ export default function SettingsPage() {
             <div>
               <Label className="text-xs text-muted-foreground">Subscription Price (₹)</Label>
               <Input type="number" value={formData.subscription_price} onChange={(e) => handleChange("subscription_price", e.target.value)} className="rounded-lg mt-1" />
+              {Number(formData.subscription_price) > RAZORPAY_MANDATE_MAX_RUPEES && (
+                <p className="text-xs text-destructive mt-1">
+                  Above the ₹{RAZORPAY_MANDATE_MAX_RUPEES.toLocaleString("en-IN")} UPI Autopay mandate limit —
+                  purchases and renewals will fail until this is lowered or the mandate cap is raised on the backend.
+                </p>
+              )}
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Book Validity (days)</Label>

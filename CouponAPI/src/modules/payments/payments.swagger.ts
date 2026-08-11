@@ -1,5 +1,9 @@
 import { openApiRegistry } from '../../config/swagger';
-import { initiatePaymentResponseSchema, generateHashResponseSchema } from './payments.validator';
+import {
+  initiatePaymentResponseSchema,
+  verifyPaymentRequestSchema,
+  verifyPaymentResponseSchema,
+} from './payments.validator';
 import { z } from 'zod';
 
 const errorResponse = z.object({
@@ -12,15 +16,16 @@ const errorResponse = z.object({
 openApiRegistry.registerPath({
   method:  'post',
   path:    '/payments/initiate',
-  summary: 'Initiate PayU UPI Autopay',
+  summary: 'Initiate Razorpay UPI Autopay mandate',
   description:
-    'Returns PayU payment params for the Flutter CheckoutPro SDK to open a UPI Autopay mandate-registration screen. ' +
-    'Price is read from AppSetting `subscription_price`. A PENDING PaymentAttempt row is created on every call.',
+    'Creates a Razorpay order carrying UPI Autopay token params (max_amount, expire_at, frequency) and ' +
+    'returns Checkout options for the Flutter SDK. Price is read from AppSetting `subscription_price`. ' +
+    'A PENDING PaymentAttempt row is created on every call.',
   tags:     ['Payments'],
   security: [{ bearerAuth: [] }],
   responses: {
     201: {
-      description: 'Payment params ready',
+      description: 'Checkout params ready',
       content: {
         'application/json': {
           schema: z.object({ success: z.boolean().default(true), data: initiatePaymentResponseSchema }),
@@ -32,46 +37,50 @@ openApiRegistry.registerPath({
       content: { 'application/json': { schema: errorResponse } },
     },
     409: {
-      description: 'User already has an active subscription',
+      description: 'User already has an active subscription, or price exceeds the mandate max_amount',
       content: { 'application/json': { schema: errorResponse } },
     },
   },
 });
 
-// POST /payments/generate-hash
+// POST /payments/verify
 openApiRegistry.registerPath({
   method:  'post',
-  path:    '/payments/generate-hash',
-  summary: 'Generate PayU hash (SDK callback)',
+  path:    '/payments/verify',
+  summary: 'Verify a Razorpay Checkout success callback',
   description:
-    'Called by the Flutter SDK\'s `generateHash` callback. Accepts the raw `hashString` supplied by the SDK ' +
-    'and returns `SHA512(hashString + SALT)`. The merchant salt never leaves the server.',
+    'Called by the Flutter app immediately after Checkout reports success. Verifies the HMAC-SHA256 ' +
+    'signature and optimistically fulfils the subscription if the payment is already captured, so the ' +
+    'user does not have to wait on the webhook. The webhook remains the source of truth and is idempotent ' +
+    'against this call.',
   tags:     ['Payments'],
   security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
-        'application/json': {
-          schema: z.object({ hash_string: z.string().min(1) }),
-        },
+        'application/json': { schema: verifyPaymentRequestSchema },
       },
     },
   },
   responses: {
     200: {
-      description: 'Hash computed',
+      description: 'Verified',
       content: {
         'application/json': {
-          schema: z.object({ success: z.boolean().default(true), data: generateHashResponseSchema }),
+          schema: z.object({ success: z.boolean().default(true), data: verifyPaymentResponseSchema }),
         },
       },
     },
     400: {
-      description: 'hash_string missing or empty',
+      description: 'Missing required fields',
       content: { 'application/json': { schema: errorResponse } },
     },
     401: {
       description: 'Unauthorized',
+      content: { 'application/json': { schema: errorResponse } },
+    },
+    409: {
+      description: 'Signature mismatch or payment/order record not found',
       content: { 'application/json': { schema: errorResponse } },
     },
   },
@@ -81,28 +90,21 @@ openApiRegistry.registerPath({
 openApiRegistry.registerPath({
   method:  'post',
   path:    '/payments/webhook',
-  summary: 'PayU S2S webhook',
+  summary: 'Razorpay webhook',
   description:
-    'Receives PayU server-to-server payment notifications (`application/x-www-form-urlencoded`). ' +
-    'Responds 200 immediately and processes async. Verifies the reverse SHA-512 hash (SI-aware). ' +
-    'On `status=success`: fulfils subscription, creates CouponBook, awards coins, updates PaymentAttempt to SUCCESS. ' +
-    'On any other status: updates PaymentAttempt to FAILED with error details. ' +
-    'Idempotent — duplicate webhooks keyed on `mihpayid` are silently ignored.',
+    'Receives Razorpay webhook events (`application/json`, signed via `X-Razorpay-Signature`). ' +
+    'Responds 200 immediately and processes async. Handles `payment.captured` (fulfils a MANDATE or ' +
+    'extends a RENEWAL), `payment.failed` (records failure, bumps renewalFailureCount, expires after 3), ' +
+    '`token.confirmed` (mandate live), and `token.cancelled` / `token.paused` / `token.rejected` ' +
+    '(disables autopay). Idempotent — deduped on a hash of the raw request body.',
   tags: ['Payments'],
   request: {
     body: {
       content: {
-        'application/x-www-form-urlencoded': {
+        'application/json': {
           schema: z.object({
-            txnid:         z.string(),
-            mihpayid:      z.string(),
-            status:        z.enum(['success', 'failure', 'pending', 'usercancelled']),
-            hash:          z.string().describe('Reverse SHA-512 hash for verification'),
-            si_details:    z.string().optional().describe('JSON string of SI mandate params'),
-            auth_payuid:   z.string().optional().describe('Mandate reference for recurring debits'),
-            authPayUID:    z.string().optional().describe('Alternate key for mandate reference'),
-            error_Message: z.string().optional(),
-            error_code:    z.string().optional(),
+            event:   z.string(),
+            payload: z.record(z.string(), z.any()),
           }).passthrough(),
         },
       },
@@ -116,6 +118,72 @@ openApiRegistry.registerPath({
           schema: z.object({ status: z.literal('ok') }),
         },
       },
+    },
+  },
+});
+
+// POST /payments/cancel-autopay
+openApiRegistry.registerPath({
+  method:  'post',
+  path:    '/payments/cancel-autopay',
+  summary: 'Cancel UPI Autopay',
+  description:
+    'Deletes the Razorpay mandate token (`customers.deleteToken`) and disables autopay locally so the ' +
+    'renewal job skips this user, even if the remote call fails.',
+  tags:     ['Payments'],
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Autopay cancelled',
+      content: {
+        'application/json': {
+          schema: z.object({ success: z.boolean().default(true), data: z.object({ message: z.string() }) }),
+        },
+      },
+    },
+    409: {
+      description: 'No subscription, or autopay already disabled',
+      content: { 'application/json': { schema: errorResponse } },
+    },
+  },
+});
+
+// GET /payments/history
+openApiRegistry.registerPath({
+  method:  'get',
+  path:    '/payments/history',
+  summary: 'Fetch payment history and current subscription',
+  tags:     ['Payments'],
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Subscription details and successful payment attempts',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean().default(true),
+            data: z.object({
+              subscription: z.object({
+                status: z.string(),
+                startDate: z.string(),
+                endDate: z.string(),
+                isAutopayEnabled: z.boolean(),
+              }).nullable(),
+              history: z.array(z.object({
+                id: z.string(),
+                razorpayOrderId: z.string(),
+                amount: z.string(),
+                createdAt: z.string(),
+                kind: z.string(),
+              })),
+            }),
+          }),
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: { 'application/json': { schema: errorResponse } },
     },
   },
 });

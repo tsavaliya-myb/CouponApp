@@ -51,6 +51,12 @@
 		<array>
 			<string>https</string>
 			<string>comgooglemaps</string>
+			<!-- Razorpay UPI Autopay: app-switch to UPI apps for mandate approval -->
+			<string>tez</string>
+			<string>phonepe</string>
+			<string>paytmmp</string>
+			<string>bhim</string>
+			<string>credpay</string>
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>

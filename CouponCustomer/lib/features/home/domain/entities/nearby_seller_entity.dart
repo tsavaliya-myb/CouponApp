@@ -8,8 +8,8 @@ class NearbySellerEntity extends Equatable {
   final String name;
   final CategoryItem category;
   final String area;
-  final double lat;
-  final double lng;
+  final double? lat;
+  final double? lng;
   final double? distanceKm;
   final String? logoUrl;
   final SellerMediaEntity? media;
