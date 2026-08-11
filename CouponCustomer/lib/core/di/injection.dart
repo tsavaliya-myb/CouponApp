@@ -7,6 +7,7 @@ import '../network/api_client.dart';
 import '../network/auth_interceptor.dart';
 import '../network/retry_interceptor.dart';
 import '../security/qr_token_service.dart';
+import '../security/session_manager.dart';
 import '../security/token_service.dart';
 import '../storage/hive_service.dart';
 import '../storage/secure_storage.dart';
@@ -61,6 +62,7 @@ Future<void> configureDependencies() async {
     () => TokenService(getIt<SecureStorageService>()),
   );
   getIt.registerLazySingleton<QrTokenService>(() => QrTokenService());
+  getIt.registerLazySingleton<SessionManager>(() => SessionManager());
   getIt.registerLazySingleton<HiveService>(() => HiveService());
   getIt.registerLazySingleton<NotificationService>(
     () => NotificationService(AppConfig.current.oneSignalAppId),
@@ -72,7 +74,7 @@ Future<void> configureDependencies() async {
   // ---------------------------------------------------------------------------
   getIt.registerLazySingleton<RetryInterceptor>(() => RetryInterceptor());
   getIt.registerLazySingleton<AuthInterceptor>(
-    () => AuthInterceptor(getIt<TokenService>()),
+    () => AuthInterceptor(getIt<TokenService>(), getIt<SessionManager>()),
   );
   getIt.registerLazySingleton<ApiClient>(
     () => ApiClient(getIt<AuthInterceptor>(), getIt<RetryInterceptor>()),

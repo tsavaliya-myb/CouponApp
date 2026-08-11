@@ -1,5 +1,4 @@
 // lib/features/auth/data/datasources/auth_remote_datasource.dart
-import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/auth_response_model.dart';
@@ -10,6 +9,9 @@ abstract class AuthRemoteDatasource {
     required String phone,
     required String otp,
   });
+
+  /// Revokes the refresh token server-side (deletes its jti from Redis).
+  Future<void> logout({required String refreshToken});
 }
 
 @Injectable(as: AuthRemoteDatasource)
@@ -40,6 +42,14 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     );
     return VerifyOtpResponseModel.fromJson(
       Map<String, dynamic>.from(response.data as Map),
+    );
+  }
+
+  @override
+  Future<void> logout({required String refreshToken}) async {
+    await _apiClient.client.post(
+      '/auth/logout',
+      data: {'refreshToken': refreshToken},
     );
   }
 }

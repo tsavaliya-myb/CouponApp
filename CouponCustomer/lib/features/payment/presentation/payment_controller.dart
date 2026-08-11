@@ -6,7 +6,9 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 import '../../../core/services/razorpay_service.dart';
 import '../../../core/error/failures.dart';
+import '../../home/presentation/providers/home_provider.dart';
 import '../../profile/presentation/providers/profile_provider.dart';
+import '../../subscription/presentation/my_subscriptions_screen.dart';
 import '../data/payment_repository.dart';
 
 /// Drives the Razorpay UPI Autopay purchase flow.
@@ -75,6 +77,12 @@ class PaymentController extends AutoDisposeAsyncNotifier<void> {
             // profile fetch failed — keep polling
           }
         }
+
+        // Purchase changes what every user-scoped screen should show, but the
+        // keepAlive providers below still hold pre-purchase data (e.g. "No
+        // active subscription found"). Drop them so they refetch on next read.
+        _invalidateSubscriptionScopedProviders();
+
         state = const AsyncData(null);
       };
 
@@ -89,6 +97,16 @@ class PaymentController extends AutoDisposeAsyncNotifier<void> {
     } catch (e, stack) {
       state = AsyncError(e.toString(), stack);
     }
+  }
+
+  /// Drops the keepAlive providers whose contents depend on subscription
+  /// status, so post-purchase screens don't render pre-purchase data.
+  void _invalidateSubscriptionScopedProviders() {
+    ref.invalidate(profileProvider);
+    ref.invalidate(userSettingsProvider);
+    ref.invalidate(mySubscriptionsProvider);
+    ref.invalidate(allCouponsProvider);
+    ref.invalidate(allSellersProvider);
   }
 }
 

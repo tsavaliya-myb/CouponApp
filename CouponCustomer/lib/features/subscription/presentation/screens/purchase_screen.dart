@@ -359,7 +359,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                           fontSize: 9,
                         ),
                       ),
-                      // Placeholders for Razorpay/PCI logos as indicated in mockup
+                      /*// Placeholders for Razorpay/PCI logos as indicated in mockup
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -374,7 +374,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                               height: 16,
                               color: AppColors.dsOnSurface.withOpacity(0.1)),
                         ],
-                      )
+                      )*/
                     ],
                   ),
                 ),

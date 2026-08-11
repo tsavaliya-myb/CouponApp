@@ -321,21 +321,10 @@ export class PaymentService {
   private async onTokenRevoked(token: any): Promise<void> {
     if (!token?.id) return;
 
-    log.warn('onTokenRevoked', { tokenId: token.id });
-
     const sub = await prisma.subscription.findFirst({ where: { razorpayTokenId: token.id } });
     if (!sub) return;
 
-    await prisma.subscription.update({
-      where: { id: sub.id },
-      data:  { isAutopayEnabled: false },
-    });
-
-    oneSignal
-      .sendToUser(sub.userId, '🔁 Autopay Disabled',
-        'Your UPI autopay mandate was cancelled. Renew manually before your book expires, or re-enable autopay in the app.',
-        'autopay_revoked')
-      .catch((err) => log.warn('onTokenRevoked: push notification failed (non-fatal)', { userId: sub.userId, err }));
+    await this.disableAutopay(sub.id, sub.userId, token.id, token.status ?? 'revoked');
   }
 
   // ─── Atomic Subscription Fulfillment (first purchase / mandate registration) ──
@@ -600,17 +589,80 @@ export class PaymentService {
     log.info('cancelAutopay: complete', { userId });
   }
 
+  // ─── Disable Autopay (mandate confirmed dead, locally or via live check) ──
+  private async disableAutopay(
+    subscriptionId: string,
+    userId: string,
+    tokenId: string,
+    tokenStatus: string,
+  ): Promise<void> {
+    await prisma.subscription.update({
+      where: { id: subscriptionId },
+      data: { isAutopayEnabled: false },
+    });
+
+    log.info('disableAutopay: mandate no longer usable — autopay disabled', {
+      userId, tokenId, tokenStatus,
+    });
+
+    oneSignal
+      .sendToUser(userId, '🔁 Autopay Disabled',
+        'Your UPI autopay mandate was cancelled. Renew manually before your book expires, or re-enable autopay in the app.',
+        'autopay_revoked')
+      .catch((err) => log.warn('disableAutopay: push notification failed (non-fatal)', { userId, err }));
+  }
+
   // ─── Get Payment History ────────────────────────────────────────────────────
   async getPaymentHistory(userId: string) {
     const subscription = await prisma.subscription.findUnique({
       where: { userId },
       select: {
+        id: true,
         status: true,
         startDate: true,
         endDate: true,
         isAutopayEnabled: true,
+        razorpayTokenId: true,
+        user: { select: { razorpayCustomerId: true } },
       },
     });
+
+    let isAutopayEnabled = subscription?.isAutopayEnabled ?? false;
+
+    // token.cancelled / .paused / .rejected webhooks are not available on this
+    // Razorpay account (see RAZORPAY_MIGRATION_PLAN.md §14) — a bank-side
+    // mandate revocation is otherwise only caught reactively when the next
+    // renewal attempt fails, which can be weeks away. Live-check on every
+    // fetch so the UI never shows a stale "Autopay ON" after the user has
+    // actually cancelled it from their UPI app.
+    if (subscription?.isAutopayEnabled && subscription.razorpayTokenId && subscription.user.razorpayCustomerId) {
+      try {
+        const token = await razorpay.customers.fetchToken(
+          subscription.user.razorpayCustomerId,
+          subscription.razorpayTokenId,
+        );
+
+        if (token.status && token.status !== 'active') {
+          await this.disableAutopay(subscription.id, userId, subscription.razorpayTokenId, token.status);
+          isAutopayEnabled = false;
+        }
+      } catch (err: any) {
+        // Razorpay's normalized error shape: { statusCode, error: { code, description, reason } }.
+        // A 400/"the id provided does not exist" is as definitive as an explicit
+        // 'deactivated' status — the token is gone and cannot be reused. Any other
+        // error (network blip, 5xx, auth hiccup) is transient — leave state alone
+        // and let the next fetch retry rather than wrongly disabling autopay.
+        const isDefinitivelyGone =
+          err?.statusCode === 400 && /does not exist/i.test(err?.error?.description ?? '');
+
+        if (isDefinitivelyGone) {
+          await this.disableAutopay(subscription.id, userId, subscription.razorpayTokenId, 'not_found');
+          isAutopayEnabled = false;
+        } else {
+          log.warn('getPaymentHistory: token status check failed (non-fatal)', { userId, err });
+        }
+      }
+    }
 
     const attempts = await prisma.paymentAttempt.findMany({
       where: {
@@ -628,7 +680,12 @@ export class PaymentService {
     });
 
     return {
-      subscription,
+      subscription: subscription ? {
+        status: subscription.status,
+        startDate: subscription.startDate,
+        endDate: subscription.endDate,
+        isAutopayEnabled,
+      } : null,
       history: attempts,
     };
   }

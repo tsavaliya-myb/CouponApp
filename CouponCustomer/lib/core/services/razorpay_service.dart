@@ -40,6 +40,12 @@ class RazorpayService {
         'contact': prefill['contact'] ?? '',
       },
       'retry': {'enabled': true, 'max_count': 1},
+      // Bounds how long Checkout keeps polling after a UPI app-switch with
+      // no clear outcome (e.g. user backs out of GPay/PhonePe without
+      // approving or declining the mandate). Without this the SDK falls
+      // back to a long platform default and "Processing your payment"
+      // can sit for minutes before onFailure ever fires.
+      'timeout': 120, // seconds
     };
 
     try {
@@ -55,7 +61,17 @@ class RazorpayService {
   }
 
   void _handleError(PaymentFailureResponse response) {
-    onFailure?.call(response.message ?? 'Payment failed');
+    // On user-cancelled checkouts, the native bridge often reports
+    // message as null OR the literal string "undefined" (a long-standing
+    // razorpay_flutter quirk) rather than leaving it unset — guard both.
+    if (response.code == Razorpay.PAYMENT_CANCELLED) {
+      onFailure?.call('Payment cancelled');
+      return;
+    }
+
+    final message = response.message;
+    final isUsableMessage = message != null && message.isNotEmpty && message != 'undefined';
+    onFailure?.call(isUsableMessage ? message : 'Payment failed');
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {

@@ -6,7 +6,9 @@ import 'package:intl/intl.dart';
 import '../data/models/payment_history_model.dart';
 import '../../payment/data/payment_repository.dart';
 
-final mySubscriptionsProvider = StateNotifierProvider<MySubscriptionsNotifier, AsyncValue<PaymentHistoryResponse>>((ref) {
+/// autoDispose so the screen refetches every time it is opened — a purchase or
+/// a late webhook must never be hidden behind state cached from a past visit.
+final mySubscriptionsProvider = StateNotifierProvider.autoDispose<MySubscriptionsNotifier, AsyncValue<PaymentHistoryResponse>>((ref) {
   return MySubscriptionsNotifier();
 });
 
