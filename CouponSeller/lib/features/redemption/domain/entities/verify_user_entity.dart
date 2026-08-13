@@ -71,7 +71,7 @@ class RedemptionCouponEntity extends Equatable {
   final String sellerId;
   final double discountPct;
   final double adminCommissionPct;
-  final double minSpend;
+  final double? minSpend;
   final int maxUsesPerBook;
   final String type;
   final String status;
@@ -82,7 +82,7 @@ class RedemptionCouponEntity extends Equatable {
     required this.sellerId,
     required this.discountPct,
     required this.adminCommissionPct,
-    required this.minSpend,
+    this.minSpend,
     required this.maxUsesPerBook,
     required this.type,
     required this.status,

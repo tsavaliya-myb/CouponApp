@@ -29,7 +29,8 @@ class VerifyUserDataModel with _$VerifyUserDataModel {
 class RedemptionUserModel with _$RedemptionUserModel {
   const factory RedemptionUserModel({
     required String id,
-    required String name,
+    // `users.name` is nullable in the API schema
+    String? name,
     required String phone,
     required bool hasActiveSubscription,
     required double availableCoins,
@@ -63,7 +64,8 @@ class RedemptionCouponModel with _$RedemptionCouponModel {
     required String sellerId,
     required double discountPct,
     required double adminCommissionPct,
-    required double minSpend,
+    // `coupons.minSpend` is nullable in the API schema
+    double? minSpend,
     required int maxUsesPerBook,
     required String type,
     required String status,

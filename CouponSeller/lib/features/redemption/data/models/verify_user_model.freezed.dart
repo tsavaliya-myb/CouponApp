@@ -427,8 +427,9 @@ RedemptionUserModel _$RedemptionUserModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$RedemptionUserModel {
-  String get id => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
+  String get id =>
+      throw _privateConstructorUsedError; // `users.name` is nullable in the API schema
+  String? get name => throw _privateConstructorUsedError;
   String get phone => throw _privateConstructorUsedError;
   bool get hasActiveSubscription => throw _privateConstructorUsedError;
   double get availableCoins => throw _privateConstructorUsedError;
@@ -452,7 +453,7 @@ abstract class $RedemptionUserModelCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    String name,
+    String? name,
     String phone,
     bool hasActiveSubscription,
     double availableCoins,
@@ -475,7 +476,7 @@ class _$RedemptionUserModelCopyWithImpl<$Res, $Val extends RedemptionUserModel>
   @override
   $Res call({
     Object? id = null,
-    Object? name = null,
+    Object? name = freezed,
     Object? phone = null,
     Object? hasActiveSubscription = null,
     Object? availableCoins = null,
@@ -486,10 +487,10 @@ class _$RedemptionUserModelCopyWithImpl<$Res, $Val extends RedemptionUserModel>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
-            name: null == name
+            name: freezed == name
                 ? _value.name
                 : name // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
             phone: null == phone
                 ? _value.phone
                 : phone // ignore: cast_nullable_to_non_nullable
@@ -519,7 +520,7 @@ abstract class _$$RedemptionUserModelImplCopyWith<$Res>
   @useResult
   $Res call({
     String id,
-    String name,
+    String? name,
     String phone,
     bool hasActiveSubscription,
     double availableCoins,
@@ -541,7 +542,7 @@ class __$$RedemptionUserModelImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? name = null,
+    Object? name = freezed,
     Object? phone = null,
     Object? hasActiveSubscription = null,
     Object? availableCoins = null,
@@ -552,10 +553,10 @@ class __$$RedemptionUserModelImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
-        name: null == name
+        name: freezed == name
             ? _value.name
             : name // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
         phone: null == phone
             ? _value.phone
             : phone // ignore: cast_nullable_to_non_nullable
@@ -578,7 +579,7 @@ class __$$RedemptionUserModelImplCopyWithImpl<$Res>
 class _$RedemptionUserModelImpl implements _RedemptionUserModel {
   const _$RedemptionUserModelImpl({
     required this.id,
-    required this.name,
+    this.name,
     required this.phone,
     required this.hasActiveSubscription,
     required this.availableCoins,
@@ -589,8 +590,9 @@ class _$RedemptionUserModelImpl implements _RedemptionUserModel {
 
   @override
   final String id;
+  // `users.name` is nullable in the API schema
   @override
-  final String name;
+  final String? name;
   @override
   final String phone;
   @override
@@ -648,7 +650,7 @@ class _$RedemptionUserModelImpl implements _RedemptionUserModel {
 abstract class _RedemptionUserModel implements RedemptionUserModel {
   const factory _RedemptionUserModel({
     required final String id,
-    required final String name,
+    final String? name,
     required final String phone,
     required final bool hasActiveSubscription,
     required final double availableCoins,
@@ -658,9 +660,9 @@ abstract class _RedemptionUserModel implements RedemptionUserModel {
       _$RedemptionUserModelImpl.fromJson;
 
   @override
-  String get id;
+  String get id; // `users.name` is nullable in the API schema
   @override
-  String get name;
+  String? get name;
   @override
   String get phone;
   @override
@@ -1023,8 +1025,9 @@ mixin _$RedemptionCouponModel {
   String get id => throw _privateConstructorUsedError;
   String get sellerId => throw _privateConstructorUsedError;
   double get discountPct => throw _privateConstructorUsedError;
-  double get adminCommissionPct => throw _privateConstructorUsedError;
-  double get minSpend => throw _privateConstructorUsedError;
+  double get adminCommissionPct =>
+      throw _privateConstructorUsedError; // `coupons.minSpend` is nullable in the API schema
+  double? get minSpend => throw _privateConstructorUsedError;
   int get maxUsesPerBook => throw _privateConstructorUsedError;
   String get type => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
@@ -1052,7 +1055,7 @@ abstract class $RedemptionCouponModelCopyWith<$Res> {
     String sellerId,
     double discountPct,
     double adminCommissionPct,
-    double minSpend,
+    double? minSpend,
     int maxUsesPerBook,
     String type,
     String status,
@@ -1082,7 +1085,7 @@ class _$RedemptionCouponModelCopyWithImpl<
     Object? sellerId = null,
     Object? discountPct = null,
     Object? adminCommissionPct = null,
-    Object? minSpend = null,
+    Object? minSpend = freezed,
     Object? maxUsesPerBook = null,
     Object? type = null,
     Object? status = null,
@@ -1106,10 +1109,10 @@ class _$RedemptionCouponModelCopyWithImpl<
                 ? _value.adminCommissionPct
                 : adminCommissionPct // ignore: cast_nullable_to_non_nullable
                       as double,
-            minSpend: null == minSpend
+            minSpend: freezed == minSpend
                 ? _value.minSpend
                 : minSpend // ignore: cast_nullable_to_non_nullable
-                      as double,
+                      as double?,
             maxUsesPerBook: null == maxUsesPerBook
                 ? _value.maxUsesPerBook
                 : maxUsesPerBook // ignore: cast_nullable_to_non_nullable
@@ -1146,7 +1149,7 @@ abstract class _$$RedemptionCouponModelImplCopyWith<$Res>
     String sellerId,
     double discountPct,
     double adminCommissionPct,
-    double minSpend,
+    double? minSpend,
     int maxUsesPerBook,
     String type,
     String status,
@@ -1173,7 +1176,7 @@ class __$$RedemptionCouponModelImplCopyWithImpl<$Res>
     Object? sellerId = null,
     Object? discountPct = null,
     Object? adminCommissionPct = null,
-    Object? minSpend = null,
+    Object? minSpend = freezed,
     Object? maxUsesPerBook = null,
     Object? type = null,
     Object? status = null,
@@ -1197,10 +1200,10 @@ class __$$RedemptionCouponModelImplCopyWithImpl<$Res>
             ? _value.adminCommissionPct
             : adminCommissionPct // ignore: cast_nullable_to_non_nullable
                   as double,
-        minSpend: null == minSpend
+        minSpend: freezed == minSpend
             ? _value.minSpend
             : minSpend // ignore: cast_nullable_to_non_nullable
-                  as double,
+                  as double?,
         maxUsesPerBook: null == maxUsesPerBook
             ? _value.maxUsesPerBook
             : maxUsesPerBook // ignore: cast_nullable_to_non_nullable
@@ -1230,7 +1233,7 @@ class _$RedemptionCouponModelImpl implements _RedemptionCouponModel {
     required this.sellerId,
     required this.discountPct,
     required this.adminCommissionPct,
-    required this.minSpend,
+    this.minSpend,
     required this.maxUsesPerBook,
     required this.type,
     required this.status,
@@ -1248,8 +1251,9 @@ class _$RedemptionCouponModelImpl implements _RedemptionCouponModel {
   final double discountPct;
   @override
   final double adminCommissionPct;
+  // `coupons.minSpend` is nullable in the API schema
   @override
-  final double minSpend;
+  final double? minSpend;
   @override
   final int maxUsesPerBook;
   @override
@@ -1325,7 +1329,7 @@ abstract class _RedemptionCouponModel implements RedemptionCouponModel {
     required final String sellerId,
     required final double discountPct,
     required final double adminCommissionPct,
-    required final double minSpend,
+    final double? minSpend,
     required final int maxUsesPerBook,
     required final String type,
     required final String status,
@@ -1342,9 +1346,9 @@ abstract class _RedemptionCouponModel implements RedemptionCouponModel {
   @override
   double get discountPct;
   @override
-  double get adminCommissionPct;
+  double get adminCommissionPct; // `coupons.minSpend` is nullable in the API schema
   @override
-  double get minSpend;
+  double? get minSpend;
   @override
   int get maxUsesPerBook;
   @override
