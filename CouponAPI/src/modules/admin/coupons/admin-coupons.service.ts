@@ -2,6 +2,7 @@ import { prisma } from '../../../config/db';
 import { NotFoundError, BadRequestError } from '../../../shared/utils/AppError';
 import { oneSignal } from '../../notifications/onesignal.service';
 import { RedisCacheService } from '../../../shared/services/redisCache.service';
+import { CouponBackfillService } from '../../../shared/services/couponBackfill.service';
 import { REDIS_KEYS } from '../../../shared/constants';
 import type { 
   AdminCouponsQueryDto, 
@@ -92,14 +93,23 @@ export class AdminCouponsService {
 
     if (dto.isBaseCoupon) {
       await RedisCacheService.delCache(REDIS_KEYS.CITY_BASE_COUPONS(seller.cityId));
+
+      // Base coupons are instantiated into user books at subscription
+      // fulfilment only — existing live books would otherwise never see this
+      // coupon. Push it into them now.
+      await CouponBackfillService.backfillBaseCoupons([coupon.id]).catch(() => {});
     }
 
-    oneSignal.sendToCity(
-      seller.cityId,
-      '🎟️ New Coupon Available!',
-      `A new deal at ${coupon.seller.businessName} is now in your coupon book. Check it out!`,
-      'new_coupon_added',
-    ).catch(() => {});
+    // Only announce coupons that actually landed in user books — a non-base
+    // coupon never reaches anyone's book, so the push would be a lie.
+    if (dto.isBaseCoupon) {
+      oneSignal.sendToCity(
+        seller.cityId,
+        '🎟️ New Coupon Available!',
+        `A new deal at ${coupon.seller.businessName} is now in your coupon book. Check it out!`,
+        'new_coupon_added',
+      ).catch(() => {});
+    }
 
     return coupon;
   }
@@ -116,6 +126,12 @@ export class AdminCouponsService {
 
     if (coupon.isBaseCoupon || dto.isBaseCoupon !== undefined) {
       await RedisCacheService.delCache(REDIS_KEYS.CITY_BASE_COUPONS(coupon.seller.cityId));
+    }
+
+    // Promoted to base coupon (or edited while already base) — make sure every
+    // live book holds it. No-op when it is already present everywhere.
+    if (updated.isBaseCoupon && updated.status === 'ACTIVE') {
+      await CouponBackfillService.backfillBaseCoupons([updated.id]).catch(() => {});
     }
 
     return updated;
@@ -135,6 +151,12 @@ export class AdminCouponsService {
 
     if (coupon.isBaseCoupon) {
       await RedisCacheService.delCache(REDIS_KEYS.CITY_BASE_COUPONS(coupon.seller.cityId));
+    }
+
+    // Reactivated base coupon — books issued while it was INACTIVE never got a
+    // copy (fulfilment filters on status = ACTIVE), so backfill them.
+    if (coupon.isBaseCoupon && newStatus === 'ACTIVE') {
+      await CouponBackfillService.backfillBaseCoupons([id]).catch(() => {});
     }
 
     return updated;
@@ -211,6 +233,14 @@ export class AdminCouponsService {
     });
 
     await RedisCacheService.delCache(REDIS_KEYS.CITY_BASE_COUPONS(cityId));
+
+    // Newly-promoted base coupons must reach the books that are already live.
+    // (Unset coupons are intentionally left in existing books — removing an
+    // already-granted coupon mid-book would take away something the user has.)
+    if (couponIds.length > 0) {
+      await CouponBackfillService.backfillBaseCoupons(couponIds).catch(() => {});
+    }
+
     return await this.getCityBaseCoupons(cityId);
   }
 }
