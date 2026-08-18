@@ -3,9 +3,9 @@ export interface Category {
   name: string;
   slug: string;
   subtitle: string | null;
-  color: string | null;
-  iconName: string | null;
+  imageUrl: string | null;
   isActive: boolean;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -13,14 +13,18 @@ export interface Category {
 export interface CreateCategoryRequest {
   name: string;
   subtitle?: string;
-  color?: string;
-  iconName?: string;
+  imageUrl?: string;
 }
 
 export interface UpdateCategoryRequest {
   name?: string;
   subtitle?: string;
-  color?: string;
-  iconName?: string;
+  imageUrl?: string | null;
   isActive?: boolean;
+}
+
+export interface PresignCategoryImageResponse {
+  uploadUrl: string;
+  fileKey: string;
+  publicUrl: string;
 }

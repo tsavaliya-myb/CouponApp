@@ -2,6 +2,9 @@ import { prisma } from '../../../config/db';
 import { ConflictError, NotFoundError } from '../../../shared/utils/AppError';
 import { RedisCacheService } from '../../../shared/services/redisCache.service';
 import { REDIS_KEYS } from '../../../shared/constants';
+import { s3Client, BUCKET_NAME, getPublicUrl, extractKeyFromProxyUrl } from '../../../config/s3';
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { CreateCategoryDto, UpdateCategoryDto, CategoryResponse } from './admin-categories.validator';
 
 export class AdminCategoriesService {
@@ -24,7 +27,7 @@ export class AdminCategoriesService {
   }
 
   async reorderCategories(orderedIds: string[]): Promise<void> {
-    const transactions = orderedIds.map((id, index) => 
+    const transactions = orderedIds.map((id, index) =>
       prisma.category.update({
         where: { id },
         data: { sortOrder: index + 1 }
@@ -62,8 +65,42 @@ export class AdminCategoriesService {
       if (existing) throw ConflictError('Category with this name already exists');
     }
 
+    // Delete old S3 image if a new one is provided and it's different
+    if (dto.imageUrl !== undefined && category.imageUrl && dto.imageUrl !== category.imageUrl) {
+      await this.deleteS3Object(category.imageUrl);
+    }
+
     const result = await prisma.category.update({ where: { id }, data: dto });
     await RedisCacheService.delCache(REDIS_KEYS.CATEGORIES_ALL);
     return result;
+  }
+
+  // ─── Presigned URL for image upload ──────────────────────────────────────────
+  async generatePresignedUploadUrl(
+    mimeType: string,
+  ): Promise<{ uploadUrl: string; fileKey: string; publicUrl: string }> {
+    const ext = mimeType.split('/')[1];
+    const fileKey = `category-images/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    const command = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: fileKey,
+      ContentType: mimeType,
+    });
+    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+    return { uploadUrl, fileKey, publicUrl: getPublicUrl(fileKey) };
+  }
+
+  // ─── Delete S3 object by proxy URL ───────────────────────────────────────────
+  private async deleteS3Object(fileUrl: string): Promise<void> {
+    try {
+      const key = extractKeyFromProxyUrl(fileUrl);
+      if (!key) {
+        console.warn('[AdminCategories] Could not extract key from URL:', fileUrl);
+        return;
+      }
+      await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: key }));
+    } catch (err: any) {
+      console.error('[AdminCategories] Failed to delete S3 object:', err.message);
+    }
   }
 }

@@ -4,18 +4,16 @@ class CategoryItem {
   final String id;
   final String name;
   final String slug;
-  final String? iconName;
   final String? subtitle;
-  final String? color;
+  final String? imageUrl;
   final bool isActive;
 
   const CategoryItem({
     required this.id,
     required this.name,
     required this.slug,
-    this.iconName,
     this.subtitle,
-    this.color,
+    this.imageUrl,
     this.isActive = true,
   });
 
@@ -23,9 +21,8 @@ class CategoryItem {
         id: json['id'] as String,
         name: json['name'] as String,
         slug: json['slug'] as String,
-        iconName: json['iconName'] as String?,
         subtitle: json['subtitle'] as String?,
-        color: json['color'] as String?,
+        imageUrl: json['imageUrl'] as String?,
         isActive: json['isActive'] as bool? ?? true,
       );
 
@@ -33,9 +30,8 @@ class CategoryItem {
         'id': id,
         'name': name,
         'slug': slug,
-        'iconName': iconName,
         'subtitle': subtitle,
-        'color': color,
+        'imageUrl': imageUrl,
         'isActive': isActive,
       };
 

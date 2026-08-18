@@ -14,6 +14,7 @@ import '../../../../core/models/category_item.dart';
 import '../../../../core/utils/category_utils.dart';
 import '../../domain/entities/banner_ad_entity.dart';
 import 'package:couponcode/features/profile/presentation/providers/profile_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 // ─── Home Screen ─────────────────────────────────────────────────────────────
 
@@ -389,342 +390,187 @@ class _BannerPlaceholder extends StatelessWidget {
 class _CategoryTabs extends ConsumerWidget {
   const _CategoryTabs();
 
-  // Dark text for light cards, white for dark cards
-  Color _textColorFor(Color card) =>
-      card.computeLuminance() > 0.3 ? const Color(0xFF1C1A18) : Colors.white;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selected = ref.watch(selectedCategoryProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final categories = categoriesAsync.valueOrNull ?? [];
-    final itemCount = categories.length + 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── Header row: Title + View All link ──────────────────────────────
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Text(
-            'Categories',
-            style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Categories',
+                style: AppTextStyles.dsTitleLg.copyWith(fontSize: 20),
+              ),
+              GestureDetector(
+                onTap: () {
+                  ref.read(selectedSellerCategoryProvider.notifier).state = null;
+                  context.go('/sellers');
+                },
+                child: Text(
+                  'View All',
+                  style: AppTextStyles.dsLabelMd.copyWith(
+                    color: AppColors.dsPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 14,
-              childAspectRatio: 1.65,
-            ),
-            itemCount: itemCount,
-            itemBuilder: (_, i) {
-              final isAll = i == 0;
-              final CategoryItem? item = isAll ? null : categories[i - 1];
-              final isSelected = selected == item;
-              final label = isAll ? 'All' : item!.name;
-              final slug = isAll ? 'all' : item!.slug;
-              final icon =
-                  isAll ? Icons.grid_view_rounded : CategoryUtils.getIcon(item);
-              final cardColor = isAll ? const Color(0xFFEED5BE) : CategoryUtils.getBaseColor(item);
-              final textColor = _textColorFor(cardColor);
-              final subtitle = isAll ? 'Browse everything' : (item?.subtitle ?? 'Explore deals');
-              final isLight = textColor != Colors.white;
+        // ── Category cards grid ────────────────────────────────────────────
+        if (categories.isEmpty)
+          const SizedBox.shrink()
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 14,
+                crossAxisSpacing: 14,
+                childAspectRatio: 1.65,
+              ),
+              itemCount: categories.length,
+              itemBuilder: (_, i) {
+                final CategoryItem item = categories[i];
+                final hasImage =
+                    item.imageUrl != null && item.imageUrl!.isNotEmpty;
+                final fallbackColor =
+                    CategoryUtils.getFallbackColor(item);
 
-              return GestureDetector(
-                onTap: () {
-                  ref.read(selectedSellerCategoryProvider.notifier).state = item;
-                  context.go('/sellers');
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeOut,
-                  decoration: BoxDecoration(
-                    color: cardColor,
+                return GestureDetector(
+                  onTap: () {
+                    ref.read(selectedSellerCategoryProvider.notifier).state =
+                        item;
+                    context.go('/sellers');
+                  },
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: cardColor.withValues(
-                            alpha: isSelected ? 0.55 : 0.28),
-                        blurRadius: isSelected ? 22 : 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    clipBehavior: Clip.hardEdge,
-                    children: [
-                      // Per-category decorations
-                      ..._decorationsFor(slug, isLight),
-                      // Ghost icon — larger, more visible
-                      Positioned(
-                        right: -10,
-                        top: -6,
-                        bottom: -6,
-                        child: Center(
-                          child: Icon(
-                            icon,
-                            size: 90,
-                            color: isLight
-                                ? Colors.black.withValues(alpha: 0.1)
-                                : Colors.white.withValues(alpha: 0.18),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOut,
+                      decoration: BoxDecoration(
+                        color: fallbackColor,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
+                        ],
                       ),
-                      // Text content — left aligned, big
-                      Positioned(
-                        left: 16,
-                        right: 44, // Reduced to allow more text width
-                        top: 16,
-                        bottom: 14,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                label,
-                                style: AppTextStyles.dsTitleLg.copyWith(
-                                  fontSize: 18, // Slightly reduced to fit longer words better
-                                  fontWeight: FontWeight.w800,
-                                  color: textColor,
-                                  height: 1.1,
-                                  letterSpacing: -0.3,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // ── Background image ──────────────────────────
+                          if (hasImage)
+                            CachedNetworkImage(
+                              imageUrl: item.imageUrl!,
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => Container(
+                                color: fallbackColor,
+                              ),
+                              errorWidget: (_, __, ___) => Container(
+                                color: fallbackColor,
+                              ),
+                            ),
+                          // ── Gradient overlay for text readability ─────
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withValues(
+                                      alpha: hasImage ? 0.65 : 0.0),
+                                ],
+                                stops: const [0.3, 1.0],
+                              ),
+                            ),
+                          ),
+                          // ── Text content ──────────────────────────────
+                          Positioned(
+                            left: 14,
+                            right: 14,
+                            bottom: 14,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  item.name,
+                                  style: AppTextStyles.dsTitleLg.copyWith(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800,
+                                    color: hasImage
+                                        ? Colors.white
+                                        : const Color(0xFF1C1A18),
+                                    height: 1.1,
+                                    letterSpacing: -0.3,
+                                    shadows: hasImage
+                                        ? [
+                                            Shadow(
+                                              color: Colors.black
+                                                  .withValues(alpha: 0.4),
+                                              blurRadius: 4,
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                                if (item.subtitle != null &&
+                                    item.subtitle!.isNotEmpty) ...
+[
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    item.subtitle!,
+                                    style: AppTextStyles.dsLabelMd.copyWith(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: hasImage
+                                          ? Colors.white
+                                              .withValues(alpha: 0.80)
+                                          : const Color(0xFF1C1A18)
+                                              .withValues(alpha: 0.65),
+                                      letterSpacing: 0.1,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              subtitle,
-                              style: AppTextStyles.dsLabelMd.copyWith(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: textColor.withValues(alpha: 0.65),
-                                letterSpacing: 0.1,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              )
-                  .animate()
-                  .fadeIn(
-                      duration: 350.ms, delay: Duration(milliseconds: 55 * i))
-                  .slideY(begin: 0.06, end: 0);
-            },
+                )
+                    .animate()
+                    .fadeIn(
+                        duration: 350.ms,
+                        delay: Duration(milliseconds: 55 * i))
+                    .slideY(begin: 0.06, end: 0);
+              },
+            ),
           ),
-        ),
       ],
     );
   }
-
-  List<Widget> _decorationsFor(String slug, bool isLight) {
-    final c = isLight
-        ? Colors.black.withValues(alpha: 0.1)
-        : Colors.white.withValues(alpha: 0.18);
-
-    final patternIndex = slug == 'all' ? 0 : slug.hashCode.abs() % 7;
-
-    switch (patternIndex) {
-      case 0:
-        // Circles
-        return [
-          _circle(c, 18, top: 8, left: 12),
-          _circle(c, 10, top: 28, left: 36),
-          _circle(c, 14, top: 4, left: 55),
-          _circle(c, 8, top: 20, left: 76),
-        ];
-      case 1:
-        // Triangles
-        return [
-          _triangle(c, 12, top: 6, left: 10),
-          _triangle(c, 8, top: 22, left: 30),
-          _triangle(c, 14, top: 4, left: 52),
-          _triangle(c, 10, top: 18, left: 72),
-        ];
-      case 2:
-        // Dots grid
-        return [
-          for (var r = 0; r < 3; r++)
-            for (var col = 0; col < 4; col++)
-              _circle(c, 5, top: 8.0 + r * 12, left: 8.0 + col * 14),
-        ];
-      case 3:
-        // Horizontal lines
-        return [
-          _line(c, w: 28, h: 3, top: 10, left: 8),
-          _line(c, w: 18, h: 3, top: 20, left: 16),
-          _line(c, w: 24, h: 3, top: 30, left: 10),
-        ];
-      case 4:
-        // Plus / cross shapes
-        return [
-          _plus(c, 12, top: 6, left: 10),
-          _plus(c, 8, top: 24, left: 34),
-          _plus(c, 14, top: 4, left: 56),
-          _plus(c, 10, top: 20, left: 78),
-        ];
-      case 5:
-        // Stars (5-pt via rotated squares)
-        return [
-          _star(c, 14, top: 6, left: 10),
-          _star(c, 10, top: 22, left: 32),
-          _star(c, 12, top: 4, left: 54),
-          _star(c, 8, top: 20, left: 74),
-        ];
-      case 6:
-      default:
-        // Diamonds
-        return [
-          _diamond(c, 10, top: 8, left: 10),
-          _diamond(c, 7, top: 22, left: 30),
-          _diamond(c, 12, top: 4, left: 52),
-          _diamond(c, 8, top: 20, left: 72),
-        ];
-    }
-  }
-
-  Widget _circle(Color c, double size,
-          {required double top, required double left}) =>
-      Positioned(
-        top: top,
-        left: left,
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(color: c, shape: BoxShape.circle),
-        ),
-      );
-
-  Widget _diamond(Color c, double size,
-          {required double top, required double left}) =>
-      Positioned(
-        top: top,
-        left: left,
-        child: Transform.rotate(
-          angle: 0.785,
-          child: Container(
-            width: size,
-            height: size,
-            decoration:
-                BoxDecoration(color: c, borderRadius: BorderRadius.circular(2)),
-          ),
-        ),
-      );
-
-  Widget _triangle(Color c, double size,
-          {required double top, required double left}) =>
-      Positioned(
-        top: top,
-        left: left,
-        child: Transform.rotate(
-          angle: 0.0,
-          child: CustomPaint(
-            size: Size(size, size),
-            painter: _TrianglePainter(c),
-          ),
-        ),
-      );
-
-  Widget _line(Color c,
-          {required double w,
-          required double h,
-          required double top,
-          required double left}) =>
-      Positioned(
-        top: top,
-        left: left,
-        child: Container(
-          width: w,
-          height: h,
-          decoration:
-              BoxDecoration(color: c, borderRadius: BorderRadius.circular(4)),
-        ),
-      );
-
-  Widget _plus(Color c, double size,
-      {required double top, required double left}) {
-    final arm = size / 3;
-    return Positioned(
-      top: top,
-      left: left,
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Stack(children: [
-          Positioned(
-              left: arm,
-              top: 0,
-              child: Container(
-                  width: arm,
-                  height: size,
-                  decoration: BoxDecoration(
-                      color: c, borderRadius: BorderRadius.circular(2)))),
-          Positioned(
-              left: 0,
-              top: arm,
-              child: Container(
-                  width: size,
-                  height: arm,
-                  decoration: BoxDecoration(
-                      color: c, borderRadius: BorderRadius.circular(2)))),
-        ]),
-      ),
-    );
-  }
-
-  Widget _star(Color c, double size,
-          {required double top, required double left}) =>
-      Positioned(
-        top: top,
-        left: left,
-        child: Stack(children: [
-          Transform.rotate(
-              angle: 0,
-              child: Container(
-                  width: size,
-                  height: size,
-                  decoration: BoxDecoration(
-                      color: c, borderRadius: BorderRadius.circular(2)))),
-          Transform.rotate(
-              angle: 0.785,
-              child: Container(
-                  width: size,
-                  height: size,
-                  decoration: BoxDecoration(
-                      color: c, borderRadius: BorderRadius.circular(2)))),
-        ]),
-      );
-}
-
-class _TrianglePainter extends CustomPainter {
-  final Color color;
-  const _TrianglePainter(this.color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color;
-    final path = Path()
-      ..moveTo(size.width / 2, 0)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_TrianglePainter old) => old.color != color;
 }
 

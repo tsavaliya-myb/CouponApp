@@ -17,7 +17,7 @@ import { s3Client, BUCKET_NAME } from '../../config/s3';
 const router = Router();
 
 // Allowed folders — prevents arbitrary key traversal
-const ALLOWED_FOLDERS = new Set(['logos', 'photos', 'videos']);
+const ALLOWED_FOLDERS = new Set(['logos', 'photos', 'videos', 'category-images']);
 
 router.use(async (req: Request, res: Response, next: NextFunction) => {
   // req.path is everything after /media (e.g. "/logos/file.jpeg")

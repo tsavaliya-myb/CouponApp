@@ -8,11 +8,11 @@ import 'package:couponcode/features/home/domain/entities/home_coupon_entity.dart
 import 'package:couponcode/features/home/domain/entities/nearby_seller_entity.dart';
 import 'package:couponcode/core/models/category_item.dart';
 
-const _catFood = CategoryItem(id: '1', name: 'Food', slug: 'food', iconName: 'restaurant_rounded', subtitle: 'Restaurants & more', color: '#B35227', isActive: true);
-const _catCafe = CategoryItem(id: '2', name: 'Cafe', slug: 'cafe', iconName: 'coffee_rounded', subtitle: 'Coffee & drinks', color: '#2F6120', isActive: true);
-const _catSalon = CategoryItem(id: '3', name: 'Salon', slug: 'salon', iconName: 'content_cut_rounded', subtitle: 'Hair & beauty', color: '#70586F', isActive: true);
-const _catSpa = CategoryItem(id: '4', name: 'Spa', slug: 'spa', iconName: 'spa_rounded', subtitle: 'Relax & unwind', color: '#179156', isActive: true);
-const _catTheater = CategoryItem(id: '5', name: 'Theater', slug: 'theater', iconName: 'movie_rounded', subtitle: 'Movies & shows', color: '#82A346', isActive: true);
+const _catFood    = CategoryItem(id: '1', name: 'Food',    slug: 'food',    subtitle: 'Restaurants & more', isActive: true);
+const _catCafe    = CategoryItem(id: '2', name: 'Cafe',    slug: 'cafe',    subtitle: 'Coffee & drinks',     isActive: true);
+const _catSalon   = CategoryItem(id: '3', name: 'Salon',   slug: 'salon',   subtitle: 'Hair & beauty',       isActive: true);
+const _catSpa     = CategoryItem(id: '4', name: 'Spa',     slug: 'spa',     subtitle: 'Relax & unwind',      isActive: true);
+const _catTheater = CategoryItem(id: '5', name: 'Theater', slug: 'theater', subtitle: 'Movies & shows',      isActive: true);
 
 // ─── Mock Coupons (6 items) ───────────────────────────────────────────────────
 

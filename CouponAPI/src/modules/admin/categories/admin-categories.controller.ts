@@ -42,4 +42,15 @@ export class AdminCategoriesController {
       next(err);
     }
   };
+
+  // ─── Presign category image upload ───────────────────────────────────────────
+  presignCategoryImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { mimeType } = req.body;
+      const result = await service.generatePresignedUploadUrl(mimeType);
+      sendSuccess(res, result);
+    } catch (err) {
+      next(err);
+    }
+  };
 }

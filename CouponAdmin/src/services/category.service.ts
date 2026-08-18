@@ -1,5 +1,10 @@
 import { apiClient } from '@/lib/apiClient';
-import { Category, CreateCategoryRequest, UpdateCategoryRequest } from '../types/api/category';
+import {
+  Category,
+  CreateCategoryRequest,
+  UpdateCategoryRequest,
+  PresignCategoryImageResponse,
+} from '../types/api/category';
 
 export const CategoryService = {
   getAll: async (): Promise<Category[]> => {
@@ -19,6 +24,11 @@ export const CategoryService = {
 
   reorder: async (orderedIds: string[]): Promise<void> => {
     const response = await apiClient.patch('/admin/categories/reorder', { orderedIds });
+    return response.data.data;
+  },
+
+  presignImage: async (mimeType: string): Promise<PresignCategoryImageResponse> => {
+    const response = await apiClient.post('/admin/categories/presign', { mimeType });
     return response.data.data;
   },
 };

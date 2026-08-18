@@ -10,6 +10,21 @@ export const useCategories = () => {
   });
 };
 
+export const usePresignCategoryImage = () => {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (mimeType: string) => CategoryService.presignImage(mimeType),
+    onError: (error: any) => {
+      toast({
+        title: 'Upload Error',
+        description: error.response?.data?.message || 'Failed to get upload URL',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
 export const useCreateCategory = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -66,7 +81,7 @@ export const useReorderCategories = () => {
     onMutate: async (orderedIds) => {
       await queryClient.cancelQueries({ queryKey: ['categories'] });
       const previousCategories = queryClient.getQueryData(['categories']);
-      
+
       queryClient.setQueryData(['categories'], (old: any) => {
         if (!old) return old;
         const newArray = [...old];
