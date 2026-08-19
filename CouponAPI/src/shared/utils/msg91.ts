@@ -8,6 +8,7 @@ export async function sendOtpViaMSG91(phone: string, otp: string): Promise<void>
     mobile,
     authkey: env.MSG91_AUTH_KEY,
     template_id: env.MSG91_TEMPLATE_ID,
+    min: '5',
   });
 
   const response = await fetch(`https://control.msg91.com/api/v5/otp?${params}`, {
