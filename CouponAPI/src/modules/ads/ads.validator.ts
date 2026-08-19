@@ -61,3 +61,10 @@ export const publicBannersQuerySchema = z.object({
 });
 
 export type PublicBannersDto = z.infer<typeof publicBannersQuerySchema>;
+
+// ─── Admin: Presign media upload ──────────────────────────────────────────────
+export const presignBannerMediaSchema = z.object({
+  mimeType: z.string().regex(/^(image|video)\/.+/, 'Must be an image or video mime type'),
+});
+
+export type PresignBannerMediaDto = z.infer<typeof presignBannerMediaSchema>;

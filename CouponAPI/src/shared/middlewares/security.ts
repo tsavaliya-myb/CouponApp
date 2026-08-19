@@ -9,8 +9,9 @@ export function applySecurityMiddleware(app: Express): void {
   // HTTP security headers
   app.use(
     helmet({
-      contentSecurityPolicy: env.isProduction,
-      crossOriginEmbedderPolicy: env.isProduction,
+      contentSecurityPolicy: env.isProduction ? undefined : false,
+      crossOriginEmbedderPolicy: env.isProduction ? undefined : false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
     })
   );
 

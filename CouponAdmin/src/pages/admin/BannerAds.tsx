@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -14,7 +14,13 @@ import {
   MousePointerClick,
   CalendarDays,
   MapPin,
+  Upload,
+  X,
+  ImageIcon,
+  Video,
 } from "lucide-react";
+import axios from "axios";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,6 +45,7 @@ import {
   usePauseBannerAd,
   useResumeBannerAd,
   useDeleteBannerAd,
+  usePresignBannerMedia,
 } from "@/hooks/api/useBannerAds";
 import { useCities } from "@/hooks/api/useLocation";
 import { useSellers } from "@/hooks/api/useSellers";
@@ -47,8 +54,8 @@ import { BannerAd, BannerAdStatus, CreateBannerAdPayload, UpdateBannerAdPayload 
 // ─── Status badge styles ──────────────────────────────────────────────────────
 
 const statusStyle: Record<BannerAdStatus, string> = {
-  ACTIVE:    "bg-[hsl(145,50%,95%)] text-[hsl(170,60%,35%)] border-0",
-  PAUSED:    "bg-[hsl(35,80%,95%)]  text-[hsl(35,70%,35%)]  border-0",
+  ACTIVE: "bg-[hsl(145,50%,95%)] text-[hsl(170,60%,35%)] border-0",
+  PAUSED: "bg-[hsl(35,80%,95%)]  text-[hsl(35,70%,35%)]  border-0",
   COMPLETED: "bg-muted text-muted-foreground border-0",
 };
 
@@ -77,14 +84,136 @@ const toISO = (local: string) => {
   return new Date(local).toISOString();
 };
 
+// ─── Media Uploader ───────────────────────────────────────────────────────────
+
+function MediaUploader({
+  type,
+  currentUrl,
+  onMediaReady,
+}: {
+  type: "image" | "video";
+  currentUrl?: string | null;
+  onMediaReady: (url: string) => void;
+}) {
+  const [preview, setPreview] = useState<string | null>(currentUrl ?? null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const presignMutation = usePresignBannerMedia();
+
+  const handleFile = useCallback(
+    async (file: File) => {
+      if (!file.type.startsWith(`${type}/`)) {
+        toast.error(`Please select a valid ${type} file`);
+        return;
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error(`${type === "video" ? "Video" : "Image"} must be smaller than 50 MB`);
+        return;
+      }
+
+      setIsUploading(true);
+      try {
+        const { uploadUrl, publicUrl } = await presignMutation.mutateAsync(file.type);
+        await axios.put(uploadUrl, file, { headers: { "Content-Type": file.type } });
+        setPreview(URL.createObjectURL(file));
+        onMediaReady(publicUrl);
+        toast.success(`${type === "image" ? "Image" : "Video"} uploaded successfully`);
+      } catch {
+        toast.error("Upload failed. Please try again.");
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [presignMutation, onMediaReady, type]
+  );
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const clearMedia = () => {
+    setPreview(null);
+    onMediaReady("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  return (
+    <div className="space-y-3">
+      <div
+        className={`relative rounded-xl border-2 border-dashed transition-colors ${isDragging
+          ? "border-primary bg-primary/5"
+          : "border-muted-foreground/25 hover:border-muted-foreground/50"
+          } ${isUploading ? "pointer-events-none" : "cursor-pointer"}`}
+        style={{ height: "140px" }}
+        onClick={() => !isUploading && fileInputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+      >
+        {preview ? (
+          <>
+            {type === "image" ? (
+              <img src={preview} alt="Preview" className="w-full h-full object-cover rounded-xl" />
+            ) : (
+              <video src={preview} className="w-full h-full object-cover rounded-xl" controls />
+            )}
+            {!isUploading && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); clearMedia(); }}
+                className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">
+            {isUploading ? (
+              <>
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <span className="text-sm">Uploading…</span>
+              </>
+            ) : (
+              <>
+                <div className="bg-muted rounded-full p-3">
+                  {type === "image" ? <ImageIcon className="w-6 h-6" /> : <Video className="w-6 h-6" />}
+                </div>
+                <span className="text-sm font-medium">Click or drag {type} here</span>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={`${type}/*`}
+        className="hidden"
+        onChange={handleInputChange}
+      />
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function BannerAdsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [createOpen,   setCreateOpen]   = useState(false);
-  const [editAd,       setEditAd]       = useState<BannerAd | null>(null);
-  const [deleteAd,     setDeleteAd]     = useState<BannerAd | null>(null);
-  const [form,         setForm]         = useState<CreateBannerAdPayload>(emptyForm());
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editAd, setEditAd] = useState<BannerAd | null>(null);
+  const [deleteAd, setDeleteAd] = useState<BannerAd | null>(null);
+  const [form, setForm] = useState<CreateBannerAdPayload>(emptyForm());
 
   // ── Data ───────────────────────────────────────────────────────────────────
   const { data, isLoading, isError } = useBannerAds({
@@ -92,23 +221,23 @@ export default function BannerAdsPage() {
     page: 1, limit: 50,
   });
 
-  const { data: citiesData }  = useCities();
+  const { data: citiesData } = useCities();
   const { data: sellersData } = useSellers({ page: 1, limit: 200 });
 
-  const ads     = data?.data || [];
-  const cities  = citiesData?.data || [];
+  const ads = data?.data || [];
+  const cities = citiesData?.data || [];
   const sellers = sellersData?.data || [];
 
   // ── Stats ──────────────────────────────────────────────────────────────────
-  const totalAds      = data?.meta?.total ?? 0;
-  const activeCount   = ads.filter((a) => a.status === "ACTIVE").length;
-  const totalImpr     = ads.reduce((s, a) => s + a.impressions, 0);
-  const totalClicks   = ads.reduce((s, a) => s + a.clicks, 0);
+  const totalAds = data?.meta?.total ?? 0;
+  const activeCount = ads.filter((a) => a.status === "ACTIVE").length;
+  const totalImpr = ads.reduce((s, a) => s + a.impressions, 0);
+  const totalClicks = ads.reduce((s, a) => s + a.clicks, 0);
 
   // ── Mutations ──────────────────────────────────────────────────────────────
   const createMutation = useCreateBannerAd();
   const updateMutation = useUpdateBannerAd();
-  const pauseMutation  = usePauseBannerAd();
+  const pauseMutation = usePauseBannerAd();
   const resumeMutation = useResumeBannerAd();
   const deleteMutation = useDeleteBannerAd();
 
@@ -128,14 +257,14 @@ export default function BannerAdsPage() {
 
   const openEdit = (ad: BannerAd) => {
     setForm({
-      title:     ad.title,
-      sellerId:  ad.sellerId ?? undefined,
-      imageUrl:  ad.imageUrl ?? "",
-      videoUrl:  ad.videoUrl ?? "",
+      title: ad.title,
+      sellerId: ad.sellerId ?? undefined,
+      imageUrl: ad.imageUrl ?? "",
+      videoUrl: ad.videoUrl ?? "",
       actionUrl: ad.actionUrl ?? "",
-      cityIds:   ad.cities.map((c) => c.cityId),
-      startsAt:  toDatetimeLocal(ad.startsAt),
-      endsAt:    toDatetimeLocal(ad.endsAt),
+      cityIds: ad.cities.map((c) => c.cityId),
+      startsAt: toDatetimeLocal(ad.startsAt),
+      endsAt: toDatetimeLocal(ad.endsAt),
     });
     setEditAd(ad);
   };
@@ -144,12 +273,12 @@ export default function BannerAdsPage() {
   const handleSubmit = () => {
     const payload = {
       ...form,
-      imageUrl:  form.imageUrl  || undefined,
-      videoUrl:  form.videoUrl  || undefined,
+      imageUrl: form.imageUrl || undefined,
+      videoUrl: form.videoUrl || undefined,
       actionUrl: form.actionUrl || undefined,
-      sellerId:  form.sellerId  || undefined,
-      startsAt:  toISO(form.startsAt),
-      endsAt:    toISO(form.endsAt),
+      sellerId: form.sellerId || undefined,
+      startsAt: toISO(form.startsAt),
+      endsAt: toISO(form.endsAt),
     };
 
     if (!payload.imageUrl && !payload.videoUrl) {
@@ -220,23 +349,21 @@ export default function BannerAdsPage() {
 
           {/* Image URL */}
           <div>
-            <Label className="text-sm font-medium">Image URL</Label>
-            <Input
-              className="mt-1.5 rounded-lg"
-              placeholder="https://…/banner.jpg"
-              value={form.imageUrl || ""}
-              onChange={(e) => setField("imageUrl", e.target.value)}
+            <Label className="text-sm font-medium">Image (Optional)</Label>
+            <MediaUploader
+              type="image"
+              currentUrl={form.imageUrl}
+              onMediaReady={(url) => setField("imageUrl", url)}
             />
           </div>
 
           {/* Video URL */}
           <div>
-            <Label className="text-sm font-medium">Video URL</Label>
-            <Input
-              className="mt-1.5 rounded-lg"
-              placeholder="https://…/banner.mp4"
-              value={form.videoUrl || ""}
-              onChange={(e) => setField("videoUrl", e.target.value)}
+            <Label className="text-sm font-medium">Video (Optional)</Label>
+            <MediaUploader
+              type="video"
+              currentUrl={form.videoUrl}
+              onMediaReady={(url) => setField("videoUrl", url)}
             />
             <p className="text-[11px] text-muted-foreground mt-1">At least one of Image or Video is required.</p>
           </div>
@@ -348,10 +475,10 @@ export default function BannerAdsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in-view" style={{ animationDelay: "60ms" }}>
         {[
-          { label: "Total Ads",   value: totalAds,    icon: Image,            color: "bg-[hsl(230,60%,96%)] text-[hsl(230,60%,50%)]" },
-          { label: "Active Now",  value: activeCount,  icon: BarChart2,        color: "bg-[hsl(145,50%,95%)] text-[hsl(170,60%,42%)]" },
-          { label: "Impressions", value: totalImpr,    icon: Eye,              color: "bg-[hsl(35,80%,95%)]  text-[hsl(35,92%,42%)]"  },
-          { label: "Clicks",      value: totalClicks,  icon: MousePointerClick, color: "bg-[hsl(290,50%,96%)] text-[hsl(290,50%,50%)]" },
+          { label: "Total Ads", value: totalAds, icon: Image, color: "bg-[hsl(230,60%,96%)] text-[hsl(230,60%,50%)]" },
+          { label: "Active Now", value: activeCount, icon: BarChart2, color: "bg-[hsl(145,50%,95%)] text-[hsl(170,60%,42%)]" },
+          { label: "Impressions", value: totalImpr, icon: Eye, color: "bg-[hsl(35,80%,95%)]  text-[hsl(35,92%,42%)]" },
+          { label: "Clicks", value: totalClicks, icon: MousePointerClick, color: "bg-[hsl(290,50%,96%)] text-[hsl(290,50%,50%)]" },
         ].map(({ label, value, icon: Icon, color }) => (
           <Card key={label} className="border-0 shadow-sm">
             <CardContent className="p-4 flex items-center gap-3">

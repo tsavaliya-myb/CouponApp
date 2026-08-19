@@ -6,6 +6,7 @@ import {
   pauseBannerAd,
   resumeBannerAd,
   deleteBannerAd,
+  presignBannerMedia,
 } from "@/services/ads.service";
 import { GetBannerAdsParams, CreateBannerAdPayload, UpdateBannerAdPayload } from "@/types/api/ads";
 
@@ -55,5 +56,11 @@ export const useDeleteBannerAd = () => {
   return useMutation({
     mutationFn: (id: string) => deleteBannerAd(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: [QK] }),
+  });
+};
+
+export const usePresignBannerMedia = () => {
+  return useMutation({
+    mutationFn: (mimeType: string) => presignBannerMedia(mimeType),
   });
 };

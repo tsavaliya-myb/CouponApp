@@ -83,6 +83,16 @@ export class AdsController {
     }
   };
 
+  presignBannerMedia = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { mimeType } = req.body;
+      const result = await adsService.generatePresignedUploadUrl(mimeType);
+      sendSuccess(res, result);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   // ─── Public ───────────────────────────────────────────────────────────────────
 
   getActiveBanners = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

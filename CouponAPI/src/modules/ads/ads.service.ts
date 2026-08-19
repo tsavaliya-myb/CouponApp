@@ -6,6 +6,9 @@ import type {
   AdminListAdsDto,
   PublicBannersDto,
 } from './ads.validator';
+import { s3Client, BUCKET_NAME, getPublicUrl, extractKeyFromProxyUrl } from '../../config/s3';
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // ─── Shared include shape ─────────────────────────────────────────────────────
 const adInclude = {
@@ -48,6 +51,14 @@ export class AdsService {
     if (!ad) throw NotFoundError('Ad not found');
 
     return prisma.$transaction(async (tx) => {
+      // Delete old S3 media if a new one is provided or it's cleared
+      if (dto.imageUrl !== undefined && ad.imageUrl && dto.imageUrl !== ad.imageUrl) {
+        await this.deleteS3Object(ad.imageUrl);
+      }
+      if (dto.videoUrl !== undefined && ad.videoUrl && dto.videoUrl !== ad.videoUrl) {
+        await this.deleteS3Object(ad.videoUrl);
+      }
+
       // If new cityIds supplied, replace all city entries atomically
       if (dto.cityIds) {
         await tx.bannerAdCity.deleteMany({ where: { bannerAdId: adId } });
@@ -180,5 +191,34 @@ export class AdsService {
       where: { id: adId },
       data:  { clicks: { increment: 1 } },
     }).catch(() => {});
+  }
+
+  // ─── Admin: Presigned URL for media upload ──────────────────────────────────
+  async generatePresignedUploadUrl(
+    mimeType: string,
+  ): Promise<{ uploadUrl: string; fileKey: string; publicUrl: string }> {
+    const ext = mimeType.split('/')[1];
+    const fileKey = `banner-content/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    const command = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: fileKey,
+      ContentType: mimeType,
+    });
+    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+    return { uploadUrl, fileKey, publicUrl: getPublicUrl(fileKey) };
+  }
+
+  // ─── Delete S3 object by proxy URL ───────────────────────────────────────────
+  private async deleteS3Object(fileUrl: string): Promise<void> {
+    try {
+      const key = extractKeyFromProxyUrl(fileUrl);
+      if (!key) {
+        console.warn('[AdsService] Could not extract key from URL:', fileUrl);
+        return;
+      }
+      await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: key }));
+    } catch (err: any) {
+      console.error('[AdsService] Failed to delete S3 object:', err.message);
+    }
   }
 }

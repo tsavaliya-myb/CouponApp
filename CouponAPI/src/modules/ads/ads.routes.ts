@@ -7,6 +7,7 @@ import {
   updateBannerAdSchema,
   adminListAdsQuerySchema,
   publicBannersQuerySchema,
+  presignBannerMediaSchema,
 } from './ads.validator';
 
 const router = Router();
@@ -43,6 +44,16 @@ router.post('/banners/:id/click', ctrl.recordClick);
 // ─────────────────────────────────────────────────────────────────────────────
 
 router.use(authenticate, authorize('admin'));
+
+/**
+ * POST /api/v1/ads/admin/presign
+ * Presign media upload URL for banner ads.
+ */
+router.post(
+  '/admin/presign',
+  validate(presignBannerMediaSchema),
+  ctrl.presignBannerMedia,
+);
 
 /**
  * POST /api/v1/ads/admin/banners
