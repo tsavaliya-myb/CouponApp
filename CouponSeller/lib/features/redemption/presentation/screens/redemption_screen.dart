@@ -277,7 +277,9 @@ class _RedemptionScreenState extends ConsumerState<RedemptionScreen> {
             id: c.id,
             icon: Icons.percent_rounded,
             title: '${c.coupon.discountPct}% Flat Discount',
-            subtitle: 'Valid on bills above ₹${c.coupon.minSpend}',
+            subtitle: (c.coupon.minSpend ?? 0) > 0
+                ? 'Valid on bills above ₹${c.coupon.minSpend}'
+                : 'No minimum bill amount',
           ),
         )).toList(),
       ],
@@ -517,7 +519,8 @@ class _RedemptionScreenState extends ConsumerState<RedemptionScreen> {
     } catch (_) {}
 
     double discountAmount = 0.0;
-    if (selectedCoupon != null && billAmount >= selectedCoupon.coupon.minSpend) {
+    if (selectedCoupon != null &&
+        billAmount >= (selectedCoupon.coupon.minSpend ?? 0)) {
        discountAmount = billAmount * (selectedCoupon.coupon.discountPct / 100);
     }
 

@@ -37,7 +37,7 @@ _$RedemptionUserModelImpl _$$RedemptionUserModelImplFromJson(
   Map<String, dynamic> json,
 ) => _$RedemptionUserModelImpl(
   id: json['id'] as String,
-  name: json['name'] as String,
+  name: json['name'] as String?,
   phone: json['phone'] as String,
   hasActiveSubscription: json['hasActiveSubscription'] as bool,
   availableCoins: (json['availableCoins'] as num).toDouble(),
@@ -88,7 +88,7 @@ _$RedemptionCouponModelImpl _$$RedemptionCouponModelImplFromJson(
   sellerId: json['sellerId'] as String,
   discountPct: (json['discountPct'] as num).toDouble(),
   adminCommissionPct: (json['adminCommissionPct'] as num).toDouble(),
-  minSpend: (json['minSpend'] as num).toDouble(),
+  minSpend: (json['minSpend'] as num?)?.toDouble(),
   maxUsesPerBook: (json['maxUsesPerBook'] as num).toInt(),
   type: json['type'] as String,
   status: json['status'] as String,

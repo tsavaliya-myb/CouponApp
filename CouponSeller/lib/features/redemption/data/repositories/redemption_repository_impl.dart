@@ -22,7 +22,7 @@ class RedemptionRepositoryImpl implements RedemptionRepository {
       final entity = VerifyUserEntity(
         user: RedemptionUserEntity(
           id: data.user.id,
-          name: data.user.name,
+          name: data.user.name ?? 'Customer',
           phone: data.user.phone,
           hasActiveSubscription: data.user.hasActiveSubscription,
           availableCoins: data.user.availableCoins,
