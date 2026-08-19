@@ -222,7 +222,7 @@ export default function BannerAdsPage() {
   });
 
   const { data: citiesData } = useCities();
-  const { data: sellersData } = useSellers({ page: 1, limit: 200 });
+  const { data: sellersData } = useSellers({ page: 1, limit: 50 });
 
   const ads = data?.data || [];
   const cities = citiesData?.data || [];

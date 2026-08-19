@@ -46,6 +46,6 @@ export const deleteBannerAd = async (id: string): Promise<void> => {
 };
 
 export const presignBannerMedia = async (mimeType: string): Promise<{ uploadUrl: string; fileKey: string; publicUrl: string }> => {
-  const { data } = await apiClient.post<{ uploadUrl: string; fileKey: string; publicUrl: string }>(`/ads/admin/presign`, { mimeType });
-  return data;
+  const { data } = await apiClient.post<{ success: boolean; data: { uploadUrl: string; fileKey: string; publicUrl: string } }>(`/ads/admin/presign`, { mimeType });
+  return data.data;
 };
