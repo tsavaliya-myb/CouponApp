@@ -212,9 +212,23 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final isLoading = otpState.status == _OtpStatus.loading;
 
     return Scaffold(
-      backgroundColor: AppColors.dsSurface,
-      body: SafeArea(
-        child: SingleChildScrollView(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              AppColors.primaryLight.withOpacity(0.5),
+              AppColors.primarySoft.withOpacity(0.3),
+              AppColors.primaryLight.withOpacity(0.5),
+            ],
+            stops: const [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
@@ -317,14 +331,12 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           width: 48,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: AppColors.dsSurfaceContainerLow,
+                            color: AppColors.dsSurfaceContainerLowest, // white
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: isActive
                                   ? AppColors.dsPrimary.withOpacity(0.4)
-                                  : hasValue
-                                      ? AppColors.dsPrimary.withOpacity(0.1)
-                                      : Colors.transparent,
+                                  : AppColors.dsPrimary.withOpacity(0.1),
                               width: 1.5,
                             ),
                           ),
@@ -333,7 +345,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                               hasValue ? text[index] : '',
                               style: AppTextStyles.dsDisplayLg.copyWith(
                                 fontSize: 24,
-                                color: AppColors.dsOnSurface,
+                                color: AppColors.dsPrimary,
                               ),
                             ),
                           ),
@@ -445,8 +457,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                                   style: AppTextStyles.dsButton.copyWith(
                                     color:
                                         _otpController.text.length == _otpLength
-                                            ? AppColors.dsSurfaceContainerLowest
-                                            : AppColors.dsSurfaceContainerLowest
+                                            ? AppColors.dsOnSurface
+                                            : AppColors.dsOnSurface
                                                 .withOpacity(0.6),
                                   ),
                                 ),
@@ -455,8 +467,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                                   Icons.check_circle_rounded,
                                   color:
                                       _otpController.text.length == _otpLength
-                                          ? AppColors.dsSurfaceContainerLowest
-                                          : AppColors.dsSurfaceContainerLowest
+                                          ? AppColors.dsOnSurface
+                                          : AppColors.dsOnSurface
                                               .withOpacity(0.6),
                                   size: 20,
                                 ),
@@ -470,7 +482,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }
 

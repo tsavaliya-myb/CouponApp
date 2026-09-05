@@ -60,12 +60,19 @@ export class OneSignalService {
   }
 
   // Target a single user via OneSignal external_id (set via OneSignal.login(userId) in Flutter)
-  async sendToUser(userId: string, title: string, body: string, logType: string = 'direct') {
+  async sendToUser(
+    userId: string,
+    title: string,
+    body: string,
+    logType: string = 'direct',
+    additionalData?: Record<string, string>,
+  ) {
     return this.dispatch({
       headings: { en: title },
       contents: { en: body },
       include_aliases: { external_id: [userId] },
       target_channel: 'push',
+      ...(additionalData && { data: additionalData }),
     }, logType, 'USER', userId);
   }
 

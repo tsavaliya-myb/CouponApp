@@ -1,8 +1,39 @@
 // lib/services/notification_service.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+
+// ---------------------------------------------------------------------------
+// Payment request data model — populated from OneSignal additional_data
+// ---------------------------------------------------------------------------
+
+class PaymentRequestData {
+  final double finalAmount;
+  final double discountAmount;
+  final double billAmount;
+  final String sellerName;
+  final String redemptionId;
+
+  const PaymentRequestData({
+    required this.finalAmount,
+    required this.discountAmount,
+    required this.billAmount,
+    required this.sellerName,
+    required this.redemptionId,
+  });
+
+  factory PaymentRequestData.fromMap(Map<String, dynamic> data) {
+    return PaymentRequestData(
+      finalAmount: double.tryParse(data['finalAmount']?.toString() ?? '') ?? 0,
+      discountAmount: double.tryParse(data['discountAmount']?.toString() ?? '') ?? 0,
+      billAmount: double.tryParse(data['billAmount']?.toString() ?? '') ?? 0,
+      sellerName: data['sellerName']?.toString() ?? 'Seller',
+      redemptionId: data['redemptionId']?.toString() ?? '',
+    );
+  }
+}
 
 /// OneSignal v5 push notification service.
 ///
@@ -16,6 +47,11 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 /// Deep-link routing:
 ///   Backend sends `additional_data` with a `route` key (e.g. "/coupons").
 ///   The click listener navigates via [navigatorKey] wired into app.dart's GoRouter.
+///
+/// Payment popup:
+///   Backend sends `additional_data` with `type: "payment_request"`.
+///   Foreground: banner is suppressed, event emitted to [paymentRequestStream].
+///   Background: notification click emits to [paymentRequestStream] for app.dart to handle.
 class NotificationService {
   final String _appId;
   final Logger _log = Logger();
@@ -32,6 +68,23 @@ class NotificationService {
       GlobalKey<NavigatorState>(debugLabel: 'rootNavigator');
 
   // ---------------------------------------------------------------------------
+  // Payment request stream — app.dart listens to show bottom sheet
+  // ---------------------------------------------------------------------------
+
+  static final StreamController<PaymentRequestData> paymentRequestStream =
+      StreamController<PaymentRequestData>.broadcast();
+
+  void _emitPaymentRequest(Map<String, dynamic> data) {
+    try {
+      final payload = PaymentRequestData.fromMap(data);
+      paymentRequestStream.add(payload);
+      _log.i('[NotificationService] PaymentRequest emitted: ₹${payload.finalAmount} at ${payload.sellerName}');
+    } catch (e) {
+      _log.e('[NotificationService] Failed to parse payment_request data', error: e);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Init — call before runApp()
   // ---------------------------------------------------------------------------
 
@@ -44,20 +97,37 @@ class NotificationService {
 
     OneSignal.initialize(_appId);
 
-    // Always display notification banners even when app is in foreground
+    // Always display notification banners even when app is in foreground,
+    // EXCEPT for payment_request type — those become in-app bottom sheets.
     OneSignal.Notifications.addForegroundWillDisplayListener(
       (OSNotificationWillDisplayEvent event) {
-        _log.d('[OneSignal] Foreground notification: ${event.notification.title}');
-        event.notification.display();
+        final data = event.notification.additionalData;
+        _log.d('[OneSignal] Foreground notification: ${event.notification.title}, data=$data');
+
+        if (data != null && data['type'] == 'payment_request') {
+          // Suppress the banner — show the in-app payment sheet instead
+          event.preventDefault();
+          _emitPaymentRequest(data);
+        } else {
+          event.notification.display();
+        }
       },
     );
 
-    // Handle notification tap → deep-link
+    // Handle notification tap → deep-link or payment popup
     OneSignal.Notifications.addClickListener(
       (OSNotificationClickEvent event) {
         final data = event.notification.additionalData;
         _log.i('[OneSignal] Notification tapped. data=$data');
-        _handleClick(data);
+
+        if (data != null && data['type'] == 'payment_request') {
+          // App was backgrounded — emit so app.dart shows the bottom sheet
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _emitPaymentRequest(data);
+          });
+        } else {
+          _handleClick(data);
+        }
       },
     );
 
@@ -158,3 +228,5 @@ class NotificationService {
     });
   }
 }
+
+

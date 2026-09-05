@@ -120,9 +120,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isLoading = loginState.status == _LoginStatus.loading;
 
     return Scaffold(
-      backgroundColor: AppColors.dsSurface,
-      body: SafeArea(
-        child: SingleChildScrollView(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              AppColors.primaryLight.withOpacity(0.5),
+              AppColors.primarySoft.withOpacity(0.3),
+              AppColors.primaryLight.withOpacity(0.5),
+            ],
+            stops: const [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
@@ -166,16 +180,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       height: 56,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                        color: AppColors.dsSurfaceContainerLow,
+                        color: AppColors.dsSurfaceContainerLowest, // white
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.dsPrimary.withOpacity(0.1),
+                          width: 1.5,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Text('+91', style: AppTextStyles.dsTitleLg),
+                          Text('+91', style: AppTextStyles.dsTitleLg.copyWith(color: AppColors.dsPrimary)),
                           const SizedBox(width: 8),
                           Icon(
                             Icons.keyboard_arrow_down_rounded,
-                            color: AppColors.dsOnSurface.withOpacity(0.5),
+                            color: AppColors.dsPrimary,
                           ),
                         ],
                       ),
@@ -186,12 +204,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         duration: const Duration(milliseconds: 200),
                         height: 56,
                         decoration: BoxDecoration(
-                          color: AppColors.dsSurfaceContainerLow,
+                          color: AppColors.dsSurfaceContainerLowest, // white
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: _isFocused
-                                ? AppColors.dsPrimary.withOpacity(0.2)
-                                : Colors.transparent,
+                                ? AppColors.dsPrimary.withOpacity(0.4)
+                                : AppColors.dsPrimary.withOpacity(0.1),
                             width: 1.5,
                           ),
                         ),
@@ -202,11 +220,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             focusNode: _focusNode,
                             keyboardType: TextInputType.phone,
                             maxLength: 10,
-                            style: AppTextStyles.dsTitleLg,
+                            style: AppTextStyles.dsTitleLg.copyWith(color: AppColors.dsPrimary),
                             decoration: InputDecoration(
                               hintText: 'Enter phone number',
                               hintStyle: AppTextStyles.dsTitleLg.copyWith(
-                                color: AppColors.dsOnSurface.withOpacity(0.3),
+                                color: AppColors.dsPrimary.withOpacity(0.5),
                               ),
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
@@ -230,7 +248,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     text:
                         "We'll send you a 6-digit code to verify your\nidentity.",
                     style: AppTextStyles.dsBodyMd.copyWith(
-                      color: AppColors.dsOnSurface.withOpacity(0.7),
+                      color: AppColors.dsOnSurface,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -280,11 +299,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text('Send OTP', style: AppTextStyles.dsButton),
+                                Text(
+                                  'Send OTP',
+                                  style: AppTextStyles.dsButton.copyWith(color: AppColors.dsOnSurface),
+                                ),
                                 const SizedBox(width: 8),
                                 const Icon(
                                   Icons.arrow_forward_rounded,
-                                  color: AppColors.dsSurfaceContainerLowest,
+                                  color: AppColors.dsOnSurface,
                                   size: 20,
                                 ),
                               ],
@@ -332,6 +354,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

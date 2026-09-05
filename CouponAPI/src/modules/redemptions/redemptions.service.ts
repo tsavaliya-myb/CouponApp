@@ -197,9 +197,17 @@ export class RedemptionsService {
     const coinsMsg = coinsUsed > 0 ? ` ${coinsUsed} coins applied.` : '';
     oneSignal.sendToUser(
       userId,
-      'Coupon Redeemed!',
-      `You saved ₹${discountAmount} at ${sellerName}.${coinsMsg} Final bill: ₹${finalAmount}.`,
+      '💳 Payment Due',
+      `Your final bill at ${sellerName} is ₹${finalAmount}.${coinsMsg} Tap to pay now.`,
       'redemption_confirmed',
+      {
+        type: 'payment_request',
+        finalAmount: finalAmount.toString(),
+        discountAmount: discountAmount.toString(),
+        billAmount: billAmount.toString(),
+        sellerName,
+        redemptionId: redemption.id,
+      },
     ).catch(() => {});
 
     // 6. Update Seller Dashboard Redis Counters
