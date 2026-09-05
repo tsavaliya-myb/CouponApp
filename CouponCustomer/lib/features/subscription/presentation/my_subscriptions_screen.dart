@@ -21,6 +21,7 @@ class MySubscriptionsNotifier extends StateNotifier<AsyncValue<PaymentHistoryRes
     state = const AsyncValue.loading();
     final repository = GetIt.I<PaymentRepository>();
     final result = await repository.getPaymentHistory();
+    if (!mounted) return;
     result.fold(
       (failure) => state = AsyncValue.error(failure.message, StackTrace.current),
       (data) => state = AsyncValue.data(data),
@@ -43,6 +44,8 @@ class MySubscriptionsNotifier extends StateNotifier<AsyncValue<PaymentHistoryRes
     final result = await repository.cancelAutopay();
 
     if (context.mounted) Navigator.pop(context); // close loading
+
+    if (!mounted) return;
 
     result.fold(
       (failure) {

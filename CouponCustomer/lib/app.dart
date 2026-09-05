@@ -1,4 +1,5 @@
 // lib/app.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,7 @@ import 'features/home/presentation/screens/home_screen.dart';
 import 'features/coupons/presentation/screens/my_coupons_screen.dart';
 import 'features/coupons/presentation/screens/coupon_detail_screen.dart';
 import 'features/qr/presentation/screens/qr_screen.dart';
+import 'features/qr/presentation/widgets/payment_request_bottom_sheet.dart';
 import 'features/wallet/presentation/screens/wallet_screen.dart';
 import 'features/splash/presentation/screens/splash_screen.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
@@ -198,11 +200,42 @@ final _router = GoRouter(
 // Root App Widget
 // ---------------------------------------------------------------------------
 
-class App extends ConsumerWidget {
+class App extends ConsumerStatefulWidget {
   const App({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<App> createState() => _AppState();
+}
+
+class _AppState extends ConsumerState<App> {
+  StreamSubscription<PaymentRequestData>? _paymentSub;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen globally — popup shows no matter which screen the user is on
+    _paymentSub = NotificationService.paymentRequestStream.stream.listen((data) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = NotificationService.navigatorKey.currentContext;
+        if (ctx == null) return;
+        showModalBottomSheet<void>(
+          context: ctx,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => PaymentRequestBottomSheet(data: data),
+        );
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _paymentSub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'CouponApp',
       debugShowCheckedModeBanner: false,
