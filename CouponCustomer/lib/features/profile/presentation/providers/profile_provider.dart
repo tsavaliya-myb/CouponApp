@@ -4,6 +4,7 @@ import '../../data/models/user_model.dart';
 import '../../data/models/area_model.dart';
 import '../../data/models/user_settings_model.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../../../../services/notification_service.dart';
 
 class ProfileNotifier extends AsyncNotifier<UserModel> {
   @override
@@ -11,7 +12,13 @@ class ProfileNotifier extends AsyncNotifier<UserModel> {
     ref.keepAlive(); // Never dispose — avoids re-fetching on every tab switch
     final repository = GetIt.I<ProfileRepository>();
     final result = await repository.getUser();
-    return result.fold((f) => throw f.message, (u) => u);
+    return result.fold(
+      (f) => throw f.message, 
+      (u) {
+        _syncOneSignalTags(u);
+        return u;
+      }
+    );
   }
 
   Future<void> updateUser(Map<String, dynamic> data) async {
@@ -19,8 +26,22 @@ class ProfileNotifier extends AsyncNotifier<UserModel> {
     final result = await repository.updateUser(data);
     result.fold(
       (f) => throw f.message,
-      (u) => state = AsyncData(u),
+      (u) {
+        _syncOneSignalTags(u);
+        state = AsyncData(u);
+      },
     );
+  }
+
+  void _syncOneSignalTags(UserModel user) {
+    GetIt.I<NotificationService>().setUserTags({
+      'phone': user.phone,
+      'subscription_status': user.subscriptionStatus.toLowerCase(),
+      'has_redeemed': 'false', 
+      'env': 'dev',
+      if (user.cityId != null) 'cityId': user.cityId!,
+      if (user.areaId != null) 'area': user.areaId!,
+    });
   }
 }
 

@@ -149,9 +149,19 @@ class ProfileScreen extends ConsumerWidget {
                           onTap: () => context.push('/leaderboard'),
                         ),
                         _MenuTile(
+                          icon: Icons.history_rounded,
+                          title: 'Redemption History',
+                          onTap: () => context.push('/redemption-history'),
+                        ),
+                        _MenuTile(
                           icon: Icons.help_outline_rounded,
                           title: 'Help & Support',
                           onTap: () => context.push('/support'),
+                        ),
+                        _MenuTile(
+                          icon: Icons.privacy_tip_outlined,
+                          title: 'Privacy Policy',
+                          onTap: () => context.push('/privacy-policy'),
                         ),
                         _MenuTile(
                           icon: Icons.info_outline_rounded,

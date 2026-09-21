@@ -214,6 +214,11 @@ class _BannerSliderState extends ConsumerState<_BannerSlider> {
   }
 
   Future<void> _handleTap(BannerAdEntity ad) async {
+    if (ad.title == 'Sub-Banner') {
+      context.push('/subscribe');
+      return;
+    }
+
     // Fire click tracking (fire-and-forget — no auth needed)
     // We call directly via the API URL; tracking failures are silent.
     if (ad.actionUrl != null) {
@@ -248,8 +253,8 @@ class _BannerSliderState extends ConsumerState<_BannerSlider> {
 
     return Column(
       children: [
-        SizedBox(
-          height: 200,
+        AspectRatio(
+          aspectRatio: 16 / 9,
           child: PageView.builder(
             controller: _controller,
             itemCount: count,

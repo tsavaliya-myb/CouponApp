@@ -11,6 +11,7 @@ import '../../features/subscription/presentation/my_subscriptions_screen.dart';
 import '../error/failures.dart';
 import '../security/session_manager.dart';
 import '../security/token_service.dart';
+import '../../services/notification_service.dart';
 
 // Provider for SharedPreferences instance (overridden in ProviderScope at main.dart)
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -93,7 +94,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
               isUnauthorized = true;
             }
           },
-          (_) {},
+          (user) {
+            // Re-sync OneSignal external ID on app startup for authenticated users
+            final notifService = GetIt.I<NotificationService>();
+            notifService.identifyUser(user.id);
+            notifService.setPhoneNumber(user.phone);
+            notifService.setUserTags({
+              'phone': user.phone,
+              'subscription_status': user.subscriptionStatus.toLowerCase(),
+              'has_redeemed': 'false', // Keep default or update from user if available
+              'env': 'dev', // TODO: dynamic based on environment
+              if (user.cityId != null) 'cityId': user.cityId!,
+              if (user.areaId != null) 'area': user.areaId!,
+            });
+          },
         );
 
         if (isUnauthorized) {

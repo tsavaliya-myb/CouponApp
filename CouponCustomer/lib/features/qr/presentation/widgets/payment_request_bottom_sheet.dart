@@ -1,4 +1,4 @@
-﻿// lib/features/qr/presentation/widgets/payment_request_bottom_sheet.dart
+// lib/features/qr/presentation/widgets/payment_request_bottom_sheet.dart
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:logger/logger.dart';
@@ -15,16 +15,23 @@ class PaymentRequestBottomSheet extends StatelessWidget {
   static final _log = Logger();
 
   Future<void> _launchUpi(BuildContext context) async {
-    // upi:// deep link — opens system UPI app chooser (GPay, PhonePe, Paytm, etc.)
-    // am = amount, tn = transaction note, cu = currency
-    final uri = Uri.parse(
-      'upi://pay'
-      '?am='
-      '&tn=CouponApp%20Payment'
-      '&cu=INR',
-    );
+    // Build the UPI deep-link.
+    // When the seller has a UPI ID (pa = payee address), the payment app
+    // auto-fills the recipient — the customer only needs to confirm.
+    // Without pa, the customer must enter the seller's UPI ID manually.
+    final hasUpiId = data.sellerUpiId != null && data.sellerUpiId!.isNotEmpty;
 
-    _log.i('[PaymentSheet] Launching UPI: $uri');
+    final params = {
+      if (hasUpiId) 'pa': data.sellerUpiId!,
+      'am': data.finalAmount.toStringAsFixed(2),
+      'tn': Uri.encodeComponent('CouponApp Payment - ${data.sellerName}'),
+      'cu': 'INR',
+    };
+
+    final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');
+    final uri = Uri.parse('upi://pay?$query');
+
+    _log.i('[PaymentSheet] Launching UPI: $uri (hasUpiId=$hasUpiId)');
 
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -194,7 +201,7 @@ class PaymentRequestBottomSheet extends StatelessWidget {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                textStyle: AppTextStyles.dsLabelLg.copyWith(fontWeight: FontWeight.w700, fontSize: 16),
+                textStyle: AppTextStyles.dsButton.copyWith(fontWeight: FontWeight.w700, fontSize: 16),
               ),
             ),
           ),
@@ -211,7 +218,7 @@ class PaymentRequestBottomSheet extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 side: BorderSide(color: AppColors.dsOnSurface.withOpacity(0.15)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                textStyle: AppTextStyles.dsLabelLg.copyWith(fontWeight: FontWeight.w600, fontSize: 15),
+                textStyle: AppTextStyles.dsButton.copyWith(fontWeight: FontWeight.w600, fontSize: 15),
               ),
               child: const Text("I'll Pay by Cash"),
             ),

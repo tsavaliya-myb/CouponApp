@@ -167,6 +167,7 @@ export class AdsService {
       orderBy: { createdAt: 'desc' },
       select: {
         id:        true,
+        title:     true,
         imageUrl:  true,
         videoUrl:  true,
         actionUrl: true,

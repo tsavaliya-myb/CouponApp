@@ -19,6 +19,7 @@ import 'features/profile/presentation/screens/account_settings_screen.dart';
 import 'features/profile/presentation/screens/refer_and_earn_screen.dart';
 import 'features/profile/presentation/screens/support_screen.dart';
 import 'features/profile/presentation/screens/about_us_screen.dart';
+import 'features/profile/presentation/screens/privacy_policy_screen.dart';
 import 'features/sellers/presentation/screens/sellers_screen.dart';
 import 'features/sellers/presentation/screens/seller_detail_screen.dart';
 import 'features/home/domain/entities/nearby_seller_entity.dart';
@@ -29,6 +30,7 @@ import 'features/subscription/presentation/screens/purchase_screen.dart';
 import 'features/subscription/presentation/screens/subscription_success_screen.dart';
 import 'features/subscription/presentation/my_subscriptions_screen.dart';
 import 'features/profile/presentation/screens/leaderboard_screen.dart';
+import 'features/coupons/presentation/screens/redemption_history_screen.dart';
 import 'services/notification_service.dart';
 
 // ---------------------------------------------------------------------------
@@ -168,6 +170,11 @@ final _router = GoRouter(
       builder: (_, __) => const AboutUsScreen(),
     ),
     GoRoute(
+      path: '/privacy-policy',
+      name: 'privacy-policy',
+      builder: (_, __) => const PrivacyPolicyScreen(),
+    ),
+    GoRoute(
       path: '/search',
       name: 'search',
       builder: (_, __) => const SearchScreen(),
@@ -193,6 +200,11 @@ final _router = GoRouter(
       name: 'leaderboard',
       builder: (_, __) => const LeaderboardScreen(),
     ),
+    GoRoute(
+      path: '/redemption-history',
+      name: 'redemption-history',
+      builder: (_, __) => const RedemptionHistoryScreen(),
+    ),
   ],
 );
 
@@ -215,11 +227,19 @@ class _AppState extends ConsumerState<App> {
     super.initState();
     // Listen globally — popup shows no matter which screen the user is on
     _paymentSub = NotificationService.paymentRequestStream.stream.listen((data) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Use Future.microtask instead of addPostFrameCallback:
+      // addPostFrameCallback fires AFTER a frame is painted, leaving the sheet
+      // rendered but non-interactive until the next touch. microtask runs in the
+      // same event-loop cycle so the sheet is fully interactive from the start.
+      Future.microtask(() {
         final ctx = NotificationService.navigatorKey.currentContext;
         if (ctx == null) return;
         showModalBottomSheet<void>(
           context: ctx,
+          // useRootNavigator: true places the sheet on the root overlay,
+          // ensuring it captures pointer events immediately without needing
+          // a prior tap to "activate" it.
+          useRootNavigator: true,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (_) => PaymentRequestBottomSheet(data: data),

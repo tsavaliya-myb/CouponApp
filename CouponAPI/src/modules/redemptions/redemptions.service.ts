@@ -194,6 +194,7 @@ export class RedemptionsService {
 
     // 5. Push notification to user (fire-and-forget)
     const sellerName = userCoupon.coupon.seller.businessName;
+    const sellerUpiId = userCoupon.coupon.seller.upiId;
     const coinsMsg = coinsUsed > 0 ? ` ${coinsUsed} coins applied.` : '';
     oneSignal.sendToUser(
       userId,
@@ -207,6 +208,9 @@ export class RedemptionsService {
         billAmount: billAmount.toString(),
         sellerName,
         redemptionId: redemption.id,
+        // Only include UPI ID if the seller has one set — Flutter uses it
+        // as the `pa` (payee address) param so the UPI app pre-fills it.
+        ...(sellerUpiId && { sellerUpiId }),
       },
     ).catch(() => {});
 

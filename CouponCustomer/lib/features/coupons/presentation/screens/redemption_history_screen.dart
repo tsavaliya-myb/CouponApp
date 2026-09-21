@@ -1,22 +1,27 @@
 // lib/features/coupons/presentation/screens/redemption_history_screen.dart
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/widgets/app_header.dart';
+import '../providers/redemption_history_provider.dart';
 
-class RedemptionHistoryScreen extends StatefulWidget {
+class RedemptionHistoryScreen extends ConsumerStatefulWidget {
   const RedemptionHistoryScreen({super.key});
 
   @override
-  State<RedemptionHistoryScreen> createState() => _RedemptionHistoryScreenState();
+  ConsumerState<RedemptionHistoryScreen> createState() => _RedemptionHistoryScreenState();
 }
 
-class _RedemptionHistoryScreenState extends State<RedemptionHistoryScreen> {
+class _RedemptionHistoryScreenState extends ConsumerState<RedemptionHistoryScreen> {
   int _selectedFilterIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final historyAsync = ref.watch(redemptionHistoryProvider);
+
     return Scaffold(
       backgroundColor: AppColors.dsSurface,
       extendBody: true, // Needed for floating authentic glass bottom nav
@@ -46,154 +51,160 @@ class _RedemptionHistoryScreenState extends State<RedemptionHistoryScreen> {
               ),
               const SizedBox(height: 24),
 
-              // ── Milestone Card ──────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.dsPrimary, AppColors.dsPrimary.withOpacity(0.6)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.dsPrimary.withOpacity(0.3),
-                        blurRadius: 24,
-                        offset: const Offset(0, 12),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    clipBehavior: Clip.none,
+              historyAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Center(child: Text('Error: $err')),
+                data: (history) {
+                  final totalSaved = history.fold(0.0, (sum, item) => sum + item.discountAmount);
+                  
+                  return Column(
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      // ── Milestone Card ──────────────────────────────────────────
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(32),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [AppColors.dsPrimary, AppColors.dsPrimary.withOpacity(0.6)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(32),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.dsPrimary.withOpacity(0.3),
+                                blurRadius: 24,
+                                offset: const Offset(0, 12),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'MILESTONE',
+                                    style: AppTextStyles.dsLabelMd.copyWith(
+                                      color: AppColors.dsSurfaceContainerLowest.withOpacity(0.7),
+                                      letterSpacing: 2.0,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '₹${totalSaved.toStringAsFixed(0)}',
+                                    style: AppTextStyles.dsDisplayLg.copyWith(
+                                      color: AppColors.dsSurfaceContainerLowest,
+                                      fontSize: 48,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Total Saved',
+                                    style: AppTextStyles.dsBodyMd.copyWith(
+                                      color: AppColors.dsSurfaceContainerLowest.withOpacity(0.9),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // Decorative Sparkles
+                              Positioned(
+                                right: -10,
+                                top: 10,
+                                child: Icon(Icons.auto_awesome, color: Colors.white.withOpacity(0.15), size: 100),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // ── Time Filter Tabs ────────────────────────────────────────
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
+                          children: [
+                            _buildFilterTab(0, 'This Week'),
+                            const SizedBox(width: 12),
+                            _buildFilterTab(1, 'This Month'),
+                            const SizedBox(width: 12),
+                            _buildFilterTab(2, 'All Time'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // ── History List ────────────────────────────────────────────
+                      if (history.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(48),
+                          child: Text('No redemptions found for this period.', style: AppTextStyles.dsBodyMd.copyWith(color: AppColors.dsOnSurface.withOpacity(0.5))),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            children: history.map((item) {
+                              final isTicket = item.type == 'BOGO';
+                              final dateFormat = DateFormat('dd MMM, hh:mm a').format(item.redeemedAt);
+                              final pillText = item.type == 'BOGO' ? 'BOGO' : '${item.discountPct.toInt()}% OFF';
+                              
+                              if (isTicket) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: _HistoryTicketTile(
+                                    title: item.businessName,
+                                    savedAmt: '₹${item.discountAmount.toStringAsFixed(0)} Saved',
+                                    couponText: pillText,
+                                    dateText: dateFormat.toUpperCase(),
+                                    iconColor: AppColors.dsPrimary,
+                                    icon: Icons.local_activity_rounded,
+                                  ),
+                                );
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: _HistoryListTile(
+                                  title: item.businessName,
+                                  savedAmt: '₹${item.discountAmount.toStringAsFixed(0)} Saved',
+                                  pillText: pillText,
+                                  coinsText: 'Used ${item.coinsUsed} Coins',
+                                  dateText: dateFormat.toUpperCase(),
+                                  iconBgColor: AppColors.dsPrimaryContainer,
+                                  iconColor: AppColors.dsPrimary,
+                                  icon: Icons.storefront_rounded,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      const SizedBox(height: 48),
+
+                      // ── Footer ──────────────────────────────────────────────────
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'MONTHLY MILESTONE',
-                            style: AppTextStyles.dsLabelMd.copyWith(
-                              color: AppColors.dsSurfaceContainerLowest.withOpacity(0.7),
-                              letterSpacing: 2.0,
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.dsPrimary.withOpacity(0.08),
+                              shape: BoxShape.circle,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '₹1250',
-                            style: AppTextStyles.dsDisplayLg.copyWith(
-                              color: AppColors.dsSurfaceContainerLowest,
-                              fontSize: 48,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Total Saved this Month',
-                            style: AppTextStyles.dsBodyMd.copyWith(
-                              color: AppColors.dsSurfaceContainerLowest.withOpacity(0.9),
-                            ),
+                            child: Icon(Icons.history_rounded, color: AppColors.dsPrimary.withOpacity(0.6), size: 20),
                           ),
                         ],
                       ),
-                      // Decorative Sparkles
-                      Positioned(
-                        right: -10,
-                        top: 10,
-                        child: Icon(Icons.auto_awesome, color: Colors.white.withOpacity(0.15), size: 100),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Showing redemptions for selected period',
+                        style: AppTextStyles.dsBodyMd.copyWith(color: AppColors.dsOnSurface.withOpacity(0.6)),
                       ),
                     ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // ── Time Filter Tabs ────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    _buildFilterTab(0, 'This Week'),
-                    const SizedBox(width: 12),
-                    _buildFilterTab(1, 'This Month'),
-                    const SizedBox(width: 12),
-                    _buildFilterTab(2, 'All Time'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // ── History List ────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const _HistoryListTile(
-                      title: 'The Gourmet Studio',
-                      savedAmt: '₹250 Saved',
-                      pillText: '20% OFF',
-                      coinsText: 'Used 10 Coins',
-                      dateText: '24 OCT, 08:30 PM',
-                      iconBgColor: AppColors.dsPrimaryContainer,
-                      iconColor: AppColors.dsPrimary,
-                      icon: Icons.restaurant_rounded,
-                    ),
-                    const SizedBox(height: 16),
-                    _HistoryListTile(
-                      title: 'Style Quotient',
-                      savedAmt: '₹400 Saved',
-                      pillText: 'FLAT ₹400',
-                      coinsText: 'Used 25 Coins',
-                      dateText: '22 OCT, 11:15 AM',
-                      iconBgColor: AppColors.dsTertiaryPink.withOpacity(0.15),
-                      iconColor: AppColors.dsTertiaryPink,
-                      icon: Icons.content_cut_rounded,
-                    ),
-                    const SizedBox(height: 16),
-                    // Zudio Surat (Ticket Style)
-                    const _HistoryTicketTile(
-                      title: 'Zudio Surat',
-                      savedAmt: '₹600 Saved',
-                      couponText: 'Buy 1 Get 1',
-                      dateText: '20 OCT, 2023',
-                      iconColor: AppColors.dsPrimary,
-                      icon: Icons.shopping_bag_rounded,
-                    ),
-                    const SizedBox(height: 16),
-                    _HistoryListTile(
-                      title: 'Coffee Culture',
-                      savedAmt: '₹150 Saved',
-                      pillText: '1+1 BEVERAGE',
-                      coinsText: 'Used 5 Coins',
-                      dateText: '18 OCT, 05:45 PM',
-                      iconBgColor: AppColors.dsTertiaryPink.withOpacity(0.15),
-                      iconColor: AppColors.dsTertiaryPink,
-                      icon: Icons.local_cafe_rounded,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 48),
-
-              // ── Footer ──────────────────────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.dsPrimary.withOpacity(0.08),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.history_rounded, color: AppColors.dsPrimary.withOpacity(0.6), size: 20),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Showing redemptions from Oct 2023',
-                style: AppTextStyles.dsBodyMd.copyWith(color: AppColors.dsOnSurface.withOpacity(0.6)),
+                  );
+                },
               ),
 
               const SizedBox(height: 140), // Buffer for the glassmorphic bottom nav
@@ -205,10 +216,20 @@ class _RedemptionHistoryScreenState extends State<RedemptionHistoryScreen> {
     );
   }
 
+  void _onFilterChanged(int index) {
+    setState(() => _selectedFilterIndex = index);
+    final period = switch (index) {
+      0 => 'this_week',
+      1 => 'this_month',
+      _ => 'all',
+    };
+    ref.read(redemptionHistoryProvider.notifier).updatePeriod(period);
+  }
+
   Widget _buildFilterTab(int index, String label) {
     final isSelected = _selectedFilterIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedFilterIndex = index),
+      onTap: () => _onFilterChanged(index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),

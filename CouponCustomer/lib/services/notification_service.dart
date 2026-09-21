@@ -15,6 +15,7 @@ class PaymentRequestData {
   final double billAmount;
   final String sellerName;
   final String redemptionId;
+  final String? sellerUpiId; // null = seller hasn't set a UPI ID
 
   const PaymentRequestData({
     required this.finalAmount,
@@ -22,6 +23,7 @@ class PaymentRequestData {
     required this.billAmount,
     required this.sellerName,
     required this.redemptionId,
+    this.sellerUpiId,
   });
 
   factory PaymentRequestData.fromMap(Map<String, dynamic> data) {
@@ -31,6 +33,7 @@ class PaymentRequestData {
       billAmount: double.tryParse(data['billAmount']?.toString() ?? '') ?? 0,
       sellerName: data['sellerName']?.toString() ?? 'Seller',
       redemptionId: data['redemptionId']?.toString() ?? '',
+      sellerUpiId: data['sellerUpiId']?.toString(), // null if not present
     );
   }
 }
@@ -196,36 +199,49 @@ class NotificationService {
     '/home',
     '/coupons',
     '/wallet',
-    '/subscription',
+    '/subscribe',
+    '/my-subscriptions',
     '/profile',
     '/sellers',
     '/qr',
+    '/account-settings',
+    '/refer-and-earn',
+    '/leaderboard',
+    '/support',
   };
 
   void _handleClick(Map<String, dynamic>? data) {
     if (data == null) return;
 
-    final route = data['route'] as String?;
+    var route = data['route'] as String?;
     if (route == null || route.isEmpty) {
       _log.w('[NotificationService] No route in notification payload');
       return;
     }
 
     if (!_allowedRoutes.contains(route)) {
-      _log.w('[NotificationService] Unknown route in payload: $route');
-      return;
+      _log.w('[NotificationService] Unknown route in payload: $route, falling back to /home');
+      route = '/home'; // Reassign to home for fallback
     }
 
-    // Defer to next frame — notification click can fire before widget tree is ready
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = navigatorKey.currentContext;
-      if (context == null) {
-        _log.w('[NotificationService] Navigator context is null, cannot navigate');
-        return;
-      }
+      _tryNavigate(route!, 0);
+    });
+  }
+
+  void _tryNavigate(String route, int attempt) {
+    final context = navigatorKey.currentContext;
+    if (context != null) {
       _log.i('[NotificationService] Deep-linking to: $route');
       GoRouter.of(context).go(route);
-    });
+    } else {
+      if (attempt < 10) {
+        _log.d('[NotificationService] Context null, retrying navigation in 200ms...');
+        Future.delayed(const Duration(milliseconds: 200), () => _tryNavigate(route, attempt + 1));
+      } else {
+        _log.w('[NotificationService] Navigator context is null after retries, cannot navigate');
+      }
+    }
   }
 }
 

@@ -36,7 +36,11 @@ class AllCouponsNotifier extends AsyncNotifier<List<HomeCouponEntity>> {
     final usecase = GetIt.I<GetFeaturedCouponsUsecase>();
     final result = await usecase();
     return result.fold(
-      (failure) => throw failure,
+      (failure) {
+        // If the user isn't subscribed or unauthorized, just return an empty list
+        // instead of crashing the provider, so screens like Seller Detail can load gracefully.
+        return [];
+      },
       (list) => list,
     );
   }
@@ -149,8 +153,24 @@ final bannerAdsProvider =
   final cityId = profile.cityId;
   final usecase = GetIt.I<GetBannerAdsUsecase>();
   final result = await usecase(cityId: cityId);
-  return result.fold(
-    (failure) => <BannerAdEntity>[], // fail silently — slider shows nothing
-    (ads) => ads,
+  List<BannerAdEntity> ads = result.fold(
+    (failure) => <BannerAdEntity>[], // fail silently - slider shows nothing
+    (ads) => List.of(ads), // mutable copy
   );
+
+  final bool isSubscribed = profile.subscriptionStatus.toUpperCase() == 'ACTIVE';
+
+  if (isSubscribed) {
+    // Hide Sub-Banner for active users
+    ads.removeWhere((ad) => ad.title == 'Sub-Banner');
+  } else {
+    // Move Sub-Banner to index 0 for non-active users
+    final subBannerIndex = ads.indexWhere((ad) => ad.title == 'Sub-Banner');
+    if (subBannerIndex != -1) {
+      final subBanner = ads.removeAt(subBannerIndex);
+      ads.insert(0, subBanner);
+    }
+  }
+
+  return ads;
 });

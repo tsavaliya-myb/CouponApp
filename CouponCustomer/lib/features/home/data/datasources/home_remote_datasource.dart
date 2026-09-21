@@ -29,10 +29,18 @@ class HomeRemoteDatasourceImpl implements HomeRemoteDatasource {
       '/coupons',
       queryParameters: {'page': 1, 'limit': 499},
     );
-    final List data = response.data['data'] as List;
-    return data
-        .map((e) => HomeCouponModel.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
+    final data = response.data['data'];
+    if (data == null || data is! List) return [];
+    
+    final models = <HomeCouponModel>[];
+    for (final e in data) {
+      try {
+        models.add(HomeCouponModel.fromJson(Map<String, dynamic>.from(e as Map)));
+      } catch (err, st) {
+        // Ignore malformed coupons
+      }
+    }
+    return models;
   }
 
   @override

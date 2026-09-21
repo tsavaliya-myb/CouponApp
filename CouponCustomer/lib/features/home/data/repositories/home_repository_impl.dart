@@ -23,10 +23,17 @@ class HomeRepositoryImpl implements HomeRepository {
   Future<Either<Failure, List<HomeCouponEntity>>> getAllCoupons() async {
     try {
       final models = await _remote.getAllCoupons();
-      return Right(models.map((m) => m.toEntity()).toList());
+      final entities = <HomeCouponEntity>[];
+      for (final m in models) {
+        try {
+          entities.add(m.toEntity());
+        } catch (_) {}
+      }
+      return Right(entities);
     } on DioException catch (e) {
       return Left(mapDioExceptionToFailure(e));
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('getAllCoupons error: $e\n$st');
       return const Left(ServerFailure());
     }
   }

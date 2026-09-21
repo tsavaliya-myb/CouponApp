@@ -4,6 +4,7 @@ import '../../domain/entities/banner_ad_entity.dart';
 class BannerAdModel extends BannerAdEntity {
   const BannerAdModel({
     required super.id,
+    super.title,
     super.imageUrl,
     super.videoUrl,
     super.actionUrl,
@@ -14,6 +15,7 @@ class BannerAdModel extends BannerAdEntity {
     final seller = json['seller'] as Map<String, dynamic>?;
     return BannerAdModel(
       id: json['id'] as String,
+      title: json['title'] as String?,
       imageUrl: json['imageUrl'] as String?,
       videoUrl: json['videoUrl'] as String?,
       actionUrl: json['actionUrl'] as String?,
