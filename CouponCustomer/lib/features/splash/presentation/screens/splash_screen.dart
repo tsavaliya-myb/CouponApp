@@ -55,7 +55,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             ),
             const SizedBox(height: 32),
             Text(
-              'CouponCode',
+              'Coupon360',
               style: AppTextStyles.dsDisplayLg.copyWith(
                 color: AppColors.dsPrimary,
               ),

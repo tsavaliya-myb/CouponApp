@@ -44,17 +44,35 @@ export class PaymentController {
   };
 
   // POST /api/v1/payments/webhook
-  // Respond 200 immediately — Razorpay retries on non-2xx for up to 24h.
-  // req.body is a raw Buffer here (see payments.routes.ts — express.raw()).
+  // Razorpay retries on non-2xx for up to 24h — process synchronously so a
+  // crash between "respond 200" and "process" can no longer silently lose events.
+  // We set a 4-second timeout so slow Razorpay API calls inside handleWebhook
+  // don't push us past Razorpay's own 5s response deadline.
   webhook = async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const signature = req.headers['x-razorpay-signature'] as string | undefined;
     log.info('webhook: HTTP request received', { hasSignature: !!signature });
 
-    res.status(200).json({ status: 'ok' });
+    // Abort the processing if it takes longer than 4s so we can still respond.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
 
-    paymentService.handleWebhook(req.body as Buffer, signature ?? '').catch((err) => {
-      log.error('webhook: unhandled error in async processing', { err });
-    });
+    try {
+      await Promise.race([
+        paymentService.handleWebhook(req.body as Buffer, signature ?? ''),
+        new Promise<never>((_, reject) =>
+          controller.signal.addEventListener('abort', () =>
+            reject(new Error('webhook: processing timed out (4s) — Razorpay will retry'))
+          )
+        ),
+      ]);
+      clearTimeout(timer);
+      res.status(200).json({ status: 'ok' });
+    } catch (err) {
+      clearTimeout(timer);
+      log.error('webhook: processing failed or timed out', { err });
+      // Non-2xx → Razorpay will retry.  Do NOT return 200 on error.
+      res.status(500).json({ status: 'error' });
+    }
   };
 
   // POST /api/v1/payments/cancel-autopay

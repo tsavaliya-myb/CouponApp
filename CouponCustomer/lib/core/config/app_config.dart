@@ -39,7 +39,7 @@ class AppConfig {
   // ---------------------------------------------------------------------------
 
   factory AppConfig.prod() => const AppConfig(
-        appName: 'CouponApp',
+        appName: 'Coupon360',
         baseUrl: String.fromEnvironment('BASE_URL'),
         qrSecretKey: String.fromEnvironment('QR_SECRET_KEY'),
         appVersion: '1.0.0',
@@ -51,7 +51,7 @@ class AppConfig {
   /// Development flavor — points to local backend.
   /// Run with: flutter run (no extra flags needed)
   factory AppConfig.dev() => const AppConfig(
-        appName: 'CouponApp',
+        appName: 'Coupon360',
         baseUrl: String.fromEnvironment('BASE_URL'),
         qrSecretKey: String.fromEnvironment('QR_SECRET_KEY'),
         appVersion: '1.0.0',

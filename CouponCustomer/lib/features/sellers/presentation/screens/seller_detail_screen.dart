@@ -13,9 +13,11 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/widgets/shimmer_loader.dart';
 import '../../../../core/utils/category_utils.dart';
+import '../../../../core/providers/subscription_provider.dart';
 import '../../../home/domain/entities/home_coupon_entity.dart';
 import '../../../home/domain/entities/nearby_seller_entity.dart';
 import '../../../home/presentation/providers/home_provider.dart';
+import 'dart:ui';
 
 // ─── Provider: coupons filtered by sellerId ─────────────────────────────────
 
@@ -42,6 +44,7 @@ class SellerDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final couponsAsync = ref.watch(sellerCouponsProvider(seller.id));
+    final isSubscribed = ref.watch(isSubscribedProvider);
 
     // --- Build unified media list: video first, then photos ---
     final media = seller.media;
@@ -190,21 +193,44 @@ class SellerDetailScreen extends ConsumerWidget {
               }
               return SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (_, i) => Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                    child: _SellerCouponCard(
+                  (_, i) {
+                    final int visibleCount = (coupons.length * 0.3).ceil();
+                    final bool isBlurred = !isSubscribed && i >= visibleCount;
+
+                    Widget card = _SellerCouponCard(
                       coupon: coupons[i],
-                      onTap: () => context.push(
-                        '/coupon-detail',
-                        extra: coupons[i],
-                      ),
-                    )
-                        .animate()
-                        .fadeIn(
-                            duration: 300.ms,
-                            delay: Duration(milliseconds: 50 * i))
-                        .slideY(begin: 0.04),
-                  ),
+                      onTap: isBlurred 
+                          ? null 
+                          : () => context.push('/coupon-detail', extra: coupons[i]),
+                    );
+
+                    if (isBlurred) {
+                      card = GestureDetector(
+                        onTap: () => context.push('/subscribe'),
+                        child: Stack(
+                          children: [
+                            ImageFiltered(
+                              imageFilter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                              child: card,
+                            ),
+                            Positioned.fill(
+                              child: Container(color: Colors.transparent),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                      child: card
+                          .animate()
+                          .fadeIn(
+                              duration: 300.ms,
+                              delay: Duration(milliseconds: 50 * i))
+                          .slideY(begin: 0.04),
+                    );
+                  },
                   childCount: coupons.length,
                 ),
               );

@@ -29,10 +29,17 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
       (_, next) {
         next.whenOrNull(
           error: (err, stack) {
+            final message = err.toString();
+            // Distinguish "payment processing" informational state from genuine failures.
+            // The processing message is set by PaymentController when the subscription
+            // wasn't yet ACTIVE after 45s of polling — webhook is still in flight.
+            final isProcessing = message.contains('being processed') ||
+                message.contains('will activate');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(err.toString()),
-                backgroundColor: Colors.red,
+                content: Text(message),
+                backgroundColor: isProcessing ? Colors.amber.shade800 : Colors.red,
+                duration: Duration(seconds: isProcessing ? 8 : 4),
               ),
             );
           },
@@ -58,7 +65,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
             children: [
               const SizedBox(height: 16),
               AppHeader(
-                title: 'Coupon Code',
+                title: 'Coupon 360',
                 showSearchBar: false,
                 titleStyle: AppTextStyles.dsTitleLg.copyWith(
                   color: AppColors.dsOnSurface,
@@ -210,7 +217,7 @@ class _PurchaseScreenState extends ConsumerState<PurchaseScreen> {
                               iconBg:
                                   AppColors.dsSecondaryMint.withOpacity(0.15),
                               iconColor: AppColors.dsSecondaryMint,
-                              title: '₹5000+',
+                              title: '₹30000+',
                               subtitle: 'SAVINGS',
                             ),
                           ),

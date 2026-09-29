@@ -15,21 +15,21 @@ class PaymentRequestBottomSheet extends StatelessWidget {
   static final _log = Logger();
 
   Future<void> _launchUpi(BuildContext context) async {
-    // Build the UPI deep-link.
-    // When the seller has a UPI ID (pa = payee address), the payment app
-    // auto-fills the recipient — the customer only needs to confirm.
-    // Without pa, the customer must enter the seller's UPI ID manually.
+    // KEY FIX: Use Uri(queryParameters:) so Flutter handles percent-encoding
+    // correctly.  The previous manual join with a pre-encoded 'tn' value caused
+    // double-encoding — '%20' in the transaction note became '%2520' in some UPI apps.
     final hasUpiId = data.sellerUpiId != null && data.sellerUpiId!.isNotEmpty;
 
-    final params = {
-      if (hasUpiId) 'pa': data.sellerUpiId!,
-      'am': data.finalAmount.toStringAsFixed(2),
-      'tn': Uri.encodeComponent('CouponApp Payment - ${data.sellerName}'),
-      'cu': 'INR',
-    };
-
-    final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');
-    final uri = Uri.parse('upi://pay?$query');
+    final uri = Uri(
+      scheme: 'upi',
+      host: 'pay',
+      queryParameters: {
+        if (hasUpiId) 'pa': data.sellerUpiId!,
+        'am': data.finalAmount.toStringAsFixed(2),
+        'tn': 'CouponApp Payment - ${data.sellerName}', // raw — Uri handles encoding
+        'cu': 'INR',
+      },
+    );
 
     _log.i('[PaymentSheet] Launching UPI: $uri (hasUpiId=$hasUpiId)');
 
@@ -107,7 +107,8 @@ class PaymentRequestBottomSheet extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'at ',
+                      // KEY FIX: show the actual seller name
+                      'at ${data.sellerName}',
                       style: AppTextStyles.dsBodyMd.copyWith(
                         color: AppColors.dsOnSurface.withOpacity(0.6),
                       ),
@@ -130,13 +131,22 @@ class PaymentRequestBottomSheet extends StatelessWidget {
             ),
             child: Column(
               children: [
-                _buildRow('Gross Bill', '₹'),
+                // KEY FIX: pass the actual amounts — previously showed bare '₹'
+                _buildRow('Gross Bill', '₹${data.billAmount.toStringAsFixed(2)}'),
                 const SizedBox(height: 12),
                 _buildRow(
                   'Coupon Discount',
-                  '-₹',
+                  '-₹${data.discountAmount.toStringAsFixed(2)}',
                   isDiscount: true,
                 ),
+                if (data.coinsUsed > 0) ...[
+                  const SizedBox(height: 12),
+                  _buildRow(
+                    'Coins Used',
+                    '-${data.coinsUsed} coins',
+                    isDiscount: true,
+                  ),
+                ],
                 const SizedBox(height: 16),
 
                 // Dotted divider
@@ -171,8 +181,9 @@ class PaymentRequestBottomSheet extends StatelessWidget {
                       children: [
                         const Icon(Icons.stars_rounded, color: AppColors.dsPrimary, size: 16),
                         const SizedBox(width: 4),
+                        // KEY FIX: show the actual final amount
                         Text(
-                          '₹',
+                          '₹${data.finalAmount.toStringAsFixed(2)}',
                           style: AppTextStyles.dsTitleLg.copyWith(
                             fontSize: 26,
                             fontWeight: FontWeight.w900,

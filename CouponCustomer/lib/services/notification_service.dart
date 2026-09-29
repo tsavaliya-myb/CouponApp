@@ -16,6 +16,7 @@ class PaymentRequestData {
   final String sellerName;
   final String redemptionId;
   final String? sellerUpiId; // null = seller hasn't set a UPI ID
+  final int coinsUsed;       // coins applied to this transaction (0 if none)
 
   const PaymentRequestData({
     required this.finalAmount,
@@ -24,16 +25,18 @@ class PaymentRequestData {
     required this.sellerName,
     required this.redemptionId,
     this.sellerUpiId,
+    this.coinsUsed = 0,
   });
 
   factory PaymentRequestData.fromMap(Map<String, dynamic> data) {
     return PaymentRequestData(
-      finalAmount: double.tryParse(data['finalAmount']?.toString() ?? '') ?? 0,
+      finalAmount:    double.tryParse(data['finalAmount']?.toString()    ?? '') ?? 0,
       discountAmount: double.tryParse(data['discountAmount']?.toString() ?? '') ?? 0,
-      billAmount: double.tryParse(data['billAmount']?.toString() ?? '') ?? 0,
-      sellerName: data['sellerName']?.toString() ?? 'Seller',
-      redemptionId: data['redemptionId']?.toString() ?? '',
-      sellerUpiId: data['sellerUpiId']?.toString(), // null if not present
+      billAmount:     double.tryParse(data['billAmount']?.toString()     ?? '') ?? 0,
+      sellerName:     data['sellerName']?.toString()  ?? 'Seller',
+      redemptionId:   data['redemptionId']?.toString() ?? '',
+      sellerUpiId:    data['sellerUpiId']?.toString(), // null if not present
+      coinsUsed:      int.tryParse(data['coinsUsed']?.toString() ?? '0') ?? 0,
     );
   }
 }

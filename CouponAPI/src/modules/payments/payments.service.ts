@@ -63,14 +63,31 @@ export class PaymentService {
       throw ConflictError('User already has an active subscription');
     }
 
+    // Guard: if a MANDATE attempt is already in PENDING or SIGNATURE_VERIFIED state,
+    // don't create a second Razorpay order — return 409 so the app retries the same flow.
+    // This prevents double-order creation when the user taps "Activate Now" twice quickly.
+    const inProgressAttempt = await prisma.paymentAttempt.findFirst({
+      where: { userId, kind: 'MANDATE', status: { in: ['PENDING', 'SIGNATURE_VERIFIED'] } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (inProgressAttempt) {
+      log.warn('initiatePayment: mandate attempt already in progress', {
+        userId, existingOrderId: inProgressAttempt.razorpayOrderId,
+      });
+      throw ConflictError('A payment is already in progress. Please wait a moment and try again.');
+    }
+
+    // KEY FIX: Use SCREAMING_SNAKE_CASE to match what the admin panel writes.
+    // Previously 'subscription_price' was stored by admin as 'SUBSCRIPTION_PRICE',
+    // so the lookup always missed and fell back to hardcoded 999.
     const priceSetting = await prisma.appSetting.findUnique({
-      where: { key: 'subscription_price' },
+      where: { key: 'SUBSCRIPTION_PRICE' },
     });
     const rupees = priceSetting ? parseFloat(priceSetting.value) : 999;
     const amountPaise = toPaise(rupees);
 
     if (amountPaise > env.RAZORPAY_MANDATE_MAX_AMOUNT) {
-      log.error('initiatePayment: subscription_price exceeds mandate max_amount', {
+      log.error('initiatePayment: SUBSCRIPTION_PRICE exceeds mandate max_amount', {
         userId, amountPaise, maxAmount: env.RAZORPAY_MANDATE_MAX_AMOUNT,
       });
       throw ConflictError('Subscription price exceeds the payment gateway limit. Please contact support.');
@@ -127,7 +144,18 @@ export class PaymentService {
     };
   }
 
-  // ─── Client-side verify (optimistic fulfilment ahead of the webhook) ────
+  // ─── Client-side signature verify (NO fulfillment — webhook is the sole truth) ─
+  //
+  // PURPOSE: Confirm to the Flutter app that the Razorpay SDK callback was
+  // genuine (HMAC check).  We update the attempt status to SIGNATURE_VERIFIED
+  // so the Flutter polling loop has something to wait on, but we do NOT
+  // activate the subscription here.  That happens exclusively in
+  // onPaymentCaptured(), which is called by the payment.captured webhook.
+  //
+  // WHY: The SDK fires EVENT_PAYMENT_SUCCESS on UPI mandate *registration* —
+  // which can precede the actual capture by seconds to minutes.  Calling
+  // fulfillSubscription() here, then again from the webhook, produced the
+  // double-coin-credit bug.
   async verifyPayment(
     userId: string,
     params: { orderId: string; paymentId: string; signature: string },
@@ -145,23 +173,60 @@ export class PaymentService {
       throw ConflictError('Payment record not found');
     }
 
+    // Already fully processed by webhook — tell the app immediately.
     if (attempt.status === 'SUCCESS') {
-      return { status: 'already_processed' };
+      return { status: 'captured' };
+    }
+    // Signature already verified in a prior call — idempotent.
+    if (attempt.status === 'SIGNATURE_VERIFIED') {
+      return { status: 'processing' };
     }
 
+    // Fetch from Razorpay to detect outright failures early (e.g. UPI decline).
+    // We do NOT block on captured status here — that belongs to the webhook.
     const payment = await razorpay.payments.fetch(paymentId);
     if (payment.order_id !== orderId) {
       log.error('verifyPayment: payment/order mismatch', { userId, orderId, paymentId, paymentOrderId: payment.order_id });
       throw ConflictError('Payment verification failed');
     }
 
-    if (payment.status !== 'captured') {
-      log.warn('verifyPayment: payment not yet captured', { userId, orderId, paymentId, status: payment.status });
-      return { status: payment.status };
+    if (payment.status === 'failed') {
+      log.warn('verifyPayment: payment already failed on Razorpay', { userId, orderId, paymentId });
+      await prisma.paymentAttempt.update({
+        where: { razorpayOrderId: orderId },
+        data: {
+          status:           'FAILED',
+          razorpayPaymentId: paymentId,
+          errorCode:        payment.error_code ?? null,
+          errorDescription: payment.error_description ?? null,
+        },
+      });
+      throw ConflictError('Payment failed. Please try again.');
     }
 
-    await this.onPaymentCaptured(payment);
-    return { status: 'captured' };
+    // Signature is valid and payment is not failed — mark as verified.
+    // The webhook will complete fulfillment when Razorpay captures the payment.
+    await prisma.paymentAttempt.update({
+      where: { razorpayOrderId: orderId },
+      data: {
+        status:            'SIGNATURE_VERIFIED',
+        razorpayPaymentId: paymentId,
+      },
+    });
+
+    log.info('verifyPayment: signature verified, awaiting payment.captured webhook', {
+      userId, orderId, paymentId, razorpayStatus: payment.status,
+    });
+
+    // If Razorpay has already captured (fast path — capture can precede SDK callback),
+    // trigger fulfillment now so the webhook arriving later is safely idempotent.
+    if (payment.status === 'captured') {
+      log.info('verifyPayment: payment already captured — triggering fulfillment', { userId, orderId });
+      await this.onPaymentCaptured(payment);
+      return { status: 'captured' };
+    }
+
+    return { status: 'processing' };
   }
 
   // ─── Handle Incoming Razorpay Webhook ────────────────────────────────────
@@ -207,24 +272,69 @@ export class PaymentService {
   }
 
   // ─── payment.captured — MANDATE → fulfil, RENEWAL → extend ──────────────
+  //
+  // CONCURRENCY: This method is called from two places:
+  //   1. payment.captured webhook (Razorpay S2S)
+  //   2. verifyPayment() fast-path when payment is already captured at verify time
+  //
+  // We use SELECT...FOR UPDATE inside a transaction to serialise concurrent
+  // calls for the same order.  Without the lock, both callers could read
+  // attempt.status === 'PENDING' simultaneously and both proceed to fulfil,
+  // resulting in double coins + double subscription upsert.
   private async onPaymentCaptured(payment: any): Promise<void> {
     if (!payment?.id || !payment?.order_id) {
       log.error('onPaymentCaptured: malformed payment payload', { payment });
       return;
     }
 
-    const attempt = await prisma.paymentAttempt.findUnique({ where: { razorpayOrderId: payment.order_id } });
-    if (!attempt) {
-      log.error('onPaymentCaptured: no PaymentAttempt for order', { orderId: payment.order_id, paymentId: payment.id });
-      return;
-    }
-    if (attempt.status === 'SUCCESS') {
-      log.info('onPaymentCaptured: already processed', { orderId: payment.order_id });
-      return;
-    }
-
     const tokenId: string | null = payment.token_id ?? null;
 
+    // ── Atomic lock: read-and-decide inside a transaction ─────────────────
+    // The FOR UPDATE locks the row so a second concurrent call blocks here
+    // until the first commits — by which point status = SUCCESS and it exits.
+    let attempt: any;
+    let shouldFulfill = false;
+
+    await prisma.$transaction(async (tx) => {
+      const rows = await tx.$queryRaw<any[]>`
+        SELECT id, status, "userId", kind, "subscriptionId"
+        FROM payment_attempts
+        WHERE "razorpayOrderId" = ${payment.order_id}
+        FOR UPDATE
+      `;
+
+      if (!rows.length) {
+        log.error('onPaymentCaptured: no PaymentAttempt for order', {
+          orderId: payment.order_id, paymentId: payment.id,
+        });
+        return;
+      }
+
+      attempt = rows[0];
+
+      if (attempt.status === 'SUCCESS') {
+        log.info('onPaymentCaptured: already processed (idempotent)', { orderId: payment.order_id });
+        return; // nothing to do — exit transaction
+      }
+
+      // Claim the attempt atomically before releasing the lock.
+      await tx.paymentAttempt.update({
+        where: { razorpayOrderId: payment.order_id },
+        data: {
+          status:            'SUCCESS',
+          razorpayPaymentId: payment.id,
+          razorpayTokenId:   tokenId,
+          rawWebhook:        payment,
+        },
+      });
+
+      shouldFulfill = true; // signal outer scope to run fulfillment
+    });
+
+    if (!shouldFulfill || !attempt) return;
+
+    // ── Run the business logic AFTER the lock transaction commits ─────────
+    // fulfillSubscription / fulfillRenewal have their own internal $transaction.
     if (attempt.kind === 'MANDATE') {
       try {
         await this.fulfillSubscription(attempt.userId, payment.id, tokenId);
@@ -232,6 +342,7 @@ export class PaymentService {
         log.error('onPaymentCaptured: fulfillSubscription threw — subscription NOT activated', {
           userId: attempt.userId, orderId: payment.order_id, err,
         });
+        // Attempt is already SUCCESS — manual intervention required.
       }
     } else if (attempt.kind === 'RENEWAL' && attempt.subscriptionId) {
       try {
@@ -242,16 +353,6 @@ export class PaymentService {
         });
       }
     }
-
-    await prisma.paymentAttempt.update({
-      where: { razorpayOrderId: payment.order_id },
-      data: {
-        status:            'SUCCESS',
-        razorpayPaymentId: payment.id,
-        razorpayTokenId:   tokenId,
-        rawWebhook:        payment,
-      },
-    });
 
     log.info('onPaymentCaptured: complete', { userId: attempt.userId, orderId: payment.order_id, kind: attempt.kind });
   }
@@ -341,15 +442,17 @@ export class PaymentService {
       return;
     }
 
+    // KEY FIX: AppSetting keys must use SCREAMING_SNAKE_CASE to match what the
+    // admin panel writes.  The old lowercase keys always fell back to hardcoded defaults.
     const [validityDaySetting, coinsSetting] = await Promise.all([
-      prisma.appSetting.findUnique({ where: { key: 'book_validity_days' } }),
-      prisma.appSetting.findUnique({ where: { key: 'coins_per_subscription' } }),
+      prisma.appSetting.findUnique({ where: { key: 'BOOK_VALIDITY_DAYS' } }),
+      prisma.appSetting.findUnique({ where: { key: 'COINS_PER_SUBSCRIPTION' } }),
     ]);
     const validityDays = validityDaySetting ? parseInt(validityDaySetting.value) : 365;
     const coinsToAward = coinsSetting   ? parseInt(coinsSetting.value)   : 50;
 
-    if (!validityDaySetting) log.warn('fulfillSubscription: book_validity_days not set in AppSetting, using default 365', { userId });
-    if (!coinsSetting)       log.warn('fulfillSubscription: coins_per_subscription not set in AppSetting, using default 50', { userId });
+    if (!validityDaySetting) log.warn('fulfillSubscription: BOOK_VALIDITY_DAYS not set in AppSetting, using default 365', { userId });
+    if (!coinsSetting)       log.warn('fulfillSubscription: COINS_PER_SUBSCRIPTION not set in AppSetting, using default 50', { userId });
 
     const baseCoupons = user.cityId
       ? await prisma.coupon.findMany({
@@ -387,8 +490,15 @@ export class PaymentService {
           },
         });
 
-        const couponBook = await tx.couponBook.create({
-          data: { subscriptionId: subscription.id, userId, validFrom: now, validUntil: endDate },
+        // KEY FIX: Use upsert instead of create to handle the re-subscription case.
+        // When a user re-subscribes after expiry, the subscription record is reused
+        // (same id), and a CouponBook for that subscriptionId may already exist.
+        // couponBook.create() would crash with a unique constraint violation,
+        // leaving the user with a paid-but-not-activated subscription.
+        const couponBook = await tx.couponBook.upsert({
+          where:  { subscriptionId: subscription.id },
+          create: { subscriptionId: subscription.id, userId, validFrom: now, validUntil: endDate },
+          update: { validFrom: now, validUntil: endDate },
         });
 
         if (baseCoupons.length > 0) {
@@ -417,10 +527,11 @@ export class PaymentService {
         });
 
         if (pendingReferral && pendingReferral.status === 'PENDING') {
+          // KEY FIX: Referral AppSetting keys also use SCREAMING_SNAKE_CASE.
           const [maxLimitSetting, referrerRewardSetting, referredRewardSetting] = await Promise.all([
-            tx.appSetting.findUnique({ where: { key: 'max_referrals' } }),
-            tx.appSetting.findUnique({ where: { key: 'referrer_coins' } }),
-            tx.appSetting.findUnique({ where: { key: 'referred_user_coins' } }),
+            tx.appSetting.findUnique({ where: { key: 'MAX_REFERRALS' } }),
+            tx.appSetting.findUnique({ where: { key: 'REFERRER_COINS' } }),
+            tx.appSetting.findUnique({ where: { key: 'REFERRED_USER_COINS' } }),
           ]);
 
           const maxLimit = maxLimitSetting ? parseInt(maxLimitSetting.value, 10) : 10;
@@ -472,6 +583,7 @@ export class PaymentService {
       .catch((err) => log.warn('fulfillSubscription: coins push notification failed (non-fatal)', { userId, err }));
   }
 
+
   // ─── Renewal Fulfillment (recurring debit success) ──────────────────────
   private async fulfillRenewal(
     userId: string,
@@ -488,8 +600,8 @@ export class PaymentService {
     }
 
     const [validityDaySetting, coinsSetting] = await Promise.all([
-      prisma.appSetting.findUnique({ where: { key: 'book_validity_days' } }),
-      prisma.appSetting.findUnique({ where: { key: 'coins_per_subscription' } }),
+      prisma.appSetting.findUnique({ where: { key: 'BOOK_VALIDITY_DAYS' } }),
+      prisma.appSetting.findUnique({ where: { key: 'COINS_PER_SUBSCRIPTION' } }),
     ]);
     const validityDays = validityDaySetting ? parseInt(validityDaySetting.value) : 365;
     const coinsToAward = coinsSetting   ? parseInt(coinsSetting.value)   : 50;
@@ -516,6 +628,9 @@ export class PaymentService {
           },
         });
 
+        // Renewal creates a new CouponBook per cycle (unlike fulfillSubscription which
+        // reuses the same subscription.id — renewal subscriptionId is stable, so a
+        // new book is correct for tracking renewal history).
         const couponBook = await tx.couponBook.create({
           data: { subscriptionId, userId, validFrom: now, validUntil: endDate },
         });

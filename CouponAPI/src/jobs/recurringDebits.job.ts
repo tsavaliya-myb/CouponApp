@@ -86,18 +86,40 @@ export const recurringDebitsWorker = new Worker(
             },
           });
 
-          await razorpay.payments.createRecurringPayment({
-            email:       sub.user.email || '',
-            contact,
-            amount:      amountPaise,
-            currency:    'INR',
-            order_id:    order.id,
-            customer_id: sub.user.razorpayCustomerId,
-            token:       sub.razorpayTokenId,
-            recurring:   true,
-            description: 'CouponApp Coupon Book Renewal',
-            notes:       { userId: sub.userId, kind: 'RENEWAL', subscriptionId: sub.id },
-          });
+          try {
+            // KEY FIX: Razorpay subsequent-debit API requires 'token_id' (not 'token').
+            // The incorrect field name caused silent 400 errors — debits never fired,
+            // but the PaymentAttempt stayed PENDING, blocking all future renewal attempts.
+            await razorpay.payments.createRecurringPayment({
+              email:       sub.user.email || '',
+              contact,
+              amount:      amountPaise,
+              currency:    'INR',
+              order_id:    order.id,
+              customer_id: sub.user.razorpayCustomerId,
+              // KEY FIX: The correct Razorpay API field is 'token_id'.
+              // The razorpay npm package types are outdated — cast to bypass.
+              token_id:    sub.razorpayTokenId,
+              recurring:   true,
+              description: 'CouponApp Coupon Book Renewal',
+              notes:       { userId: sub.userId, kind: 'RENEWAL', subscriptionId: sub.id },
+            } as any);
+          } catch (debitErr) {
+            // createRecurringPayment failed — mark the attempt FAILED immediately so the
+            // next day's in-flight check doesn't skip this subscription indefinitely.
+            logger.error('recurringDebitsJob: createRecurringPayment failed — marking attempt FAILED', {
+              userId: sub.userId, orderId: order.id, debitErr,
+            });
+            await prisma.paymentAttempt.update({
+              where: { razorpayOrderId: order.id },
+              data: {
+                status:           'FAILED',
+                errorDescription: String(debitErr),
+              },
+            }).catch((e) => logger.warn('recurringDebitsJob: failed to update attempt status', { e }));
+            failed++;
+            continue; // move on to next subscription
+          }
 
           logger.info('recurringDebitsJob: renewal debit requested', { userId: sub.userId, orderId: order.id });
           created++;

@@ -119,7 +119,7 @@ class SubscribeGateScreen extends StatelessWidget {
 
                 // Body text
                 Text(
-                  'Join Coupon Code and get instant access to 100+ handpicked coupons, and the best deals from top-rated sellers near you — all in one place!',
+                  'Join Coupon 360 and get instant access to 100+ handpicked coupons, and the best deals from top-rated sellers near you — all in one place!',
                   style: AppTextStyles.dsBodyMd.copyWith(
                     color: AppColors.dsOnSurface.withOpacity(0.6),
                     height: 1.6,

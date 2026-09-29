@@ -1,4 +1,5 @@
 // lib/features/sellers/presentation/screens/sellers_screen.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,9 +42,6 @@ class _SellersScreenState extends ConsumerState<SellersScreen>
 
     // ── Subscription gate ────────────────────────────────────────────────
     final isSubscribed = ref.watch(isSubscribedProvider);
-    if (!isSubscribed) {
-      return const SubscribeGateScreen(featureName: 'Sellers');
-    }
 
     final sellersAsync = ref.watch(filteredSellersProvider);
     final selectedCategory = ref.watch(selectedSellerCategoryProvider);
@@ -170,13 +168,36 @@ class _SellersScreenState extends ConsumerState<SellersScreen>
                     itemCount: sellers.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 16),
                     itemBuilder: (_, i) {
-                      return SellerCard(
-                            seller: sellers[i],
-                            onTap: () => context.push(
-                              '/seller-detail',
-                              extra: sellers[i],
-                            ),
-                          )
+                      final int visibleCount = (sellers.length * 0.3).ceil();
+                      final bool isBlurred = !isSubscribed && i >= visibleCount;
+
+                      Widget card = SellerCard(
+                        seller: sellers[i],
+                        onTap: isBlurred 
+                            ? null 
+                            : () => context.push('/seller-detail', extra: sellers[i]),
+                      );
+
+                      if (isBlurred) {
+                        card = GestureDetector(
+                          onTap: () => context.push('/subscribe'),
+                          child: Stack(
+                            children: [
+                              ImageFiltered(
+                                imageFilter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                                child: card,
+                              ),
+                              Positioned.fill(
+                                child: Container(
+                                  color: Colors.transparent,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return card
                           .animate()
                           .fadeIn(
                               duration: 300.ms,

@@ -14,11 +14,20 @@ export const subscriptionExpiryWorker = new Worker(
     const now = new Date();
 
     try {
-      // ── Step 1: Find all subscriptions that have passed their endDate ──────
+      // Find all subscriptions that have passed their endDate.
+      // KEY FIX: Exclude subscriptions with a PENDING renewal attempt — the recurring
+      // debit may already be in transit (created by recurringDebitsJob 48–72h early).
+      // Marking them EXPIRED would briefly revoke access while the user is being charged,
+      // causing a false "subscription expired" message.  The webhook will set them back
+      // to ACTIVE once the payment.captured event arrives.
       const expiredSubs = await prisma.subscription.findMany({
         where: {
           status: 'ACTIVE',
           endDate: { lt: now },
+          // Skip subs with an active renewal in flight
+          attempts: {
+            none: { kind: 'RENEWAL', status: 'PENDING' },
+          },
         },
         select: {
           id: true,

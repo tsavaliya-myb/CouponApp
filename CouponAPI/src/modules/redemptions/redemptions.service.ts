@@ -136,12 +136,21 @@ export class RedemptionsService {
         }
       });
 
-      // 3. Deduct Coins (if any)
+      // 3. Deduct Coins atomically — the balance check outside the tx was
+      //    a race condition: two concurrent redemptions could both pass the
+      //    check and both deduct, driving the balance negative.
+      //    Using updateMany with a gte filter + checking affected rows is
+      //    the Prisma-idiomatic equivalent of an atomic CAS operation.
       if (coinsUsed > 0) {
-        await tx.user.update({
-          where: { id: userId },
-          data: { coinBalance: { decrement: coinsUsed } }
+        const debitResult = await tx.user.updateMany({
+          where: { id: userId, coinBalance: { gte: coinsUsed } },
+          data:  { coinBalance: { decrement: coinsUsed } },
         });
+        if (debitResult.count === 0) {
+          // Another concurrent transaction used the coins between our earlier
+          // check and this update — abort the whole transaction.
+          throw new Error('Insufficient coin balance (concurrent redemption conflict)');
+        }
 
         await tx.walletTransaction.create({
           data: {

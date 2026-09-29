@@ -63,6 +63,7 @@ enum SubscriptionStatus {
 
 enum PaymentAttemptStatus {
   PENDING
+  SIGNATURE_VERIFIED // SDK onSuccess fired & HMAC checked — awaiting payment.captured webhook
   SUCCESS
   FAILED
   CANCELLED
