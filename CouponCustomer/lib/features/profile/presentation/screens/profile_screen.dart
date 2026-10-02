@@ -154,6 +154,11 @@ class ProfileScreen extends ConsumerWidget {
                           onTap: () => context.push('/redemption-history'),
                         ),
                         _MenuTile(
+                          icon: Icons.campaign_outlined,
+                          title: 'My Service Requests',
+                          onTap: () => context.push('/influencer-bookings'),
+                        ),
+                        _MenuTile(
                           icon: Icons.help_outline_rounded,
                           title: 'Help & Support',
                           onTap: () => context.push('/support'),

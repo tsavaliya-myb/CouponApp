@@ -104,6 +104,7 @@ model City {
   areas          Area[]
   users          User[]
   sellers        Seller[]
+  influencers    Influencer[]
   bannerAdCities BannerAdCity[]
 
   @@map("cities")
@@ -147,48 +148,49 @@ model AreaDistance {
 // ─────────────────────────────────────────
 
 model User {
-  id                String     @id @default(uuid())
-  phone             String     @unique
-  name              String?
-  email             String?
-  cityId            String?
-  areaId            String?
-  status            UserStatus @default(ACTIVE)
+  id                 String     @id @default(uuid())
+  phone              String     @unique
+  name               String?
+  email              String?
+  cityId             String?
+  areaId             String?
+  status             UserStatus @default(ACTIVE)
   // OneSignal player ID for push notifications
-  onesignalPlayerId String?
+  onesignalPlayerId  String?
   // User's cached coin balance (1 coin = ₹1)
-  coinBalance       Int        @default(0)
+  coinBalance        Int        @default(0)
   // Razorpay customer — created once, reused for every mandate/renewal
-  razorpayCustomerId String?   @unique
-  
-  // Referral System
-  referralCode      String?    @unique
-  referralsMade     Referral[] @relation("Referrer")
-  referredBy        Referral?  @relation("Referred")
-  
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  razorpayCustomerId String?    @unique
 
-  city            City?               @relation(fields: [cityId], references: [id])
-  area            Area?               @relation(fields: [areaId], references: [id])
-  subscription    Subscription?
-  wallet          WalletTransaction[]
-  redemptions     Redemption[]
-  paymentAttempts PaymentAttempt[]
+  // Referral System
+  referralCode  String?    @unique
+  referralsMade Referral[] @relation("Referrer")
+  referredBy    Referral?  @relation("Referred")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  city               City?                      @relation(fields: [cityId], references: [id])
+  area               Area?                      @relation(fields: [areaId], references: [id])
+  subscription       Subscription?
+  wallet             WalletTransaction[]
+  redemptions        Redemption[]
+  paymentAttempts    PaymentAttempt[]
+  influencerBookings InfluencerServiceBooking[]
 
   @@map("users")
 }
 
 model Referral {
-  id            String         @id @default(uuid())
-  referrerId    String
-  referredId    String         @unique
-  status        ReferralStatus @default(PENDING)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id         String         @id @default(uuid())
+  referrerId String
+  referredId String         @unique
+  status     ReferralStatus @default(PENDING)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
 
-  referrer      User           @relation("Referrer", fields: [referrerId], references: [id])
-  referred      User           @relation("Referred", fields: [referredId], references: [id])
+  referrer User @relation("Referrer", fields: [referrerId], references: [id])
+  referred User @relation("Referred", fields: [referredId], references: [id])
 
   @@map("referrals")
 }
@@ -249,16 +251,18 @@ model PaymentAttempt {
 // ─────────────────────────────────────────
 
 model WalletTransaction {
-  id           String                @id @default(uuid())
-  userId       String
-  type         WalletTransactionType
-  amount       Int // in coins (1 coin = ₹1)
-  redemptionId String? // populated when type = USED
-  note         String? // e.g. "Welcome bonus", "Renewal reward"
-  createdAt    DateTime              @default(now())
+  id                  String                @id @default(uuid())
+  userId              String
+  type                WalletTransactionType
+  amount              Int // in coins (1 coin = ₹1)
+  redemptionId        String? // populated when type = USED
+  influencerBookingId String? // populated when type = USED for influencer
+  note                String? // e.g. "Welcome bonus", "Renewal reward"
+  createdAt           DateTime              @default(now())
 
-  user       User        @relation(fields: [userId], references: [id])
-  redemption Redemption? @relation(fields: [redemptionId], references: [id])
+  user              User                      @relation(fields: [userId], references: [id])
+  redemption        Redemption?               @relation(fields: [redemptionId], references: [id])
+  influencerBooking InfluencerServiceBooking? @relation(fields: [influencerBookingId], references: [id])
 
   @@map("wallet_transactions")
 }
@@ -314,9 +318,9 @@ model Seller {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
-  category    Category     @relation(fields: [categoryId], references: [id])
-  city        City         @relation(fields: [cityId], references: [id])
-  area        Area         @relation(fields: [areaId], references: [id])
+  category    Category         @relation(fields: [categoryId], references: [id])
+  city        City             @relation(fields: [cityId], references: [id])
+  area        Area             @relation(fields: [areaId], references: [id])
   coupons     Coupon[]
   redemptions Redemption[]
   settlements Settlement[]
@@ -571,8 +575,8 @@ model SellerAgreement {
   sellerId            String          @unique
   leegalityDocumentId String?         @unique
   status              AgreementStatus @default(PENDING)
-  signUrl             String?         // General signing link for the invitee workflow
-  virtualSignUrl      String?         // Second signing link for the virtual sign workflow
+  signUrl             String? // General signing link for the invitee workflow
+  virtualSignUrl      String? // Second signing link for the virtual sign workflow
   signedDocumentUrl   String?
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
@@ -580,4 +584,159 @@ model SellerAgreement {
   seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
   @@map("seller_agreements")
+}
+
+// ─────────────────────────────────────────
+// INFLUENCERS & CREATORS
+// ─────────────────────────────────────────
+
+enum InfluencerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum InfluencerPlatform {
+  INSTAGRAM
+  YOUTUBE
+  TWITTER
+  FACEBOOK
+  SNAPCHAT
+  TIKTOK
+  LINKEDIN
+}
+
+enum BookingStatus {
+  ENQUIRED // User clicked "Book" — initial state
+  ACCEPTED // Influencer confirmed they will deliver
+  IN_PROGRESS // Work started
+  DELIVERED // Influencer marked as done
+  CANCELLED // Either party cancelled
+}
+
+model InfluencerNiche {
+  id        String   @id @default(uuid())
+  name      String   @unique // "Food & Beverage", "Beauty & Skincare", etc.
+  slug      String   @unique
+  iconName  String?
+  color     String? // hex — for UI accent
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  influencers Influencer[]
+
+  @@map("influencer_niches")
+}
+
+model Influencer {
+  id                String               @id @default(uuid())
+  phone             String               @unique
+  fullName          String
+  displayName       String // "@handle" or stage name shown to users
+  nicheId           String
+  cityId            String
+  email             String?
+  bio               String? // max 300 chars, shown on detail screen
+  // Aggregated follower count across all platforms
+  totalFollowers    Int                  @default(0)
+  // Social links stored as JSON: { instagram: "url", youtube: "url", ... }
+  socialLinks       Json                 @default("{}")
+  // Which platforms they are active on
+  platforms         InfluencerPlatform[]
+  // Profile & cover photo
+  profilePhotoUrl   String?
+  coverPhotoUrl     String?
+  // Engagement rate % (admin can fill, helps users filter)
+  engagementRate    Float?
+  upiId             String?
+  // Commission % owed to admin on each delivered booking — set per influencer, same as sellers
+  commissionPct     Float                @default(5)
+  status            InfluencerStatus     @default(PENDING)
+  onesignalPlayerId String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  niche     InfluencerNiche            @relation(fields: [nicheId], references: [id])
+  city      City                       @relation(fields: [cityId], references: [id])
+  services  InfluencerService[]
+  bookings  InfluencerServiceBooking[]
+  agreement InfluencerAgreement?
+
+  @@map("influencers")
+}
+
+model InfluencerService {
+  id              String       @id @default(uuid())
+  influencerId    String
+  name            String // "Photo Upload", "Reel", "Story Mention", etc.
+  description     String? // What's included, deliverables
+  price           Float // e.g. 1000.00
+  discountedPrice Float? // Promotional price (optional)
+  // NOTE: No commissionPct here — commission is inherited from Influencer.commissionPct
+  deliveryDays    Int          @default(3) // Expected working days to deliver
+  isHighlighted   Boolean      @default(false) // "Popular" badge
+  status          CouponStatus @default(ACTIVE) // reuse ACTIVE / INACTIVE
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  influencer Influencer                 @relation(fields: [influencerId], references: [id])
+  bookings   InfluencerServiceBooking[]
+
+  @@map("influencer_services")
+}
+
+model InfluencerServiceBooking {
+  id                  String        @id @default(uuid())
+  userId              String
+  influencerId        String
+  serviceId           String
+  // Snapshot price at time of booking (prices may change later)
+  pricePaid           Float
+  // Coins the user applied at booking (1 coin = ₹1)
+  coinsUsed           Int           @default(0)
+  // Actual amount influencer will receive = pricePaid - coinsUsed - commissionAmt
+  commissionAmt       Float         @default(0) // influencer.commissionPct % of pricePaid
+  // Admin owes influencer this amount as coin compensation (same as seller flow)
+  coinCompensationAmt Float         @default(0) // = coinsUsed amount
+  status              BookingStatus @default(ENQUIRED)
+  // User's message/brief to influencer
+  userNote            String?
+  // Influencer's delivery note / final content link
+  deliveryNote        String?
+  // Timestamps for each status transition
+  acceptedAt          DateTime?
+  deliveredAt         DateTime?
+  cancelledAt         DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  user               User                @relation(fields: [userId], references: [id])
+  influencer         Influencer          @relation(fields: [influencerId], references: [id])
+  service            InfluencerService   @relation(fields: [serviceId], references: [id])
+  walletTransactions WalletTransaction[] // coin deduction recorded here
+
+  @@index([userId])
+  @@index([influencerId])
+  @@index([serviceId])
+  @@index([status])
+  @@map("influencer_service_bookings")
+}
+
+model InfluencerAgreement {
+  id                  String          @id @default(uuid())
+  influencerId        String          @unique
+  leegalityDocumentId String?         @unique
+  status              AgreementStatus @default(PENDING)
+  signUrl             String?
+  virtualSignUrl      String?
+  signedDocumentUrl   String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  influencer Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+
+  @@map("influencer_agreements")
 }

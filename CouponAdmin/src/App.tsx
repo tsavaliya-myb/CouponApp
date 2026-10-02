@@ -17,6 +17,8 @@ import CitiesAreasPage from "@/pages/admin/CitiesAreas";
 import CategoriesPage from "@/pages/admin/Categories";
 import SettingsPage from "@/pages/admin/Settings";
 import BannerAdsPage from "@/pages/admin/BannerAds";
+import InfluencersPage from "@/pages/admin/Influencers";
+import InfluencerNichesPage from "@/pages/admin/InfluencerNiches";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -51,6 +53,8 @@ const App = () => (
                 <Route path="categories" element={<CategoriesPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="ads" element={<BannerAdsPage />} />
+                <Route path="influencers" element={<InfluencersPage />} />
+                <Route path="influencer-niches" element={<InfluencerNichesPage />} />
               </Route>
             </Route>
             

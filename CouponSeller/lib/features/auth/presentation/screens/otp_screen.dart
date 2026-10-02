@@ -264,7 +264,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                                 if (authResult != null) {
                                   if (!authResult.isRegistered) {
                                     context.push(
-                                      '/registration',
+                                      '/account-type',
                                       extra: {
                                         'token': authResult.registrationToken,
                                         'phone': widget.phone,

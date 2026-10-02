@@ -31,6 +31,9 @@ import 'features/subscription/presentation/screens/subscription_success_screen.d
 import 'features/subscription/presentation/my_subscriptions_screen.dart';
 import 'features/profile/presentation/screens/leaderboard_screen.dart';
 import 'features/coupons/presentation/screens/redemption_history_screen.dart';
+import 'features/influencers/presentation/screens/influencers_list_screen.dart';
+import 'features/influencers/presentation/screens/influencer_detail_screen.dart';
+import 'features/influencers/presentation/screens/customer_bookings_screen.dart';
 import 'services/notification_service.dart';
 
 // ---------------------------------------------------------------------------
@@ -148,6 +151,24 @@ final _router = GoRouter(
       path: '/wallet-ledger',
       name: 'wallet-ledger',
       builder: (_, __) => const WalletLedgerScreen(),
+    ),
+    GoRoute(
+      path: '/influencers',
+      name: 'influencers',
+      builder: (_, __) => const InfluencersListScreen(),
+    ),
+    GoRoute(
+      path: '/influencer-detail/:id',
+      name: 'influencer-detail',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return InfluencerDetailScreen(id: id);
+      },
+    ),
+    GoRoute(
+      path: '/influencer-bookings',
+      name: 'influencer-bookings',
+      builder: (_, __) => const CustomerBookingsScreen(),
     ),
     GoRoute(
       path: '/account-settings',

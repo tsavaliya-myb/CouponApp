@@ -3,7 +3,7 @@ import 'package:injectable/injectable.dart';
 import '../constants/app_constants.dart';
 import '../storage/secure_storage.dart';
 import 'package:dio/dio.dart';
-import 'package:couponcode/core/config/app_config.dart';
+import 'package:Coupon360/core/config/app_config.dart';
 
 /// Manages JWT access/refresh tokens.
 /// Tokens always live in encrypted secure storage — never SharedPreferences.

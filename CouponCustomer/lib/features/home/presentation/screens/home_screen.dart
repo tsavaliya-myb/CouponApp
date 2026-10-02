@@ -13,7 +13,7 @@ import '../../../../core/providers/categories_provider.dart';
 import '../../../../core/models/category_item.dart';
 import '../../../../core/utils/category_utils.dart';
 import '../../domain/entities/banner_ad_entity.dart';
-import 'package:couponcode/features/profile/presentation/providers/profile_provider.dart';
+import 'package:Coupon360/features/profile/presentation/providers/profile_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 // ─── Home Screen ─────────────────────────────────────────────────────────────
@@ -88,6 +88,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             // ── Category Tabs ─────────────────────────────────────────────
             const SliverToBoxAdapter(child: SizedBox(height: 10)),
             const SliverToBoxAdapter(child: _CategoryTabs()),
+            const SliverToBoxAdapter(child: SizedBox(height: 10)),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: InkWell(
+                  onTap: () => context.push('/influencers'),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.dsPrimary, Color(0xFFF39C12)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Discover Influencers',
+                              style: AppTextStyles.heading2.copyWith(color: Colors.white),
+                            ),
+                            Text(
+                              'Book promotional services',
+                              style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                        const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
             const SliverToBoxAdapter(child: SizedBox(height: 10)),
             // ── Active Coupons (Ticket Cards) ──────────────────────────────
             /*SliverToBoxAdapter(

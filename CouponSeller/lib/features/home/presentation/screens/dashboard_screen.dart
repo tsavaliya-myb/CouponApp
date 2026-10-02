@@ -8,33 +8,52 @@ import '../../../../core/constants/app_spacing.dart';
 import '../providers/dashboard_provider.dart';
 import '../../domain/entities/dashboard_entity.dart';
 
+import '../../../../core/providers/user_role_provider.dart';
+import 'influencer_dashboard_view.dart';
+
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dashboardAsync = ref.watch(dashboardNotifierProvider);
+    final roleAsync = ref.watch(userRoleProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      body: dashboardAsync.when(
-        data: (data) => _buildBody(context, ref, data),
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-        error: (e, st) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Failed to load dashboard\n${e.toString()}', textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => ref.read(dashboardNotifierProvider.notifier).refresh(),
-                child: const Text('Retry'),
+    return roleAsync.when(
+      data: (role) {
+        if (role == 'influencer') {
+          return const InfluencerDashboardView();
+        }
+        
+        // Seller Dashboard
+        final dashboardAsync = ref.watch(dashboardNotifierProvider);
+        return Scaffold(
+          backgroundColor: AppColors.surface,
+          body: dashboardAsync.when(
+            data: (data) => _buildBody(context, ref, data),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+            error: (e, st) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Failed to load dashboard\n${e.toString()}', textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => ref.read(dashboardNotifierProvider.notifier).refresh(),
+                    child: const Text('Retry'),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+        );
+      },
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      ),
+      error: (e, st) => Scaffold(
+        body: Center(child: Text('Error loading user role: $e')),
       ),
     );
   }

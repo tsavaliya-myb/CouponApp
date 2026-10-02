@@ -85,6 +85,14 @@ apiRouter.use('/sellers/me/dashboard', sellerDashboardRouter);
 import { adsRouter } from '../modules/ads/ads.routes';
 apiRouter.use('/ads', adsRouter);
 
+// Phase 15: Influencers
+import { influencersRouter } from '../modules/influencers/influencers.routes';
+import { adminInfluencersRouter } from '../modules/admin/influencers/admin-influencers.routes';
+import { adminNichesRouter } from '../modules/admin/influencer-niches/admin-niches.routes';
+apiRouter.use('/influencers', influencersRouter);
+apiRouter.use('/admin/influencers', adminInfluencersRouter);
+apiRouter.use('/admin/influencer-niches', adminNichesRouter);
+
 // Webhooks
 import { leegalityWebhookRouter } from '../modules/sellers/leegality-webhook.routes';
 apiRouter.use('/webhooks/leegality', leegalityWebhookRouter);

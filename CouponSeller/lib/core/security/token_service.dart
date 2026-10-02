@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 import 'package:dio/dio.dart';
@@ -25,6 +26,23 @@ class TokenService {
   Future<bool> isLoggedIn() async {
     final token = await getAccessToken();
     return token != null && token.isNotEmpty;
+  }
+
+  Future<String?> getRole() async {
+    final token = await getAccessToken();
+    if (token == null || token.isEmpty) return null;
+    
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+      
+      final normalized = base64Url.normalize(parts[1]);
+      final payloadString = utf8.decode(base64Url.decode(normalized));
+      final payloadMap = jsonDecode(payloadString);
+      return payloadMap['role'] as String?;
+    } catch (_) {
+      return null;
+    }
   }
   
   Future<String> refreshToken(Dio refreshDio) async {

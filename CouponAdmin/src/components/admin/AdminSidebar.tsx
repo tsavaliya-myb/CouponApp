@@ -34,6 +34,7 @@ const coreItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Users", url: "/admin/users", icon: Users },
   { title: "Sellers", url: "/admin/sellers", icon: Store },
+  { title: "Influencers", url: "/admin/influencers", icon: Users },
   { title: "Coupons", url: "/admin/coupons", icon: Ticket },
 ];
 
@@ -48,6 +49,7 @@ const operationsItems = [
 const configItems = [
   { title: "Cities & Areas", url: "/admin/cities", icon: MapPin },
   { title: "Categories", url: "/admin/categories", icon: Grid3X3 },
+  { title: "Influencer Niches", url: "/admin/influencer-niches", icon: Grid3X3 },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 

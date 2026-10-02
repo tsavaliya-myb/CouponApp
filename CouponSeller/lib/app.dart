@@ -13,6 +13,9 @@ import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/scan/presentation/screens/scan_screen.dart';
 import 'features/redemption/presentation/screens/redemption_screen.dart';
 import 'features/auth/presentation/screens/registration_screen.dart';
+import 'features/auth/presentation/screens/account_type_screen.dart';
+import 'features/auth/presentation/screens/influencer_registration_screen.dart';
+import 'features/influencer/presentation/screens/influencer_services_screen.dart';
 import 'features/auth/presentation/screens/agreement_intro_screen.dart';
 import 'features/auth/presentation/screens/agreement_signing_screen.dart';
 import 'features/auth/presentation/screens/approval_pending_screen.dart';
@@ -52,6 +55,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/account-type',
+        name: 'accountType',
+        builder: (context, state) {
+          final extraMap = state.extra as Map<String, dynamic>? ?? {};
+          return AccountTypeScreen(extra: extraMap);
+        },
+      ),
+      GoRoute(
+        path: '/influencer-registration',
+        name: 'influencerRegistration',
+        builder: (context, state) {
+          final extraMap = state.extra as Map<String, dynamic>?;
+          final token = extraMap?['token'] as String? ?? '';
+          final phone = extraMap?['phone'] as String? ?? '';
+          return InfluencerRegistrationScreen(registrationToken: token, phone: phone);
+        },
+      ),
+      GoRoute(
         path: '/agreement-signing',
         name: 'agreementSigning',
         builder: (context, state) => const AgreementIntroScreen(),
@@ -68,6 +89,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           final status = state.extra as String? ?? 'PENDING';
           return ApprovalPendingScreen(status: status);
         },
+      ),
+      GoRoute(
+        path: '/influencer-services',
+        name: 'influencerServices',
+        builder: (context, state) => const InfluencerServicesScreen(),
       ),
       GoRoute(
         path: '/profile',

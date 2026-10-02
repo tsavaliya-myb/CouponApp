@@ -4,9 +4,9 @@
 // // Shown instead of real API data — no network calls are made.
 
 // import 'dart:math';
-// import 'package:couponcode/features/home/domain/entities/home_coupon_entity.dart';
-// import 'package:couponcode/features/home/domain/entities/nearby_seller_entity.dart';
-// import 'package:couponcode/core/models/category_item.dart';
+// import 'package:Coupon360/features/home/domain/entities/home_coupon_entity.dart';
+// import 'package:Coupon360/features/home/domain/entities/nearby_seller_entity.dart';
+// import 'package:Coupon360/core/models/category_item.dart';
 
 // const _catFood    = CategoryItem(id: '1', name: 'Food',    slug: 'food',    subtitle: 'Restaurants & more', isActive: true);
 // const _catCafe    = CategoryItem(id: '2', name: 'Cafe',    slug: 'cafe',    subtitle: 'Coffee & drinks',     isActive: true);
