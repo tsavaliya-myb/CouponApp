@@ -139,11 +139,6 @@ class ProfileScreen extends ConsumerWidget {
                           isFirst: true,
                         ),
                         _MenuTile(
-                          icon: Icons.subscriptions_outlined,
-                          title: 'My Subscriptions',
-                          onTap: () => context.push('/my-subscriptions'),
-                        ),
-                        _MenuTile(
                           icon: Icons.emoji_events_outlined,
                           title: 'Leaderboard',
                           onTap: () => context.push('/leaderboard'),

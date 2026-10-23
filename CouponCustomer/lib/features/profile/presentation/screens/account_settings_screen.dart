@@ -514,6 +514,10 @@ class _AccountSettingsScreenState extends ConsumerState<AccountSettingsScreen> {
                         ),
                         const SizedBox(height: 32),
 
+                        // ── My Subscription ──────────────────────────────
+                        _SubscriptionTile(),
+                        const SizedBox(height: 32),
+
                         // ── Subtle Log Out Button ────────────────────────────
                         Center(
                           child: TextButton(
@@ -772,6 +776,53 @@ class _Label extends StatelessWidget {
           fontSize: 10,
           fontWeight: FontWeight.w800,
           letterSpacing: 1.1,
+        ),
+      ),
+    );
+  }
+}
+
+// ── My Subscription tile ───────────────────────────────────────────────────
+
+class _SubscriptionTile extends StatelessWidget {
+  const _SubscriptionTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => context.push('/my-subscriptions'),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: AppColors.dsSurfaceContainerLow.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.dsOnSurface.withOpacity(0.08)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.dsPrimary.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.subscriptions_outlined,
+                  color: AppColors.dsPrimary, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                'My Subscription',
+                style: AppTextStyles.dsTitleLg.copyWith(fontSize: 16),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.dsOnSurface.withOpacity(0.3),
+              size: 24,
+            ),
+          ],
         ),
       ),
     );

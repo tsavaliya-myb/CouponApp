@@ -418,7 +418,7 @@ export default function SellersPage() {
             </div>
             <div>
               <Label className="text-sm font-medium">Category</Label>
-              <Select value={editForm.category || ""} onValueChange={(val) => setEditForm(prev => ({ ...prev, category: val }))}>
+              <Select value={editForm.category || ""} disabled>
                 <SelectTrigger className="mt-1.5 rounded-lg"><SelectValue placeholder="Select Category" /></SelectTrigger>
                 <SelectContent>
                   {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}

@@ -15,6 +15,7 @@ import '../../../../core/utils/category_utils.dart';
 import '../../domain/entities/banner_ad_entity.dart';
 import 'package:Coupon360/features/profile/presentation/providers/profile_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:video_player/video_player.dart';
 
 // ─── Home Screen ─────────────────────────────────────────────────────────────
 
@@ -307,16 +308,20 @@ class _BannerSliderState extends ConsumerState<_BannerSlider> {
                     borderRadius: BorderRadius.circular(20),
                     child: loading
                         ? _shimmer()
-                        : ad?.imageUrl != null
-                            ? Image.network(
-                                ad!.imageUrl!,
-                                fit: BoxFit.cover,
-                                loadingBuilder: (_, child, progress) =>
-                                    progress == null ? child : _shimmer(),
-                                errorBuilder: (_, __, ___) =>
-                                    _BannerPlaceholder(index: i),
-                              )
-                            : _BannerPlaceholder(index: i),
+                        : ad != null &&
+                            ad.videoUrl != null &&
+                            ad.videoUrl!.isNotEmpty
+                            ? _BannerVideoItem(ad: ad)
+                            : ad?.imageUrl != null
+                                ? Image.network(
+                                    ad!.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (_, child, progress) =>
+                                        progress == null ? child : _shimmer(),
+                                    errorBuilder: (_, __, ___) =>
+                                        _BannerPlaceholder(index: i),
+                                  )
+                                : _BannerPlaceholder(index: i),
                   ),
                 ),
               );
@@ -358,6 +363,125 @@ class _BannerSliderState extends ConsumerState<_BannerSlider> {
           ),
         ),
       );
+}
+
+// ─── Banner Video Item ────────────────────────────────────────────────────────
+// Plays banner videos with autoplay, looping, and a mute toggle at bottom-right.
+
+class _BannerVideoItem extends StatefulWidget {
+  final BannerAdEntity ad;
+  const _BannerVideoItem({required this.ad});
+
+  @override
+  State<_BannerVideoItem> createState() => _BannerVideoItemState();
+}
+
+class _BannerVideoItemState extends State<_BannerVideoItem> {
+  VideoPlayerController? _controller;
+  bool _isMuted = false;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeVideo();
+  }
+
+  Future<void> _initializeVideo() async {
+    final videoUrl = widget.ad.videoUrl;
+    if (videoUrl == null || videoUrl.isEmpty) return;
+    final controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
+    await controller.initialize();
+    if (!mounted) return;
+    setState(() {
+      _controller = controller;
+      _isInitialized = true;
+    });
+    controller.setLooping(true);
+    controller.play();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BannerVideoItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.ad.videoUrl != widget.ad.videoUrl) {
+      _controller?.dispose();
+      _controller = null;
+      _isInitialized = false;
+      _initializeVideo();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggleMute() async {
+    if (_controller == null) return;
+    setState(() => _isMuted = !_isMuted);
+    await _controller!.setVolume(_isMuted ? 0.0 : 1.0);
+  }
+
+  Widget _localShimmer() => Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.grey.shade300,
+              Colors.grey.shade100,
+              Colors.grey.shade300,
+            ],
+            stops: const [0.0, 0.5, 1.0],
+          ),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    if (_controller == null || !_isInitialized) {
+      return _localShimmer();
+    }
+    if (_controller!.value.hasError) {
+      return const Center(
+        child: Icon(Icons.error_outline, color: Colors.white54, size: 48),
+      );
+    }
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: FittedBox(
+            fit: BoxFit.cover,
+            child: SizedBox(
+              width: _controller!.value.size.width,
+              height: _controller!.value.size.height,
+              child: VideoPlayer(_controller!),
+            ),
+          ),
+        ),
+        // Mute / unmute toggle at bottom-right
+        Positioned(
+          right: 10,
+          bottom: 10,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: IconButton(
+              icon: Icon(
+                _isMuted ? Icons.volume_off : Icons.volume_up,
+                color: Colors.white,
+                size: 22,
+              ),
+              onPressed: _toggleMute,
+              tooltip: _isMuted ? 'Unmute' : 'Mute',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // ─── Banner Placeholder ───────────────────────────────────────────────────────
