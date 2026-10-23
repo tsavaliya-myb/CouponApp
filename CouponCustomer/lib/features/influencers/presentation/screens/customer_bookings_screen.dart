@@ -13,7 +13,7 @@ class CustomerBookingsScreen extends ConsumerWidget {
     final bookingsAsync = ref.watch(customerBookingsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.dsSurface,
+    backgroundColor: AppColors.dsSurface,
       appBar: AppBar(
         title: Text('My Service Requests', style: AppTextStyles.heading2),
         backgroundColor: Colors.transparent,

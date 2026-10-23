@@ -128,6 +128,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 10)),
+            // -- Bottom nav bar buffer ------------------------------------------
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: MediaQuery.of(context).padding.bottom + 80,
+              ),
+            ),
             // ── Active Coupons (Ticket Cards) ──────────────────────────────
             /*SliverToBoxAdapter(
               child: isSubscribed
@@ -226,12 +232,20 @@ class _BannerSlider extends ConsumerStatefulWidget {
   ConsumerState<_BannerSlider> createState() => _BannerSliderState();
 }
 
-class _BannerSliderState extends ConsumerState<_BannerSlider> {
+class _BannerSliderState extends ConsumerState<_BannerSlider>
+    with WidgetsBindingObserver {
   final _controller = PageController();
   int _current = 0;
   Timer? _timer;
+  bool _autoScrollStarted = false;
+
+  // Keys to directly call pause/resume on the active video item.
+  final Map<int, GlobalKey<_BannerVideoItemState>> _videoKeys = {};
+  GlobalKey<_BannerVideoItemState>? get _currentVideoKey => _videoKeys[_current];
 
   void _startAutoScroll(int count) {
+    if (_autoScrollStarted) return;
+    _autoScrollStarted = true;
     _timer?.cancel();
     if (count <= 1) return;
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
@@ -246,7 +260,37 @@ class _BannerSliderState extends ConsumerState<_BannerSlider> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) {
+      _currentVideoKey?.currentState?.pauseVideo();
+    } else {
+      _currentVideoKey?.currentState?.resumeVideo();
+    }
+  }
+
+  void _onPageChanged(int index) {
+    // Pause outgoing slide, resume incoming slide.
+    _videoKeys[_current]?.currentState?.pauseVideo();
+    setState(() => _current = index);
+    _videoKeys[index]?.currentState?.resumeVideo();
+  }
+
+  @override
+  void deactivate() {
+    // Called when navigating away - stop sound immediately.
+    _currentVideoKey?.currentState?.pauseVideo();
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _controller.dispose();
     super.dispose();
@@ -276,9 +320,6 @@ class _BannerSliderState extends ConsumerState<_BannerSlider> {
       loading: () => _buildSlider(ads: const [], loading: true),
       error: (_, __) => _buildSlider(ads: const []),
       data: (ads) {
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) => _startAutoScroll(ads.isEmpty ? 2 : ads.length),
-        );
         return _buildSlider(ads: ads);
       },
     );
@@ -297,7 +338,7 @@ class _BannerSliderState extends ConsumerState<_BannerSlider> {
           child: PageView.builder(
             controller: _controller,
             itemCount: count,
-            onPageChanged: (i) => setState(() => _current = i),
+            onPageChanged: _onPageChanged,
             itemBuilder: (_, i) {
               final ad = ads.isEmpty ? null : ads[i];
               return Padding(
@@ -311,7 +352,14 @@ class _BannerSliderState extends ConsumerState<_BannerSlider> {
                         : ad != null &&
                             ad.videoUrl != null &&
                             ad.videoUrl!.isNotEmpty
-                            ? _BannerVideoItem(ad: ad)
+                            ? _BannerVideoItem(
+                                key: _videoKeys.putIfAbsent(
+                                  i,
+                                  () => GlobalKey<_BannerVideoItemState>(),
+                                ),
+                                ad: ad,
+                                isActive: i == _current,
+                              )
                             : ad?.imageUrl != null
                                 ? Image.network(
                                     ad!.imageUrl!,
@@ -370,16 +418,21 @@ class _BannerSliderState extends ConsumerState<_BannerSlider> {
 
 class _BannerVideoItem extends StatefulWidget {
   final BannerAdEntity ad;
-  const _BannerVideoItem({required this.ad});
+  final bool isActive;
+  const _BannerVideoItem({super.key, required this.ad, required this.isActive});
 
   @override
   State<_BannerVideoItem> createState() => _BannerVideoItemState();
 }
 
-class _BannerVideoItemState extends State<_BannerVideoItem> {
+class _BannerVideoItemState extends State<_BannerVideoItem>
+    with AutomaticKeepAliveClientMixin {
   VideoPlayerController? _controller;
-  bool _isMuted = false;
+  bool _isMuted = true;
   bool _isInitialized = false;
+
+  @override
+  bool get wantKeepAlive => true; // keeps state alive in PageView
 
   @override
   void initState() {
@@ -390,15 +443,22 @@ class _BannerVideoItemState extends State<_BannerVideoItem> {
   Future<void> _initializeVideo() async {
     final videoUrl = widget.ad.videoUrl;
     if (videoUrl == null || videoUrl.isEmpty) return;
-    final controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
+    final controller = VideoPlayerController.networkUrl(
+      Uri.parse(videoUrl),
+      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+    );
     await controller.initialize();
-    if (!mounted) return;
+    if (!mounted) {
+      controller.dispose(); // safe cleanup if unmounted during async gap
+      return;
+    }
+    controller.setLooping(true); // must be set BEFORE play()
+    controller.setVolume(0.0);   // start muted
     setState(() {
       _controller = controller;
       _isInitialized = true;
     });
-    controller.setLooping(true);
-    controller.play();
+    if (widget.isActive) controller.play(); // only play the visible slide
   }
 
   @override
@@ -409,6 +469,9 @@ class _BannerVideoItemState extends State<_BannerVideoItem> {
       _controller = null;
       _isInitialized = false;
       _initializeVideo();
+    } else if (oldWidget.isActive != widget.isActive) {
+      // Pause off-screen; resume when scrolled back – fixes buffer exhaustion
+      widget.isActive ? _controller?.play() : _controller?.pause();
     }
   }
 
@@ -417,6 +480,9 @@ class _BannerVideoItemState extends State<_BannerVideoItem> {
     _controller?.dispose();
     super.dispose();
   }
+
+  void pauseVideo() => _controller?.pause();
+  void resumeVideo() => _controller?.play();
 
   Future<void> _toggleMute() async {
     if (_controller == null) return;
@@ -439,6 +505,7 @@ class _BannerVideoItemState extends State<_BannerVideoItem> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // required by AutomaticKeepAliveClientMixin
     if (_controller == null || !_isInitialized) {
       return _localShimmer();
     }

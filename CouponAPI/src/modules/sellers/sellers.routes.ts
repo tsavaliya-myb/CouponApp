@@ -38,7 +38,6 @@ router.get(
 router.get(
   '/by-city-category',
   authenticate,
-  requireSubscription,
   validate(getSellersByCityCategorySchema, 'query'),
   controller.getSellersByCityCategory
 );
