@@ -6,6 +6,7 @@ import 'app_bottom_nav_bar.dart';
 import 'app_header.dart';
 import 'city_selection_sheet.dart';
 import '../constants/app_colors.dart';
+import '../providers/navigation_provider.dart';
 import '../../features/profile/presentation/providers/profile_provider.dart';
 
 class MainShellScaffold extends ConsumerStatefulWidget {
@@ -53,10 +54,12 @@ class _MainShellScaffoldState extends ConsumerState<MainShellScaffold> {
       case 2:
         return 'Sellers';
       case 3:
-        return 'Wallet';
+        return 'Influencers';
       case 4:
-        return 'Identity QR';
+        return 'Wallet';
       case 5:
+        return 'Identity QR';
+      case 6:
         return 'Profile';
       default:
         return 'The Win';
@@ -73,7 +76,19 @@ class _MainShellScaffoldState extends ConsumerState<MainShellScaffold> {
       });
     });
 
-    final isHome = widget.navigationShell.currentIndex == 0;
+    final currentIndex = widget.navigationShell.currentIndex;
+
+    // Publish the active branch so keep-alive tabs (e.g. Home) can release
+    // expensive resources such as video decoders while hidden.
+    if (ref.read(currentTabIndexProvider) != currentIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final notifier = ref.read(currentTabIndexProvider.notifier);
+        if (notifier.state != currentIndex) notifier.state = currentIndex;
+      });
+    }
+
+    final isHome = currentIndex == 0;
 
     return PopScope(
       canPop: isHome,
@@ -97,7 +112,7 @@ class _MainShellScaffoldState extends ConsumerState<MainShellScaffold> {
                 child: AppHeader(
                   title: _screenName(widget.navigationShell.currentIndex),
                   showProfileIcon:
-                      widget.navigationShell.currentIndex == 5 ? false : true,
+                      widget.navigationShell.currentIndex == 6 ? false : true,
                 ),
               ),
             ),

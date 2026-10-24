@@ -67,17 +67,23 @@ class AppBottomNavBar extends StatelessWidget {
                           onTap: () => onTap(2),
                         ),
                         _NavItem(
-                          icon: Icons.account_balance_wallet_rounded,
-                          label: 'Wallet',
+                          icon: Icons.people_alt_rounded,
+                          label: 'Influencers',
                           isSelected: currentIndex == 3,
                           onTap: () => onTap(3),
+                        ),
+                        _NavItem(
+                          icon: Icons.account_balance_wallet_rounded,
+                          label: 'Wallet',
+                          isSelected: currentIndex == 4,
+                          onTap: () => onTap(4),
                         ),
                       ],
                     ),
                   ),
                   // QR FAB — pinned flush to the right edge of the pill
                   GestureDetector(
-                    onTap: () => onTap(4),
+                    onTap: () => onTap(5),
                     child: Container(
                       width: 72,
                       height: 72,

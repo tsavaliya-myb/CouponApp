@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/navigation/app_route_observer.dart';
+import '../../../../core/providers/navigation_provider.dart';
 import '../providers/home_provider.dart';
 import '../../../../core/providers/categories_provider.dart';
 import '../../../../core/models/category_item.dart';
@@ -27,14 +29,38 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, RouteAware {
   final _scrollController = ScrollController();
+
+  // True while Home is the top-most route (false when a detail page or a
+  // modal sheet is pushed on top). Combined with the active tab index this
+  // tells the banner slider whether its video should hold a decoder.
+  bool _routeVisible = true;
+  ModalRoute<dynamic>? _route;
 
   @override
   bool get wantKeepAlive => true;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != _route) {
+      if (_route != null) appRouteObserver.unsubscribe(this);
+      _route = route;
+      if (route != null) appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPushNext() => setState(() => _routeVisible = false);
+
+  @override
+  void didPopNext() => setState(() => _routeVisible = true);
+
+  @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     _scrollController.dispose();
     super.dispose();
   }
@@ -45,6 +71,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // Prefetch both datasets in the background as soon as home screen mounts.
     ref.watch(allCouponsProvider);
     ref.watch(allSellersProvider);
+
+    final isHomeVisible =
+        ref.watch(currentTabIndexProvider) == 0 && _routeVisible;
 
     return Scaffold(
       backgroundColor: AppColors.dsSurface,
@@ -74,13 +103,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       stops: const [0.0, 0.4, 0.78, 0.92, 1.0],
                     ),
                   ),
-                  child: const Column(
+                  child: Column(
                     children: [
-                      SizedBox(height: 20),
-                      _HomeHeader(),
-                      SizedBox(height: 10),
-                      _BannerSlider(),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 20),
+                      const _HomeHeader(),
+                      const SizedBox(height: 10),
+                      _BannerSlider(visible: isHomeVisible),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ),
@@ -89,45 +118,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             // ── Category Tabs ─────────────────────────────────────────────
             const SliverToBoxAdapter(child: SizedBox(height: 10)),
             const SliverToBoxAdapter(child: _CategoryTabs()),
-            const SliverToBoxAdapter(child: SizedBox(height: 10)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: InkWell(
-                  onTap: () => context.push('/influencers'),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.dsPrimary, Color(0xFFF39C12)],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Discover Influencers',
-                              style: AppTextStyles.heading2.copyWith(color: Colors.white),
-                            ),
-                            Text(
-                              'Book promotional services',
-                              style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
-                            ),
-                          ],
-                        ),
-                        const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 10)),
             // -- Bottom nav bar buffer ------------------------------------------
             SliverToBoxAdapter(
               child: SizedBox(
@@ -226,7 +216,11 @@ class _HomeHeader extends ConsumerWidget {
 // Falls back to two branded placeholders when no ads are available.
 
 class _BannerSlider extends ConsumerStatefulWidget {
-  const _BannerSlider();
+  /// Whether Home is actually on screen (correct tab + top-most route).
+  /// When false the slider releases its video decoder instead of just pausing.
+  final bool visible;
+
+  const _BannerSlider({required this.visible});
 
   @override
   ConsumerState<_BannerSlider> createState() => _BannerSliderState();
@@ -234,30 +228,20 @@ class _BannerSlider extends ConsumerStatefulWidget {
 
 class _BannerSliderState extends ConsumerState<_BannerSlider>
     with WidgetsBindingObserver {
-  final _controller = PageController();
+  final _pageCtrl = PageController();
   int _current = 0;
-  Timer? _timer;
-  bool _autoScrollStarted = false;
 
-  // Keys to directly call pause/resume on the active video item.
-  final Map<int, GlobalKey<_BannerVideoItemState>> _videoKeys = {};
-  GlobalKey<_BannerVideoItemState>? get _currentVideoKey => _videoKeys[_current];
+  // Single VideoPlayerController — only ONE decoder surface at a time.
+  VideoPlayerController? _videoCtrl;
+  bool _videoInitialized = false;
+  String? _loadedUrl;
+  bool _isMuted = true; // persists across slide / tab changes
 
-  void _startAutoScroll(int count) {
-    if (_autoScrollStarted) return;
-    _autoScrollStarted = true;
-    _timer?.cancel();
-    if (count <= 1) return;
-    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (!mounted) return;
-      final next = (_current + 1) % count;
-      _controller.animateToPage(
-        next,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    });
-  }
+  // Generation token: incremented whenever a load becomes stale.
+  // In-flight initializations check this and self-dispose if outdated.
+  int _loadGen = 0;
+  bool _initialLoadRequested = false; // ensures first load fires only once
+  String? _failedUrl; // skip URLs that already caused a codec/OOM error
 
   @override
   void initState() {
@@ -266,33 +250,131 @@ class _BannerSliderState extends ConsumerState<_BannerSlider>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed) {
-      _currentVideoKey?.currentState?.pauseVideo();
+  void didUpdateWidget(covariant _BannerSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.visible == widget.visible) return;
+    if (!widget.visible) {
+      // Home hidden: drop the decoder + buffers entirely.
+      _loadGen++;
+      _releaseVideo();
     } else {
-      _currentVideoKey?.currentState?.resumeVideo();
+      // Home visible again: reload the current slide's video.
+      final ads =
+          ref.read(bannerAdsProvider).valueOrNull ?? const <BannerAdEntity>[];
+      // Let build() schedule the load if ads haven't arrived yet.
+      _initialLoadRequested = ads.isNotEmpty;
+      _loadVideoForIndex(_current, ads);
     }
   }
 
-  void _onPageChanged(int index) {
-    // Pause outgoing slide, resume incoming slide.
-    _videoKeys[_current]?.currentState?.pauseVideo();
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) {
+      _videoCtrl?.pause();
+    } else if (widget.visible) {
+      _videoCtrl?.play();
+    }
+  }
+
+  // Load (or resume) video for the slide at [index].
+  // Uses a generation token so that stale in-flight inits self-dispose.
+  Future<void> _loadVideoForIndex(int index, List<BannerAdEntity> ads) async {
+    if (!mounted || !widget.visible || index >= ads.length) return;
+    final url = ads[index].videoUrl;
+
+    if (url == null || url.isEmpty) {
+      _loadGen++;
+      _releaseVideo();
+      return;
+    }
+    if (url == _loadedUrl && _videoCtrl != null) {
+      // Same URL already loaded: just resume.
+      _videoCtrl!.setVolume(_isMuted ? 0.0 : 1.0);
+      _videoCtrl!.play();
+      return;
+    }
+    // Skip URLs that already caused a codec / OOM failure.
+    if (url == _failedUrl) return;
+
+    // Stamp this attempt. Any older in-flight load is now stale.
+    final gen = ++_loadGen;
+    _releaseVideo(); // free current decoder BEFORE creating a new one
+
+    final ctrl = VideoPlayerController.networkUrl(
+      Uri.parse(url),
+      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+    );
+    try {
+      await ctrl.initialize();
+    } catch (_) {
+      // Codec / OOM failure: dispose, memo the URL so we never retry it.
+      await ctrl.dispose();
+      if (gen == _loadGen) _failedUrl = url;
+      return;
+    }
+    // Stale (user swiped / disposed) or unmounted: discard immediately.
+    if (!mounted || gen != _loadGen) {
+      await ctrl.dispose();
+      return;
+    }
+    ctrl.setLooping(true);
+    ctrl.setVolume(_isMuted ? 0.0 : 1.0);
+    ctrl.play();
+    setState(() {
+      _videoCtrl = ctrl;
+      _videoInitialized = true;
+      _loadedUrl = url;
+    });
+  }
+
+  void _releaseVideo() {
+    _videoCtrl?.pause();
+    _videoCtrl?.dispose();
+    if (mounted) {
+      setState(() {
+        _videoCtrl = null;
+        _videoInitialized = false;
+        _loadedUrl = null;
+      });
+    } else {
+      _videoCtrl = null;
+      _videoInitialized = false;
+      _loadedUrl = null;
+    }
+  }
+
+  void _toggleMute() {
+    setState(() => _isMuted = !_isMuted);
+    _videoCtrl?.setVolume(_isMuted ? 0.0 : 1.0);
+  }
+
+  void _onPageChanged(int index, List<BannerAdEntity> ads) {
+    _videoCtrl?.pause();
     setState(() => _current = index);
-    _videoKeys[index]?.currentState?.resumeVideo();
+    _loadVideoForIndex(index, ads);
   }
 
   @override
   void deactivate() {
-    // Called when navigating away - stop sound immediately.
-    _currentVideoKey?.currentState?.pauseVideo();
+    _videoCtrl?.pause(); // navigated away — stop sound immediately
     super.deactivate();
   }
 
   @override
+  void activate() {
+    super.activate();
+    // Home tab brought back into view: reload the video.
+    if (!widget.visible) return;
+    final ads = ref.read(bannerAdsProvider).valueOrNull ?? [];
+    if (ads.isNotEmpty) _loadVideoForIndex(_current, ads);
+  }
+
+  @override
   void dispose() {
+    _loadGen++; // invalidates any in-flight initialize()
     WidgetsBinding.instance.removeObserver(this);
-    _timer?.cancel();
-    _controller.dispose();
+    _pageCtrl.dispose();
+    _videoCtrl?.dispose();
     super.dispose();
   }
 
@@ -301,9 +383,6 @@ class _BannerSliderState extends ConsumerState<_BannerSlider>
       context.push('/subscribe');
       return;
     }
-
-    // Fire click tracking (fire-and-forget — no auth needed)
-    // We call directly via the API URL; tracking failures are silent.
     if (ad.actionUrl != null) {
       final uri = Uri.tryParse(ad.actionUrl!);
       if (uri != null && await canLaunchUrl(uri)) {
@@ -315,11 +394,17 @@ class _BannerSliderState extends ConsumerState<_BannerSlider>
   @override
   Widget build(BuildContext context) {
     final adsAsync = ref.watch(bannerAdsProvider);
-
     return adsAsync.when(
       loading: () => _buildSlider(ads: const [], loading: true),
       error: (_, __) => _buildSlider(ads: const []),
       data: (ads) {
+        // _initialLoadRequested guards against scheduling on every rebuild.
+        if (!_initialLoadRequested && widget.visible && ads.isNotEmpty) {
+          _initialLoadRequested = true;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => _loadVideoForIndex(0, ads),
+          );
+        }
         return _buildSlider(ads: ads);
       },
     );
@@ -329,41 +414,47 @@ class _BannerSliderState extends ConsumerState<_BannerSlider>
     required List<BannerAdEntity> ads,
     bool loading = false,
   }) {
-    final count = ads.isEmpty ? 2 : ads.length; // 2 placeholders when empty
-
+    final count = ads.isEmpty ? 2 : ads.length;
+    // Decode banner images at display size instead of full resolution.
+    final bannerCacheWidth =
+        ((MediaQuery.sizeOf(context).width - 32) *
+                MediaQuery.devicePixelRatioOf(context))
+            .round();
     return Column(
       children: [
         AspectRatio(
           aspectRatio: 16 / 9,
           child: PageView.builder(
-            controller: _controller,
+            controller: _pageCtrl,
             itemCount: count,
-            onPageChanged: _onPageChanged,
+            onPageChanged: (i) => _onPageChanged(i, ads),
             itemBuilder: (_, i) {
               final ad = ads.isEmpty ? null : ads[i];
+              final isVideoSlide =
+                  ad != null && (ad.videoUrl ?? '').isNotEmpty;
+              final showVideo =
+                  isVideoSlide && i == _current && _videoInitialized;
+              final showVideoLoading =
+                  isVideoSlide && i == _current && !_videoInitialized;
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: GestureDetector(
                   onTap: ad == null ? null : () => _handleTap(ad),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: loading
+                    child: loading || showVideoLoading
                         ? _shimmer()
-                        : ad != null &&
-                            ad.videoUrl != null &&
-                            ad.videoUrl!.isNotEmpty
+                        : showVideo
                             ? _BannerVideoItem(
-                                key: _videoKeys.putIfAbsent(
-                                  i,
-                                  () => GlobalKey<_BannerVideoItemState>(),
-                                ),
-                                ad: ad,
-                                isActive: i == _current,
+                                controller: _videoCtrl!,
+                                isMuted: _isMuted,
+                                onToggleMute: _toggleMute,
                               )
                             : ad?.imageUrl != null
                                 ? Image.network(
                                     ad!.imageUrl!,
                                     fit: BoxFit.cover,
+                                    cacheWidth: bannerCacheWidth,
                                     loadingBuilder: (_, child, progress) =>
                                         progress == null ? child : _shimmer(),
                                     errorBuilder: (_, __, ___) =>
@@ -413,103 +504,23 @@ class _BannerSliderState extends ConsumerState<_BannerSlider>
       );
 }
 
-// ─── Banner Video Item ────────────────────────────────────────────────────────
-// Plays banner videos with autoplay, looping, and a mute toggle at bottom-right.
+// ─── Banner Video Item ────────────────────────────────────────────
+// Stateless renderer — controller is owned by _BannerSliderState (one at a time).
 
-class _BannerVideoItem extends StatefulWidget {
-  final BannerAdEntity ad;
-  final bool isActive;
-  const _BannerVideoItem({super.key, required this.ad, required this.isActive});
+class _BannerVideoItem extends StatelessWidget {
+  final VideoPlayerController controller;
+  final bool isMuted;
+  final VoidCallback onToggleMute;
 
-  @override
-  State<_BannerVideoItem> createState() => _BannerVideoItemState();
-}
-
-class _BannerVideoItemState extends State<_BannerVideoItem>
-    with AutomaticKeepAliveClientMixin {
-  VideoPlayerController? _controller;
-  bool _isMuted = true;
-  bool _isInitialized = false;
-
-  @override
-  bool get wantKeepAlive => true; // keeps state alive in PageView
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeVideo();
-  }
-
-  Future<void> _initializeVideo() async {
-    final videoUrl = widget.ad.videoUrl;
-    if (videoUrl == null || videoUrl.isEmpty) return;
-    final controller = VideoPlayerController.networkUrl(
-      Uri.parse(videoUrl),
-      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
-    );
-    await controller.initialize();
-    if (!mounted) {
-      controller.dispose(); // safe cleanup if unmounted during async gap
-      return;
-    }
-    controller.setLooping(true); // must be set BEFORE play()
-    controller.setVolume(0.0);   // start muted
-    setState(() {
-      _controller = controller;
-      _isInitialized = true;
-    });
-    if (widget.isActive) controller.play(); // only play the visible slide
-  }
-
-  @override
-  void didUpdateWidget(covariant _BannerVideoItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.ad.videoUrl != widget.ad.videoUrl) {
-      _controller?.dispose();
-      _controller = null;
-      _isInitialized = false;
-      _initializeVideo();
-    } else if (oldWidget.isActive != widget.isActive) {
-      // Pause off-screen; resume when scrolled back – fixes buffer exhaustion
-      widget.isActive ? _controller?.play() : _controller?.pause();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
-
-  void pauseVideo() => _controller?.pause();
-  void resumeVideo() => _controller?.play();
-
-  Future<void> _toggleMute() async {
-    if (_controller == null) return;
-    setState(() => _isMuted = !_isMuted);
-    await _controller!.setVolume(_isMuted ? 0.0 : 1.0);
-  }
-
-  Widget _localShimmer() => Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.grey.shade300,
-              Colors.grey.shade100,
-              Colors.grey.shade300,
-            ],
-            stops: const [0.0, 0.5, 1.0],
-          ),
-        ),
-      );
+  const _BannerVideoItem({
+    required this.controller,
+    required this.isMuted,
+    required this.onToggleMute,
+  });
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // required by AutomaticKeepAliveClientMixin
-    if (_controller == null || !_isInitialized) {
-      return _localShimmer();
-    }
-    if (_controller!.value.hasError) {
+    if (controller.value.hasError) {
       return const Center(
         child: Icon(Icons.error_outline, color: Colors.white54, size: 48),
       );
@@ -520,13 +531,12 @@ class _BannerVideoItemState extends State<_BannerVideoItem>
           child: FittedBox(
             fit: BoxFit.cover,
             child: SizedBox(
-              width: _controller!.value.size.width,
-              height: _controller!.value.size.height,
-              child: VideoPlayer(_controller!),
+              width: controller.value.size.width,
+              height: controller.value.size.height,
+              child: VideoPlayer(controller),
             ),
           ),
         ),
-        // Mute / unmute toggle at bottom-right
         Positioned(
           right: 10,
           bottom: 10,
@@ -537,12 +547,11 @@ class _BannerVideoItemState extends State<_BannerVideoItem>
             ),
             child: IconButton(
               icon: Icon(
-                _isMuted ? Icons.volume_off : Icons.volume_up,
+                isMuted ? Icons.volume_off : Icons.volume_up,
                 color: Colors.white,
                 size: 22,
               ),
-              onPressed: _toggleMute,
-              tooltip: _isMuted ? 'Unmute' : 'Mute',
+              onPressed: onToggleMute,
             ),
           ),
         ),
@@ -629,6 +638,12 @@ class _CategoryTabs extends ConsumerWidget {
     final categoriesAsync = ref.watch(categoriesProvider);
     final categories = categoriesAsync.valueOrNull ?? [];
 
+    // Grid is 2 columns with 16dp outer + 14dp inner padding; aspect 1.65.
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final cardWidth = (MediaQuery.sizeOf(context).width - 32 - 14) / 2;
+    final memCacheWidth = (cardWidth * dpr).round();
+    final memCacheHeight = (cardWidth / 1.65 * dpr).round();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -713,6 +728,8 @@ class _CategoryTabs extends ConsumerWidget {
                             CachedNetworkImage(
                               imageUrl: item.imageUrl!,
                               fit: BoxFit.cover,
+                              memCacheWidth: memCacheWidth,
+                              memCacheHeight: memCacheHeight,
                               placeholder: (_, __) => Container(
                                 color: fallbackColor,
                               ),

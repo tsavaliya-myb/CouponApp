@@ -66,24 +66,24 @@ export class PaymentService {
     // Guard: if a MANDATE attempt is already in PENDING or SIGNATURE_VERIFIED state,
     // don't create a second Razorpay order — return 409 so the app retries the same flow.
     // This prevents double-order creation when the user taps "Activate Now" twice quickly.
-    const inProgressAttempt = await prisma.paymentAttempt.findFirst({
-      where: { userId, kind: 'MANDATE', status: { in: ['PENDING', 'SIGNATURE_VERIFIED'] } },
-      orderBy: { createdAt: 'desc' },
-    });
-    if (inProgressAttempt) {
-      log.warn('initiatePayment: mandate attempt already in progress', {
-        userId, existingOrderId: inProgressAttempt.razorpayOrderId,
-      });
-      throw ConflictError('A payment is already in progress. Please wait a moment and try again.');
-    }
+    // const inProgressAttempt = await prisma.paymentAttempt.findFirst({
+    //   where: { userId, kind: 'MANDATE', status: { in: ['PENDING', 'SIGNATURE_VERIFIED'] } },
+    //   orderBy: { createdAt: 'desc' },
+    // });
+    // if (inProgressAttempt) {
+    //   log.warn('initiatePayment: mandate attempt already in progress', {
+    //     userId, existingOrderId: inProgressAttempt.razorpayOrderId,
+    //   });
+    //   throw ConflictError('A payment is already in progress. Please wait a moment and try again.');
+    // }
 
     // KEY FIX: Use SCREAMING_SNAKE_CASE to match what the admin panel writes.
     // Previously 'subscription_price' was stored by admin as 'SUBSCRIPTION_PRICE',
     // so the lookup always missed and fell back to hardcoded 999.
     const priceSetting = await prisma.appSetting.findUnique({
-      where: { key: 'SUBSCRIPTION_PRICE' },
+      where: { key: 'subscription_price' },
     });
-    const rupees = priceSetting ? parseFloat(priceSetting.value) : 999;
+    const rupees = priceSetting;//? parseFloat(priceSetting.value) : 999;
     const amountPaise = toPaise(rupees);
 
     if (amountPaise > env.RAZORPAY_MANDATE_MAX_AMOUNT) {

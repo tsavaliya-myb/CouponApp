@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'core/navigation/app_route_observer.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/main_shell_scaffold.dart';
 import 'features/home/presentation/screens/home_screen.dart';
@@ -45,6 +46,7 @@ final _router = GoRouter(
   navigatorKey: NotificationService.navigatorKey,
   initialLocation: '/splash',
   debugLogDiagnostics: true, // Disable in prod via --dart-define
+  observers: [appRouteObserver],
   routes: [
     GoRoute(
       path: '/splash',
@@ -99,7 +101,17 @@ final _router = GoRouter(
             ),
           ],
         ),
-        // 3 – Wallet
+        // 3 – Influencers
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/influencers',
+              name: 'influencers',
+              builder: (_, __) => const InfluencersListScreen(),
+            ),
+          ],
+        ),
+        // 4 – Wallet
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -109,7 +121,7 @@ final _router = GoRouter(
             ),
           ],
         ),
-        // 4 – QR (last position)
+        // 5 – QR (last position)
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -119,7 +131,7 @@ final _router = GoRouter(
             ),
           ],
         ),
-        // 5 – Profile
+        // 6 – Profile
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -151,11 +163,6 @@ final _router = GoRouter(
       path: '/wallet-ledger',
       name: 'wallet-ledger',
       builder: (_, __) => const WalletLedgerScreen(),
-    ),
-    GoRoute(
-      path: '/influencers',
-      name: 'influencers',
-      builder: (_, __) => const InfluencersListScreen(),
     ),
     GoRoute(
       path: '/influencer-detail/:id',
