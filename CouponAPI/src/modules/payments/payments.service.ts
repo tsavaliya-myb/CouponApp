@@ -83,7 +83,16 @@ export class PaymentService {
     const priceSetting = await prisma.appSetting.findUnique({
       where: { key: 'subscription_price' },
     });
-    const rupees = priceSetting;//? parseFloat(priceSetting.value) : 999;
+
+    if (!priceSetting) {
+      throw new Error('Subscription price is not configured');
+    }
+
+    const rupees = Number(priceSetting.value);
+    if (!Number.isFinite(rupees) || rupees <= 0) {
+      throw new Error('Invalid subscription price configuration');
+    }
+
     const amountPaise = toPaise(rupees);
 
     if (amountPaise > env.RAZORPAY_MANDATE_MAX_AMOUNT) {
